@@ -512,3 +512,90 @@ device at once (`mac_registered` is always true) and marks a new device with `is
 device on its trial. The account state is "trial" when the device is not registered **or**
 `is_trial` is 0; a paid licence (1, 2 or 3) goes straight in. The fixtures now send the trial as
 the backend does (`mac_registered: true`, `is_trial: 0`).
+
+## M4 · Browse
+
+### D-057 · Scrims with React Native's built-in gradients (closes D-017)
+
+The hero and details scrims use `experimental_backgroundImage` with a CSS `linear-gradient`
+(React Native 0.86, New Architecture). It needs no library and no new development build. The
+gradient strings live in `src/theme/colors.ts` (`gradients`), next to the `scrims` tokens.
+
+### D-058 · Phone-only keys for the new Home rows and Search
+
+N-01 wants "one row per category the user has opened most", and screens.md wants recent
+searches; the TV has neither. Two per-playlist keys hold them, in the TV naming style:
+`{P}{pid}_mobile_category_opens` (open counts per kind; adult categories are never counted) and
+`{P}{pid}_mobile_recent_searches` (the last 10 queries, newest first). Home shows the 3 most
+opened movie or series categories.
+
+### D-059 · The IBO image cache is skipped in the dev-backend mode
+
+TMDB artwork on the details pages goes through the IBO image cache for Xtream playlists
+(services.md). The cache is an IBO server, so it is used only in production and in fixture mode
+(where the fixtures answer it). In the dev-backend mode the app calls TMDB directly. The rule
+"never call the real IBO servers during development" holds in every mode.
+
+### D-060 · A favourite changes at once on the details page
+
+R-078 applies the TV's details-page favourite when the page is left. user-flows.md §7 Mobile
+says the phone applies it immediately, with the same restrictions. The phone follows
+user-flows.md. The toasts are the TV's (`<name> added to Favorites.`, `Parental Safety`). R-078's
+rule function stays tested for parity.
+
+### D-061 · Development builds cannot reach the production backend (owner's rule)
+
+**Owner's rule (2026-09-26):** never test on the production backend, so the real database gets
+no fake devices or playlists. Development and preview builds now offer only "Fixtures" and "Dev
+backend". A stored "production" (from before this rule), an unknown value or the old
+"use fixtures" switch all mean the fixtures. The dev link ignores `network=production`.
+Production builds still always use production. If an owner-approved preview build ever needs the
+real backend, this rule has to be lifted on purpose.
+
+### D-062 · Libraries added in M4
+
+All three are JavaScript only, so no new development build is needed:
+
+- `@shopify/flash-list` 2.0.2: the version Expo SDK 57 lists.
+- `@gorhom/bottom-sheet` 5.2.14: its peers are Reanimated ≥ 4 and Gesture Handler ≥ 2.16, both
+  already installed.
+- `@tanstack/react-query` 5.104.0.
+
+Nothing needs an install script (D-045). Browse queries read SQLite and MMKV, so they never go
+stale on their own; they are refreshed by invalidation when a section syncs or a list changes
+(`src/hooks/queryClient.ts`).
+
+Test setup notes:
+
+- FlashList's `jestSetup.js` points `FlashList` at an export v2 no longer has, so only its
+  measurement mock is copied into `jest.setup.ts`.
+- `@testing-library/react-native` 14 made `fireEvent` asynchronous, so it is awaited.
+- The expo-router test helper replaces the Reanimated mock with one that has no
+  `useReducedMotion`. The components use a small `useReduceMotion` hook on `AccessibilityInfo`
+  instead, which is also what design-system.md §7 names.
+
+### D-063 · M4 scope choices
+
+- **Playback comes in M5.**
+  - Play, Resume and episode taps show "Playback arrives in the next update." for now
+    (`src/utils/content.ts`, one place to replace).
+  - The Live tab's sticky preview shows the selected channel's logo and programme on now.
+  - The Guide, Replay and Sports entries, and the `EpgTimeline` component, come with the EPG
+    guide in M5.
+- **Rows and lists:**
+  - "See all" and the category picker open a category screen with the poster grid (3 columns, 4
+    from 480 dp, 6 on tablets), rather than a grid inside the tab.
+  - Continue Watching stays separate for movies and series (user-flows.md §12), as two Home rows.
+  - Long press opens quick actions. "Remove from Continue Watching" (user-flows.md §12, optional)
+    is included.
+- **Custom categories:** their rows appear when the feature is on. The "Add to…" chooser comes
+  with Settings → Custom Categories in M6, since categories can only be created there.
+- **Later milestones:** the expiry banner and popup (R-114) are M6; the Downloads segment of My
+  List is a placeholder until M7.
+- **Stalker:** category lists keep the portal's order for the chosen sort; the per-batch
+  client-side sort of stalker.md §4.10 is not applied, since the portal already sorts.
+- **Trailer** opens the YouTube link outside the app; the player (M5) may embed it.
+- **Search:** opening Search starts the downloads of the sections it covers (Q-search-lod), and a
+  note says the results may be incomplete while they run.
+- **Fixture "Fixture Big":** a playlist with 20,000 channels and a 5,000-movie category, turned
+  on by the dev link `big=1`. It exists for the M4 scrolling check.

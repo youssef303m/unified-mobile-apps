@@ -7,6 +7,7 @@ import {
   STALKER_MAC,
   STALKER_PORTAL_URL,
   XTREAM_PASS,
+  XTREAM_BIG_URL,
   XTREAM_URL,
   XTREAM_USER,
 } from "./hosts";
@@ -53,6 +54,18 @@ export const fixturePlaylists = [
   },
 ];
 
+/** Scenario `bigPlaylist`: 20,000 channels and a 5,000-movie category (M4 scrolling check). */
+export const bigPlaylist = {
+  id: "65f1c0ffee1234567890abd0",
+  playlist_name: "Fixture Big",
+  url: XTREAM_BIG_URL,
+  playlist_type: "xc",
+  username: XTREAM_USER,
+  password: XTREAM_PASS,
+  is_protected: 0,
+  pin: "",
+};
+
 export const demoPlaylist = {
   id: "demo",
   playlist_name: "Demo",
@@ -83,7 +96,9 @@ export function deviceInfoReply(): Record<string, unknown> {
     languages: [],
     notification: {},
     // A device with no playlists gets the demo as a bare URL string, as the real backend sends it.
-    urls: scenario.demoOnly ? [demoPlaylist.url] : [demoPlaylist, ...fixturePlaylists],
+    urls: scenario.demoOnly
+      ? [demoPlaylist.url]
+      : [demoPlaylist, ...fixturePlaylists, ...(scenario.bigPlaylist ? [bigPlaylist] : [])],
   };
 }
 

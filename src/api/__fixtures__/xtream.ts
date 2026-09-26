@@ -6,6 +6,8 @@ import { XTREAM_BIG_HOST, XTREAM_HOST, XTREAM_PASS, XTREAM_USER } from "./hosts"
 import { json, params, type FixtureRequest, type FixtureResponse } from "./types";
 
 export const XTREAM_BIG_COUNT = 20_000;
+/** The big host's first VOD category holds this many movies (the M4 scrolling check). */
+export const XTREAM_BIG_VOD_CATEGORY = 5_000;
 const PER_TYPE = 50;
 const CATEGORIES = 5;
 
@@ -52,8 +54,8 @@ export function liveStreams(count = PER_TYPE) {
   }));
 }
 
-export function vodStreams() {
-  return Array.from({ length: PER_TYPE }, (_, i) => ({
+export function vodStreams(count = PER_TYPE, oneCategory = false) {
+  return Array.from({ length: count }, (_, i) => ({
     num: i + 1,
     name: `EN - Fixture Movie ${i + 1} (${2000 + (i % 25)})`,
     stream_type: "movie",
@@ -63,7 +65,7 @@ export function vodStreams() {
     rating_5based: 2.5,
     // The first 5 were added within the last 15 days ("Newly Added").
     added: String(i < 5 ? nowS() - i * 86_400 : 1_700_000_000 + i),
-    category_id: String(40 + (i % CATEGORIES)),
+    category_id: oneCategory ? "40" : String(40 + (i % CATEGORIES)),
     container_extension: i % 4 === 0 ? "m3u8" : i % 2 === 0 ? "mp4" : "mkv",
     custom_sid: null,
     direct_source: "",
@@ -218,7 +220,7 @@ export function xtreamServer(request: FixtureRequest): FixtureResponse | undefin
     case "get_vod_categories":
       return json(vodCategories);
     case "get_vod_streams":
-      return json(vodStreams());
+      return json(big ? vodStreams(XTREAM_BIG_VOD_CATEGORY, true) : vodStreams());
     case "get_series_categories":
       return json(seriesCategories);
     case "get_series":

@@ -1,0 +1,124 @@
+# Flow 5 (04-build/testing.md §4): a locked category asks for the PIN; a wrong PIN shakes (with
+# the TV message); the right PIN opens it; the PIN is changed in Settings → Parental Control and
+# the new one opens the category. The fixture PIN is 0000; "ADULT MOVIES" is the adult category.
+appId: com.iboplayer.mobile
+name: "Flow 5 - parental PIN"
+---
+- runFlow:
+    file: common/fresh-start.yaml
+    env:
+      ACCOUNT: active
+- runFlow: common/accept-and-verify.yaml
+- extendedWaitUntil:
+    visible:
+      id: "home-screen"
+    timeout: 60000
+
+# Movies: the adult row is locked (R-061); opening it asks for the PIN.
+- tapOn:
+    id: "tab-movies"
+- extendedWaitUntil:
+    visible:
+      id: "movie-rows"
+    timeout: 60000
+- scrollUntilVisible:
+    element:
+      id: "row-44-see-all"
+    direction: DOWN
+    timeout: 30000
+- assertNotVisible: 'EN - Fixture Movie 5 \(2004\)'
+- tapOn:
+    id: "row-44-see-all"
+- extendedWaitUntil:
+    visible:
+      id: "pin-sheet"
+    timeout: 10000
+- assertVisible: "Enter your PIN"
+- runFlow:
+    file: common/type-pin.yaml
+    env:
+      PIN: "1111"
+- assertVisible: "Sorry, parent password does not match."
+- runFlow:
+    file: common/type-pin.yaml
+    env:
+      PIN: "0000"
+- extendedWaitUntil:
+    visible:
+      id: "category-screen"
+    timeout: 15000
+- assertVisible: "ADULT MOVIES"
+- assertVisible: 'EN - Fixture Movie 5 \(2004\)'
+- back
+
+# Settings → Parental Control asks the current PIN (R-065), then Change PIN (new + confirm).
+- tapOn:
+    id: "topbar-account"
+- extendedWaitUntil:
+    visible:
+      id: "account-screen"
+    timeout: 10000
+- scrollUntilVisible:
+    element:
+      id: "account-parental"
+- tapOn:
+    id: "account-parental"
+- extendedWaitUntil:
+    visible:
+      id: "pin-sheet"
+    timeout: 10000
+- runFlow:
+    file: common/type-pin.yaml
+    env:
+      PIN: "0000"
+- extendedWaitUntil:
+    visible:
+      id: "parental-change-pin"
+    timeout: 10000
+- tapOn:
+    id: "parental-change-pin"
+- assertVisible: "New PIN"
+- runFlow:
+    file: common/type-pin.yaml
+    env:
+      PIN: "1234"
+- assertVisible: "Confirm New PIN"
+- runFlow:
+    file: common/type-pin.yaml
+    env:
+      PIN: "1234"
+- extendedWaitUntil:
+    visible: "Parental control PIN changed successfully!"
+    timeout: 10000
+- back
+- back
+
+# The old PIN no longer opens the category; the new one does.
+- extendedWaitUntil:
+    visible:
+      id: "movie-rows"
+    timeout: 10000
+- scrollUntilVisible:
+    element:
+      id: "row-44-see-all"
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: "row-44-see-all"
+- extendedWaitUntil:
+    visible:
+      id: "pin-sheet"
+    timeout: 10000
+- runFlow:
+    file: common/type-pin.yaml
+    env:
+      PIN: "0000"
+- assertVisible: "Sorry, parent password does not match."
+- runFlow:
+    file: common/type-pin.yaml
+    env:
+      PIN: "1234"
+- extendedWaitUntil:
+    visible:
+      id: "category-screen"
+    timeout: 15000

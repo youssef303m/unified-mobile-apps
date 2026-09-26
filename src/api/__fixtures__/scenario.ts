@@ -17,6 +17,8 @@ export interface Scenario {
   deviceUnknown: boolean;
   /** device_info returns only the demo playlist. */
   demoOnly: boolean;
+  /** device_info also lists "Fixture Big" (20,000 channels, a 5,000-movie category). */
+  bigPlaylist: boolean;
   /** The Stalker portal rejects the first token after the first content call. */
   stalkerTokenExpires: boolean;
   /** The Stalker portal answers 405 to GET content calls (→ POST). */
@@ -31,6 +33,7 @@ const defaults: Scenario = {
   uidMismatch: false,
   deviceUnknown: false,
   demoOnly: false,
+  bigPlaylist: false,
   stalkerTokenExpires: false,
   stalkerPostOnly: false,
 };

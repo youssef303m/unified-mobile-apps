@@ -1,0 +1,54 @@
+# M4 acceptance (04-build/roadmap.md): scrolling a 5,000-item category stays smooth. Loads the
+# "Fixture Big" playlist (a 5,000-movie category), opens that category and flings through it.
+# Run on its own between `adb shell dumpsys gfxinfo com.iboplayer.mobile reset` and
+# `adb shell dumpsys gfxinfo com.iboplayer.mobile` to read the janky-frame count (e2e/README.md).
+appId: com.iboplayer.mobile
+name: "Perf - 5,000-item category"
+---
+- runFlow: ../common/open-app.yaml
+- openLink: "iboplayer://dev?network=fixtures&reset=1&account=active&big=1"
+- runFlow: ../common/accept-and-verify.yaml
+- extendedWaitUntil:
+    visible:
+      id: "home-screen"
+    timeout: 60000
+- tapOn:
+    id: "home-playlist-chip"
+- extendedWaitUntil:
+    visible:
+      id: "playlists-screen"
+    timeout: 15000
+- tapOn: "Fixture Big"
+- tapOn: "OK"
+- extendedWaitUntil:
+    visible:
+      id: "home-screen"
+    timeout: 120000
+- tapOn:
+    id: "tab-movies"
+- extendedWaitUntil:
+    visible:
+      id: "row-40-see-all"
+    timeout: 120000
+- tapOn:
+    id: "row-40-see-all"
+- extendedWaitUntil:
+    visible:
+      id: "category-screen"
+    timeout: 30000
+- repeat:
+    times: 25
+    commands:
+      - swipe:
+          start: 50%, 85%
+          end: 50%, 15%
+          duration: 150
+- repeat:
+    times: 10
+    commands:
+      - swipe:
+          start: 50%, 15%
+          end: 50%, 85%
+          duration: 150
+- assertVisible:
+    id: "category-screen"

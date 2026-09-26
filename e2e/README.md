@@ -6,11 +6,15 @@ server). They run against the development build on a phone connected over USB.
 | File                           | Flow                                                                     |
 | ------------------------------ | ------------------------------------------------------------------------ |
 | `flow-01-first-launch.yaml`    | 1: terms → captcha → trial Welcome → Home; expired → Check again → Home  |
+| `flow-05-parental.yaml`        | 5: locked category → wrong PIN → right PIN → change PIN → new PIN opens  |
+| `flow-06-search.yaml`          | 6: search finds a channel, a movie and a series; empty query → recents   |
 | `flow-07-switch-playlist.yaml` | 7: switch playlist → the catalogue re-syncs → Home shows the new content |
 | `flow-10-expired.yaml`         | 10: expired account → Expired screen → no content reachable              |
+| `perf/big-category.yaml`       | M4: fling through a 5,000-movie category (run on its own, see below)     |
 
 `common/` holds shared steps (not run on their own). The flows drive the fixtures through the
-dev-only link `iboplayer://dev?network=fixtures&reset=1&account=trial|active|expired` (app/dev.tsx).
+dev-only link `iboplayer://dev?network=fixtures&reset=1&account=trial|active|expired&big=0|1`
+(app/dev.tsx). Development builds cannot reach the production backend (docs/decisions.md D-061).
 
 ## Running
 
@@ -20,3 +24,17 @@ dev-only link `iboplayer://dev?network=fixtures&reset=1&account=trial|active|exp
 4. `maestro test e2e/` (or one file). Maestro installs two helper apps on the phone
    (`dev.mobile.maestro`, `dev.mobile.maestro.test`); remove them afterwards with
    `adb uninstall dev.mobile.maestro` and `adb uninstall dev.mobile.maestro.test`.
+
+## The scrolling check (M4)
+
+`maestro test e2e/` runs the numbered flows only. The scrolling check runs on its own, with
+Android's frame statistics around it:
+
+```bash
+adb shell dumpsys gfxinfo com.iboplayer.mobile reset
+maestro test e2e/perf/big-category.yaml
+adb shell dumpsys gfxinfo com.iboplayer.mobile | grep -E "Total frames|Janky frames|percentile"
+```
+
+A development build runs JavaScript in debug mode, so its numbers are worse than a release
+build's; the perf monitor (dev menu → "Perf monitor") shows the same on screen.

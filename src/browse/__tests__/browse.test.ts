@@ -1,6 +1,6 @@
 // M4 services on the fixtures: Home rows (N-01), tab rows and category lists, details, search,
 // My List and parental control.
-import { fixturePlaylists } from "@/api/__fixtures__/ibo";
+import { bigPlaylist, fixturePlaylists } from "@/api/__fixtures__/ibo";
 import { parsePlaylist } from "@/api/ibo/playlists";
 import type { Playlist } from "@/api/ibo/types";
 import { memoryStore, type KeyValueStore } from "@/api/store";
@@ -179,6 +179,18 @@ describe("tab rows and category lists", () => {
     const names = [...first.items, ...second.items, ...last.items].map((i) => i.name);
     expect(names).toHaveLength(10);
     expect([...names].sort((a, b) => a.localeCompare(b))).toEqual(names);
+  });
+
+  it("M4 acceptance data: a 5,000-movie category pages quickly from SQLite", async () => {
+    const big = parsePlaylist(bigPlaylist);
+    const ctx = await context(big);
+    const row = { type: "category", id: "40", name: "EN | ACTION", isAdult: false } as const;
+    const feed = new CategoryFeed(ctx, "movie", row, "added");
+    const started = Date.now();
+    const deep = await feed.page(4_800, 60);
+    expect(Date.now() - started).toBeLessThan(500);
+    expect(deep.items).toHaveLength(60);
+    expect((await feed.page(4_980, 60)).done).toBe(true);
   });
 
   it("Stalker: a category list fetches portal pages as it grows", async () => {

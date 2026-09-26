@@ -1,5 +1,6 @@
 # Flow 7 (04-build/testing.md §4): switch playlist → the catalogue re-syncs → Home shows the new
-# content. The fixture account has an Xtream playlist, an M3U playlist and a Stalker portal.
+# content. The fixture account has an Xtream playlist, an M3U playlist and a Stalker portal. The
+# Home hero is the newest movie with artwork of the loaded playlist (N-01).
 appId: com.iboplayer.mobile
 name: "Flow 7 - switch playlist"
 ---
@@ -12,11 +13,11 @@ name: "Flow 7 - switch playlist"
     visible:
       id: "home-screen"
     timeout: 60000
-# The Xtream playlist loads first; Home shows its live categories.
+# The Xtream playlist loads first; Home shows its newest movie.
 - assertVisible: ".*Fixture Xtream.*"
 - extendedWaitUntil:
-    visible: 'UK \| NEWS'
-    timeout: 30000
+    visible: 'EN - Fixture Movie 1 \(2000\)'
+    timeout: 60000
 
 # Switch to the M3U playlist from the Home playlist chip.
 - tapOn:
@@ -35,9 +36,9 @@ name: "Flow 7 - switch playlist"
     timeout: 60000
 - assertVisible: ".*Fixture M3U.*"
 - extendedWaitUntil:
-    visible: 'UK \| General'
-    timeout: 30000
-- assertNotVisible: 'UK \| NEWS'
+    visible: 'Dune Part Two \(2024\)'
+    timeout: 60000
+- assertNotVisible: 'EN - Fixture Movie 1 \(2000\)'
 
 # The new selection survives a restart (R-020 automatic: the saved playlist).
 - stopApp

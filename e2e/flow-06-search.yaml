@@ -1,0 +1,106 @@
+# Flow 6 (04-build/testing.md §4): Search finds a channel, a movie and a series; an empty query
+# shows the recent searches.
+appId: com.iboplayer.mobile
+name: "Flow 6 - search"
+---
+- runFlow:
+    file: common/fresh-start.yaml
+    env:
+      ACCOUNT: active
+- runFlow: common/accept-and-verify.yaml
+- extendedWaitUntil:
+    visible:
+      id: "home-screen"
+    timeout: 60000
+- tapOn:
+    id: "topbar-search"
+- extendedWaitUntil:
+    visible:
+      id: "search-screen"
+    timeout: 10000
+- assertVisible: 'Type to start searching\.\.\.'
+
+# A channel: it opens on the Live tab, previewed.
+- tapOn:
+    id: "search-input"
+- inputText: "Fixture Channel 12"
+- extendedWaitUntil:
+    visible:
+      id: "result-10011"
+    timeout: 60000
+- hideKeyboard
+- tapOn:
+    id: "result-10011"
+- extendedWaitUntil:
+    visible:
+      id: "live-preview"
+    timeout: 30000
+- assertVisible: "Fixture Channel 12"
+
+# A movie.
+- tapOn:
+    id: "topbar-search"
+- extendedWaitUntil:
+    visible:
+      id: "search-screen"
+    timeout: 10000
+- tapOn:
+    id: "segment-all"
+- tapOn:
+    id: "search-input"
+- inputText: "Fixture Movie 12"
+- extendedWaitUntil:
+    visible:
+      id: "result-55011"
+    timeout: 60000
+- hideKeyboard
+- tapOn:
+    id: "result-55011"
+- extendedWaitUntil:
+    visible:
+      id: "movie-details"
+    timeout: 15000
+- assertVisible: 'EN - Fixture Movie 12 \(2011\)'
+- back
+
+# A series.
+- extendedWaitUntil:
+    visible:
+      id: "search-screen"
+    timeout: 10000
+- tapOn:
+    id: "search-input"
+- eraseText: 30
+- inputText: "Fixture Series 7"
+- extendedWaitUntil:
+    visible:
+      id: "result-3306"
+    timeout: 60000
+- hideKeyboard
+- tapOn:
+    id: "result-3306"
+- extendedWaitUntil:
+    visible:
+      id: "series-details"
+    timeout: 15000
+- assertVisible: "Fixture Series 7"
+- back
+
+# An empty query shows the recent searches, newest first.
+- extendedWaitUntil:
+    visible:
+      id: "search-screen"
+    timeout: 10000
+- tapOn:
+    id: "search-input"
+- eraseText: 30
+- extendedWaitUntil:
+    visible:
+      id: "recent-searches"
+    timeout: 10000
+- assertVisible:
+    id: "recent-Fixture Series 7"
+- assertVisible:
+    id: "recent-Fixture Movie 12"
+- assertVisible:
+    id: "recent-Fixture Channel 12"
