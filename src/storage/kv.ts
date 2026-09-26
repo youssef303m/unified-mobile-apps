@@ -52,4 +52,5 @@ export const kvStore: KeyValueStore = {
   get: (key) => store().getString(key),
   set: (key, value) => store().set(key, value),
   remove: (key) => void store().remove(key),
+  keys: () => store().getAllKeys(),
 };

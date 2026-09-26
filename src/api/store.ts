@@ -6,6 +6,8 @@ export interface KeyValueStore {
   get(key: string): string | undefined;
   set(key: string, value: string): void;
   remove(key: string): void;
+  /** Every stored key (key renames on a new playlist id, Clear Cache). */
+  keys(): string[];
 }
 
 export function memoryStore(initial: Record<string, string> = {}): KeyValueStore {
@@ -14,6 +16,7 @@ export function memoryStore(initial: Record<string, string> = {}): KeyValueStore
     get: (key) => values.get(key),
     set: (key, value) => void values.set(key, value),
     remove: (key) => void values.delete(key),
+    keys: () => [...values.keys()],
   };
 }
 
