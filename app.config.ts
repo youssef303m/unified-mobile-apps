@@ -56,6 +56,13 @@ const config: ExpoConfig = {
   experiments: {
     typedRoutes: true,
   },
+  // Owner (EAS account) and project for EAS Build (docs/decisions.md D-019).
+  owner: "youssef303m",
+  extra: {
+    eas: {
+      projectId: "857544d9-6b6d-4a7b-acc2-ad4c0360eb8f",
+    },
+  },
 };
 
 export default config;
