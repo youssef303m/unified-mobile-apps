@@ -43,7 +43,8 @@ export function useMovieDetails(kind: ContentKind, itemId: string) {
   const found = item.data?.item;
   const info = useQuery({
     queryKey: [...browseKey(pid), "movie-info", itemId],
-    enabled: ctx !== undefined && found !== undefined,
+    // Series have their own info call (useSeriesDetails); the Home hero can be a series.
+    enabled: ctx !== undefined && found?.kind === "movie",
     queryFn: ({ signal }) => movieInfo(need(ctx), need(found), signal),
   });
   const resume = found && ctx ? movieResume(ctx, found) : undefined;
