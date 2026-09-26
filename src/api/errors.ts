@@ -28,7 +28,9 @@ export type AuthReason =
   | "provider_auth"
   | "provider_expired"
   | "provider_banned"
-  | "provider_disabled";
+  | "provider_disabled"
+  | "portal_expired"
+  | "portal_unavailable";
 
 /** Credentials rejected or session expired. */
 export class AuthError extends ApiError {
