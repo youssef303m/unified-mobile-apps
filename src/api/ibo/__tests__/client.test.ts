@@ -111,7 +111,7 @@ describe("V4 device_info (#4)", () => {
     setScenario({ account: "trial" });
     const trial = await deviceInfo(newPanel(), id, FIXTURE_TOKEN);
     expect(trial.kind === "ok" && trial.info).toMatchObject({
-      mac_registered: false,
+      is_trial: 0,
       trial_days: 7,
     });
     setScenario({ account: "expired" });

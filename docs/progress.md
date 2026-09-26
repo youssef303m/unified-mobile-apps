@@ -2,22 +2,22 @@
 
 A new session must be able to continue from this file alone. Read `AGENTS.md` first.
 
-## Current milestone: M3 · Boot, activation and playlists. Code complete; the Maestro run on the phone is next
+## Current milestone: M3 · Boot, activation and playlists. Done; waiting for the owner's review
 
-| M3 item (04-build/roadmap.md)                                                             | Status                                                                                      |
-| ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
-| Splash → terms → registration → account-state routing → Activation → playlist load → Home | done (`app/index.tsx`, `app/(boot)/`, `app/loading.tsx`; the flows in `src/session/`)       |
-| The Playlists and Portals screens, switching playlists, and the Account screen            | done (`app/playlists/`, `app/portals/`, `app/account.tsx`)                                  |
-| **Accept:** Maestro flows 1, 7 and 10                                                     | written (`e2e/`, syntax checked); **not run yet**: needs the phone on USB (`e2e/README.md`) |
+| M3 item (04-build/roadmap.md)                                                             | Status                                                                                |
+| ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| Splash → terms → registration → account-state routing → Activation → playlist load → Home | done (`app/index.tsx`, `app/(boot)/`, `app/loading.tsx`; the flows in `src/session/`) |
+| The Playlists and Portals screens, switching playlists, and the Account screen            | done (`app/playlists/`, `app/portals/`, `app/account.tsx`)                            |
+| **Accept:** Maestro flows 1, 7 and 10                                                     | **passing on the phone** (2026-09-26, `maestro test e2e/`: 3/3 in 4 min)              |
 
 Also done in M3: the client fixes found in the dev backend's source (D-047 to D-049), the network
 mode with the owner's dev backend (D-050), the route guard (D-051), and the dev link for the e2e
 flows (D-052). Owner answers applied: Q-offline-expired (an expired cached licence blocks
 offline, D-035) and Q-favourites-full (refuse, D-037).
 
-**To finish M3:** with the phone on USB and the new development build installed, run the three
-flows (steps in `e2e/README.md`), fix what they find, remove the Maestro helper apps, and report
-to the owner.
+The phone run found a native crash on the first catalogue write (expo-sqlite + FTS5, fixed in
+D-055). Owner answers after the run: Q-mac-registered (Welcome for a new device on its trial,
+D-056) and Q-rate-limit.
 
 ## Dev IBO backend (from the owner)
 
@@ -27,6 +27,9 @@ to the owner.
 - In the app: the "Dev backend" network mode (Home, Account or Server-failed screen, dev builds).
   It is the only panel; the agent servers are skipped. It blocks an IP for 4 hours after 50
   requests a minute (Q-rate-limit).
+- The owner allows changing the backend source **for testing only**: discard every change
+  afterwards, and never commit or push anything in `iboplayer-backend`. (The hosted copy only
+  changes if it is redeployed; a local run would be needed to test changes.)
 
 ## Accepted milestones
 
@@ -65,7 +68,7 @@ to the owner.
 - `e2e/`: Maestro flows 1, 7, 10 and shared steps.
 - Tests: 305 in 28 suites (`npm test`); Jest projects "app" and "core" (D-022, D-033; core now
   also covers `src/session`).
-- `docs/decisions.md` (D-001 to D-054), `docs/open-questions.md`, `docs/new-strings.md`.
+- `docs/decisions.md` (D-001 to D-056), `docs/open-questions.md`, `docs/new-strings.md`.
 
 ## Running the app on the phone
 
@@ -86,12 +89,11 @@ to the owner.
 
 ## Blockers and later needs (owner)
 
-- Q-mac-registered and Q-rate-limit (docs/open-questions.md), when convenient.
 - Later: a GitHub remote so CI runs, and the `EXPO_TOKEN` secret for tag builds.
 
 ## Next
 
-- Run the M3 Maestro flows on the phone, then the M3 report and the owner's go-ahead.
+- The owner's review of M3 and the go-ahead for M4.
 - Then M4 · Browse: the design-system components with their states and the gallery; Home rows
   (N-01), Movies, Series, Live list, details pages, Search, My List, parental PIN. Read
   03-design/design-system.md §5, screens.md, user-flows.md §4-13, new-features.md N-01.

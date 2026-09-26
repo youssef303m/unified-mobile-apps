@@ -1,7 +1,7 @@
 # Flow 7 (04-build/testing.md §4): switch playlist → the catalogue re-syncs → Home shows the new
 # content. The fixture account has an Xtream playlist, an M3U playlist and a Stalker portal.
 appId: com.iboplayer.mobile
-name: "Flow 7: switch playlist"
+name: "Flow 7 - switch playlist"
 ---
 - runFlow:
     file: common/fresh-start.yaml

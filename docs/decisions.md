@@ -490,3 +490,25 @@ component set with every state and the component gallery.
   marked the device verified.
 - `expo-asset` is installed at the top level: `expo-sqlite` imports it, and it was only nested
   under `expo`. It is already in the development build (the `expo` package links it).
+
+### D-055 · expo-sqlite: no finalize-all before closing a connection
+
+Found on the phone by Maestro flow 1: the first catalogue write crashed the app natively (Scudo
+"invalid chunk state", in `sqlite3_finalize`). Each `withExclusiveTransactionAsync` opens its
+own connection and closes it at the end; before closing, expo-sqlite finalizes every statement of
+that connection (`finalizeUnusedStatementsBeforeClosing`, default true), including the FTS5
+module's internal statements, which FTS5 then frees again when the connection closes. Reproduced
+on the device (the migration inside an exclusive transaction crashes on close; the same script
+outside it, or a transaction without FTS5, does not) and fixed by opening the database with
+`finalizeUnusedStatementsBeforeClosing: false`. Every statement the app runs goes through
+`runAsync` / `getAllAsync` / `getFirstAsync`, which finalize it themselves. Node tests use
+better-sqlite3, so only a device run catches this kind of bug.
+
+### D-056 · The Welcome screen for a new device on its trial
+
+R-007 shows the trial Welcome screen when `mac_registered` is false, but the backend registers a
+device at once (`mac_registered` is always true) and marks a new device with `is_trial: 0` for its
+7-day trial. **Owner's answer (2026-09-26, Q-mac-registered):** show the Welcome screen to a new
+device on its trial. The account state is "trial" when the device is not registered **or**
+`is_trial` is 0; a paid licence (1, 2 or 3) goes straight in. The fixtures now send the trial as
+the backend does (`mac_registered: true`, `is_trial: 0`).

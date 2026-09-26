@@ -67,14 +67,16 @@ export type AccountState = "expired" | "trial" | "active";
 /**
  * R-005, R-006, R-007: the account state that routes the app after device info. Offline, `info`
  * is the cached reply of the last successful connection, and an expired date there blocks the app
- * just as online (owner's answer to Q-offline-expired, docs/decisions.md D-035).
+ * just as online (owner's answer to Q-offline-expired, docs/decisions.md D-035). A new device on
+ * its 7-day trial (the backend creates it with is_trial 0) sees the Welcome screen even though the
+ * backend reports it registered (owner's answer to Q-mac-registered, D-056).
  */
 export function accountState(
-  info: Pick<DeviceInfo, "expire_date" | "mac_registered">,
+  info: Pick<DeviceInfo, "expire_date" | "mac_registered" | "is_trial">,
   options: { today?: Date } = {},
 ): AccountState {
   if (isLicenseExpired(info.expire_date, options.today)) return "expired";
-  return info.mac_registered ? "active" : "trial";
+  return info.mac_registered && info.is_trial !== 0 ? "active" : "trial";
 }
 
 /** R-008 (Q-is-trial): "Active" when is_trial is 2 or 3, otherwise "Trial". */

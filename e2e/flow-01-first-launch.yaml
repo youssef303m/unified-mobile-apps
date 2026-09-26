@@ -2,7 +2,7 @@
 # the device id, device key and website → Continue → Home. With the expired fixture the same flow
 # ends on the blocked Expired screen; after the fixture switches to active, Check again → Home.
 appId: com.iboplayer.mobile
-name: "Flow 1: first launch"
+name: "Flow 1 - first launch"
 ---
 - runFlow:
     file: common/fresh-start.yaml

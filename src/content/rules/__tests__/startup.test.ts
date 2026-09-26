@@ -93,13 +93,25 @@ describe("A. Startup, terms, device and licence", () => {
     );
   });
 
-  it("R-007: not registered → trial welcome; registered → active", () => {
+  it("R-007: not registered, or new on its trial → Welcome; registered and paid → active", () => {
     expect(accountState({ expire_date: "2027-01-01", mac_registered: false }, { today })).toBe(
       "trial",
     );
     expect(accountState({ expire_date: "2027-01-01", mac_registered: true }, { today })).toBe(
       "active",
     );
+    // D-056: a new device on its trial (is_trial 0) is registered on the backend but still
+    // sees the Welcome screen; a paid licence (1, 2, 3) goes straight in.
+    expect(
+      accountState({ expire_date: "2027-01-01", mac_registered: true, is_trial: 0 }, { today }),
+    ).toBe("trial");
+    for (const paid of [1, 2, 3])
+      expect(
+        accountState(
+          { expire_date: "2027-01-01", mac_registered: true, is_trial: paid },
+          { today },
+        ),
+      ).toBe("active");
     // Expiry wins over the trial state.
     expect(accountState({ expire_date: "2026-01-01", mac_registered: false }, { today })).toBe(
       "expired",

@@ -23,7 +23,11 @@ function wrap(native: Native, transaction: Db["transaction"]): Db {
 }
 
 export async function openCatalogueDb(name = "catalogue.db"): Promise<Db> {
-  const native = await openDatabaseAsync(name);
+  // Every exclusive transaction opens its own connection and closes it at the end. Before
+  // closing, expo-sqlite would finalize all of the connection's statements, including the
+  // FTS5 module's own, which FTS5 then frees again: a native crash on the first write
+  // (docs/decisions.md D-055). Our statements are always finalized explicitly.
+  const native = await openDatabaseAsync(name, { finalizeUnusedStatementsBeforeClosing: false });
   await native.execAsync("PRAGMA journal_mode = WAL;");
   const db = wrap(native, (task) =>
     native.withExclusiveTransactionAsync(async (txn) => {

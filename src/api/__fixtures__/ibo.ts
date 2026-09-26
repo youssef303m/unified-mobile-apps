@@ -67,7 +67,8 @@ function isoDate(offsetDays: number): string {
 export function deviceInfoReply(): Record<string, unknown> {
   const byState = {
     active: { mac_registered: true, expire_date: isoDate(180), is_trial: 2 },
-    trial: { mac_registered: false, expire_date: isoDate(7), is_trial: 0 },
+    // As the backend: a new device is registered at once and on its 7-day trial (is_trial 0).
+    trial: { mac_registered: true, expire_date: isoDate(7), is_trial: 0 },
     expired: { mac_registered: true, expire_date: isoDate(-3), is_trial: 1 },
   }[scenario.account];
   return {

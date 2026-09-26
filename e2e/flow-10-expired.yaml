@@ -1,6 +1,6 @@
 # Flow 10 (04-build/testing.md §4): expired account → expiry screen → no content reachable.
 appId: com.iboplayer.mobile
-name: "Flow 10: expired account"
+name: "Flow 10 - expired account"
 ---
 - runFlow:
     file: common/fresh-start.yaml
