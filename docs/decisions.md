@@ -151,3 +151,13 @@ Consequences:
   build on the phone instead.
 - The Maestro E2E flows (from M3) still need JDK 17 and the Android SDK Platform-Tools (`adb`),
   about 0.3 GB, installed before M3. They run against the phone over USB, not an emulator.
+
+### D-020 · English and Arabic only, for now (owner's decision)
+
+The owner asked to keep only English and Arabic to keep the app simple while it is built. The
+other 16 locale files were removed from `src/i18n/locales/` (they remain unchanged in
+`iboplayer-mobile-kit/05-reference/locales/`), and so was the Noto Sans Devanagari font, which
+only Hindi used. This deviates from the kit (18 languages, translations.md). A phone whose
+language is not English or Arabic starts in English. To add a language back: copy its file from
+the kit, add it to `src/i18n/languages.ts` and `resources.ts`, and for fa/ur add it to the RTL
+list and the Arabic script in `src/theme/typography.ts` (hi needs the Devanagari font again).

@@ -28,8 +28,8 @@ describe("syncLayoutDirection", () => {
 
   it("needs no reload when the layout already matches", () => {
     setCurrentRtl(true);
-    expect(syncLayoutDirection("fa")).toBe(false);
+    expect(syncLayoutDirection("ar")).toBe(false);
     setCurrentRtl(false);
-    expect(syncLayoutDirection("fr")).toBe(false);
+    expect(syncLayoutDirection("en")).toBe(false);
   });
 });

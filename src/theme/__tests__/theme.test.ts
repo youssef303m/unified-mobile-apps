@@ -22,11 +22,8 @@ describe("typography", () => {
   it("picks the font family from the language", () => {
     expect(scriptFor("en")).toBe("latin");
     expect(scriptFor("ar")).toBe("arabic");
-    expect(scriptFor("fa")).toBe("arabic");
-    expect(scriptFor("ur")).toBe("arabic");
-    expect(scriptFor("hi")).toBe("devanagari");
     expect(fontFamily("ar", 700)).toBe("NotoSansArabic_700Bold");
-    expect(fontFamily("hi", 400)).toBe("NotoSansDevanagari_400Regular");
+    expect(fontFamily("en", 400)).toBe("Inter_400Regular");
   });
 
   it("maps each variant to its size, line height and weight", () => {

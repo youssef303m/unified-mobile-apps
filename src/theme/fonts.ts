@@ -10,11 +10,6 @@ import { NotoSansArabic_500Medium } from "@expo-google-fonts/noto-sans-arabic/50
 import { NotoSansArabic_600SemiBold } from "@expo-google-fonts/noto-sans-arabic/600SemiBold";
 import { NotoSansArabic_700Bold } from "@expo-google-fonts/noto-sans-arabic/700Bold";
 import { NotoSansArabic_800ExtraBold } from "@expo-google-fonts/noto-sans-arabic/800ExtraBold";
-import { NotoSansDevanagari_400Regular } from "@expo-google-fonts/noto-sans-devanagari/400Regular";
-import { NotoSansDevanagari_500Medium } from "@expo-google-fonts/noto-sans-devanagari/500Medium";
-import { NotoSansDevanagari_600SemiBold } from "@expo-google-fonts/noto-sans-devanagari/600SemiBold";
-import { NotoSansDevanagari_700Bold } from "@expo-google-fonts/noto-sans-devanagari/700Bold";
-import { NotoSansDevanagari_800ExtraBold } from "@expo-google-fonts/noto-sans-devanagari/800ExtraBold";
 
 export const fontMap = {
   Inter_400Regular,
@@ -27,9 +22,4 @@ export const fontMap = {
   NotoSansArabic_600SemiBold,
   NotoSansArabic_700Bold,
   NotoSansArabic_800ExtraBold,
-  NotoSansDevanagari_400Regular,
-  NotoSansDevanagari_500Medium,
-  NotoSansDevanagari_600SemiBold,
-  NotoSansDevanagari_700Bold,
-  NotoSansDevanagari_800ExtraBold,
 };

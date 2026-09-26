@@ -3,7 +3,7 @@
 import type { TextStyle } from "react-native";
 
 export type FontWeight = 400 | 500 | 600 | 700 | 800;
-export type Script = "latin" | "arabic" | "devanagari";
+export type Script = "latin" | "arabic";
 
 const families: Record<Script, Record<FontWeight, string>> = {
   latin: {
@@ -20,20 +20,12 @@ const families: Record<Script, Record<FontWeight, string>> = {
     700: "NotoSansArabic_700Bold",
     800: "NotoSansArabic_800ExtraBold",
   },
-  devanagari: {
-    400: "NotoSansDevanagari_400Regular",
-    500: "NotoSansDevanagari_500Medium",
-    600: "NotoSansDevanagari_600SemiBold",
-    700: "NotoSansDevanagari_700Bold",
-    800: "NotoSansDevanagari_800ExtraBold",
-  },
 };
 
+// Persian and Urdu would also use "arabic", and Hindi Noto Sans Devanagari (design-system.md
+// §2), when those languages are added back.
 const scriptByLanguage: Partial<Record<string, Script>> = {
   ar: "arabic",
-  fa: "arabic",
-  ur: "arabic",
-  hi: "devanagari",
 };
 
 export function scriptFor(language: string): Script {

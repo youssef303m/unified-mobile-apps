@@ -35,13 +35,20 @@ describe("i18n", () => {
   });
 
   it("starts in the device language when none is saved", () => {
+    deviceLanguage("ar");
+    setCurrentRtl(true);
+    expect(initI18n()).toEqual({ language: "ar", needsReload: false });
+  });
+
+  it("starts in English when the device language is not available", () => {
     deviceLanguage("fr");
-    expect(initI18n()).toEqual({ language: "fr", needsReload: false });
+    expect(initI18n()).toEqual({ language: "en", needsReload: false });
   });
 
   it("starts in the saved language (TV key {P}language)", () => {
-    setString(KEYS.language, "de");
-    expect(initI18n().language).toBe("de");
+    setString(KEYS.language, "ar");
+    setCurrentRtl(true);
+    expect(initI18n().language).toBe("ar");
   });
 
   it("falls back to English for keys a language file lacks", async () => {
@@ -65,9 +72,9 @@ describe("i18n", () => {
     expect(mockedReload).toHaveBeenCalledTimes(1);
   });
 
-  it("does not reload when switching between LTR languages", async () => {
+  it("does not reload when the direction does not change", async () => {
     initI18n();
-    await changeLanguage("es");
+    await changeLanguage("en");
     expect(mockedReload).not.toHaveBeenCalled();
   });
 });
