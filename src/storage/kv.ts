@@ -19,6 +19,8 @@ export const KEYS = {
   useFixtures: "mobile_use_fixtures",
   // Phone only, dev/preview builds: "fixtures" (default), "dev_backend" or "production".
   networkMode: "mobile_network_mode",
+  // Phone only, dev/preview builds: the fixture scenario from the dev link (JSON), for restarts.
+  fixtureScenario: "mobile_fixture_scenario",
 } as const;
 
 export type KvKey = (typeof KEYS)[keyof typeof KEYS];

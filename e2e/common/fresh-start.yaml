@@ -1,0 +1,7 @@
+# Fresh start on the fixtures: the dev link switches to fixture mode, forgets the app data
+# (terms, token, playlists; the device id stays) and sets the fixture account state, then the
+# app boots again. ACCOUNT: active | trial | expired.
+appId: com.iboplayer.mobile
+---
+- runFlow: open-app.yaml
+- openLink: "iboplayer://dev?network=fixtures&reset=1&account=${ACCOUNT}"

@@ -1,9 +1,9 @@
 import { useEffect } from "react";
 import { router, useLocalSearchParams } from "expo-router";
 
-import { FIXTURES_ALLOWED, setFixtureScenario } from "@/api/fixtureMode";
+import { FIXTURES_ALLOWED } from "@/api/fixtureMode";
 import { resetAppData } from "@/session/boot";
-import { saveNetworkMode } from "@/session/network";
+import { saveFixtureScenario, saveNetworkMode } from "@/session/network";
 import { NETWORK_MODES, type NetworkMode } from "@/session/networkMode";
 import { resetTo } from "@/utils/navigation";
 
@@ -36,7 +36,7 @@ export default function DevLinkScreen() {
         resetAppData();
         reboot = true;
       }
-      setFixtureScenario({
+      saveFixtureScenario({
         ...(params.account && ACCOUNTS.includes(params.account)
           ? { account: params.account as Account }
           : {}),

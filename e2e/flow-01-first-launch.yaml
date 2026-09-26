@@ -1,0 +1,61 @@
+# Flow 1 (04-build/testing.md §4): first launch → terms → captcha → the trial Welcome screen shows
+# the device id, device key and website → Continue → Home. With the expired fixture the same flow
+# ends on the blocked Expired screen; after the fixture switches to active, Check again → Home.
+appId: com.iboplayer.mobile
+name: "Flow 1: first launch"
+---
+- runFlow:
+    file: common/fresh-start.yaml
+    env:
+      ACCOUNT: trial
+- runFlow: common/accept-and-verify.yaml
+- extendedWaitUntil:
+    visible:
+      id: "welcome-screen"
+    timeout: 30000
+- assertVisible:
+    id: "trial-days"
+- scrollUntilVisible:
+    element:
+      id: "device-key"
+- assertVisible:
+    id: "device-id"
+- assertVisible: "482913"
+- assertVisible: '.*iboplayer\.com.*'
+- scrollUntilVisible:
+    element:
+      id: "welcome-continue"
+- tapOn:
+    id: "welcome-continue"
+- extendedWaitUntil:
+    visible:
+      id: "home-screen"
+    timeout: 60000
+
+# The expired variant.
+- runFlow:
+    file: common/fresh-start.yaml
+    env:
+      ACCOUNT: expired
+- runFlow: common/accept-and-verify.yaml
+- extendedWaitUntil:
+    visible:
+      id: "expired-screen"
+    timeout: 30000
+- assertNotVisible:
+    id: "welcome-continue"
+# The account is paid on the website: the fixture turns active, the app stays where it is.
+- openLink: "iboplayer://dev?account=active"
+- extendedWaitUntil:
+    visible:
+      id: "expired-screen"
+    timeout: 15000
+- scrollUntilVisible:
+    element:
+      id: "expired-check-again"
+- tapOn:
+    id: "expired-check-again"
+- extendedWaitUntil:
+    visible:
+      id: "home-screen"
+    timeout: 60000

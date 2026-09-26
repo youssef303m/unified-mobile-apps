@@ -406,3 +406,87 @@ install scripts are `msw` (copies a browser worker, not used in Node tests), `un
 binding check) and `fsevents` (macOS only), so the project skips install scripts. **When adding a
 library, check whether it needs an install/postinstall script**; if one does, run it explicitly
 (`npm rebuild <pkg> --ignore-scripts=false`) or revisit this decision.
+
+## M3 · Boot, activation and playlists
+
+### D-046 · Copying without a rebuild
+
+The Activation card copies the device id and key (screens.md). `expo-clipboard` is a native
+module, and the development build was just rebuilt, so `src/platform/clipboard.ts` uses React
+Native's own `Clipboard` (deprecated, still in RN 0.86 and in the build). It moves to
+`expo-clipboard` at the next native rebuild that is needed anyway (M5 adds `react-native-video`).
+
+### D-047 · Non-ASCII text in encrypted requests
+
+The backend source (ApiController `decryptRequest`) decodes the request Base64 as **ASCII**, not
+UTF-8, so the UTF-8 bytes of an Arabic or accented playlist name arrive garbled and the request
+fails (device-and-auth.md Notes 1 asked for this check). `encryptRequest` now writes every
+non-ASCII character of the JSON as a `\uXXXX` escape: the payload is pure ASCII and the server's
+`JSON.parse` restores the text. ASCII payloads are byte-identical to the TV's.
+
+### D-048 · `uid_mismatch_captcha` is not an expired session
+
+The backend sends the ownership check from `device_info` (and `device_login`) with
+`error_code: 401`. device-and-auth.md §4.3 counts error_code 401 as an auth failure, which would
+drop the token and log in again forever; §4.2 says this status shows the uid captcha. The status
+check wins: `isAuthFailure` ignores `uid_mismatch_captcha`. The fixture now sends the code too.
+
+### D-049 · Other backend shapes found in its source
+
+- A device without playlists gets `urls: ["<demo url>"]`, a bare string; it is read as the
+  `demo` entry (id `demo`, type `general`).
+- Some `manage/*` errors use a `result` key; the message is read from `msg`, `message` or
+  `result`.
+- The fixtures follow the server: `is_trial` 0 for a trial (1 means deactivated on the server),
+  the demo as a string. The server always sends `mac_registered: true` (Q-mac-registered).
+
+### D-050 · Network mode: fixtures, the owner's dev backend, production
+
+The "use fixtures" switch (M1) becomes a three-way network mode in development and preview
+builds: **fixtures** (default), **dev backend** (the owner's `iboplayer-backend.youssef-dev.online`,
+used as the only panel; the agent servers are skipped because the dev backend has none) and
+**production**. Production builds always use production. Switching forgets the session data
+(a token from one backend is invalid on another) and restarts. The old "use fixtures: off" value
+migrates to production.
+
+### D-051 · Routes
+
+- The splash is the start route (`app/index.tsx`), so Home moved to `app/(tabs)/home.tsx`
+  (`/home`).
+- The boot screens live in `app/(boot)/` (terms, verify, welcome, expired, server-failed); the
+  playlist loader is `app/loading.tsx` (also used for switches, then the stack resets to Home).
+- `src/navigation/AppStack.tsx` guards the routes with `Stack.Protected`: Account, Playlists and
+  Portals need a known, unexpired account; the tabs also need a loaded playlist (R-006, flow 10).
+  A blocked route falls back to the splash, which boots again.
+
+### D-052 · Dev link for the e2e flows
+
+Maestro cannot reach the in-memory fixture scenario, so development and preview builds accept
+`iboplayer://dev?network=…&reset=1&account=…&demo=…` (`app/dev.tsx`). It switches the network
+mode, forgets the app data (the device id stays) and sets the fixture scenario, which is kept in
+storage so restarts in a flow see the same account. Production builds ignore the link.
+
+### D-053 · M3 builds early versions of some design-system components
+
+Button, TextField, Card, ListRow, Screen, Toast, CopyRow, Banner, LoadingView and the Activation
+card are built now, from the tokens, because the M3 screens need them. M4 finishes the full
+component set with every state and the component gallery.
+
+### D-054 · Small M3 choices
+
+- Home is still a placeholder: a playlist chip (opens Playlists), the account avatar, and the
+  first live categories of the active playlist, loaded after Home appears (user-flows.md §4's
+  recommendation). It shows that a switch re-synced the catalogue (flow 7).
+- Deleting uses the overflow menu with a confirmation; swipe-to-delete comes with the list
+  components in M4. The playlist expiry popup (R-114) and the Home double-back exit (R-130) are
+  M4/M6 (the roadmap puts Home and the expiry notices there).
+- The Playlists "Reload" is pull-to-refresh and restarts the boot (device info, then the
+  playlist), as the TV's Reload restarts the app.
+- A load cancelled from the loader (Back, or "Change Playlist" after 120 s) returns once the
+  running request stops; Xtream and M3U requests stop at once, a Stalker handshake can take up to
+  its 15 s timeout.
+- The "I've verified — Continue" button appears after "Verify on website" was opened. The backend
+  source has no separate web-verification path: login without codes succeeds once the website has
+  marked the device verified.
+- `expo-asset` is installed at the top level: `expo-sqlite` imports it, and it was only nested
+  under `expo`. It is already in the development build (the `expo` package links it).

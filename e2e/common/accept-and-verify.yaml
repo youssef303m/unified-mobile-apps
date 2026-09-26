@@ -1,0 +1,21 @@
+# Terms (R-001), then the device captcha (R-003). The fixture captcha code is x7fk2.
+appId: com.iboplayer.mobile
+---
+- extendedWaitUntil:
+    visible:
+      id: "terms-screen"
+    timeout: 30000
+- tapOn:
+    id: "terms-accept"
+- extendedWaitUntil:
+    visible:
+      id: "verify-screen"
+    timeout: 30000
+- assertVisible:
+    id: "captcha-image"
+- tapOn:
+    id: "captcha-input"
+- inputText: "x7fk2"
+- hideKeyboard
+- tapOn:
+    id: "verify-submit"

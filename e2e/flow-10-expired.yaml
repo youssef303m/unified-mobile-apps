@@ -1,0 +1,40 @@
+# Flow 10 (04-build/testing.md §4): expired account → expiry screen → no content reachable.
+appId: com.iboplayer.mobile
+name: "Flow 10: expired account"
+---
+- runFlow:
+    file: common/fresh-start.yaml
+    env:
+      ACCOUNT: expired
+- runFlow: common/accept-and-verify.yaml
+- extendedWaitUntil:
+    visible:
+      id: "expired-screen"
+    timeout: 30000
+- assertVisible: "Notice: Trial Period Expired!"
+- assertNotVisible:
+    id: "welcome-continue"
+- assertNotVisible:
+    id: "home-screen"
+# A link straight to the content is refused: the app boots again and lands on the same screen.
+- openLink: "iboplayer:///home"
+- extendedWaitUntil:
+    visible:
+      id: "expired-screen"
+    timeout: 30000
+- assertNotVisible:
+    id: "home-screen"
+- openLink: "iboplayer:///playlists"
+- extendedWaitUntil:
+    visible:
+      id: "expired-screen"
+    timeout: 30000
+- assertNotVisible:
+    id: "playlists-screen"
+# A restart does not get past it either (R-006 is checked on every launch).
+- stopApp
+- runFlow: common/open-app.yaml
+- extendedWaitUntil:
+    visible:
+      id: "expired-screen"
+    timeout: 60000

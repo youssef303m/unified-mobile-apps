@@ -1,0 +1,49 @@
+# Flow 7 (04-build/testing.md §4): switch playlist → the catalogue re-syncs → Home shows the new
+# content. The fixture account has an Xtream playlist, an M3U playlist and a Stalker portal.
+appId: com.iboplayer.mobile
+name: "Flow 7: switch playlist"
+---
+- runFlow:
+    file: common/fresh-start.yaml
+    env:
+      ACCOUNT: active
+- runFlow: common/accept-and-verify.yaml
+- extendedWaitUntil:
+    visible:
+      id: "home-screen"
+    timeout: 60000
+# The Xtream playlist loads first; Home shows its live categories.
+- assertVisible: ".*Fixture Xtream.*"
+- extendedWaitUntil:
+    visible: 'UK \| NEWS'
+    timeout: 30000
+
+# Switch to the M3U playlist from the Home playlist chip.
+- tapOn:
+    id: "home-playlist-chip"
+- extendedWaitUntil:
+    visible:
+      id: "playlists-screen"
+    timeout: 15000
+- assertVisible: "CURRENT"
+- tapOn: "Fixture M3U"
+- assertVisible: 'Switch playlist\?'
+- tapOn: "OK"
+- extendedWaitUntil:
+    visible:
+      id: "home-screen"
+    timeout: 60000
+- assertVisible: ".*Fixture M3U.*"
+- extendedWaitUntil:
+    visible: 'UK \| General'
+    timeout: 30000
+- assertNotVisible: 'UK \| NEWS'
+
+# The new selection survives a restart (R-020 automatic: the saved playlist).
+- stopApp
+- runFlow: common/open-app.yaml
+- extendedWaitUntil:
+    visible:
+      id: "home-screen"
+    timeout: 60000
+- assertVisible: ".*Fixture M3U.*"

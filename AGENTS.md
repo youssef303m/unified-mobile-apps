@@ -23,6 +23,7 @@ npx expo install <package>  # always, instead of npm install, for SDK-compatible
 npm run typecheck           # tsc --noEmit
 npm run lint                # eslint, zero warnings
 npm test                    # jest (jest-expo)
+maestro test e2e/           # end-to-end flows on the phone over USB (e2e/README.md)
 npx expo-doctor             # dependency and config diagnostics
 npm run android             # expo run:android (needs JDK 17 + Android SDK)
 ```
