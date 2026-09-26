@@ -56,7 +56,7 @@ Owner answers so far: the backend accepts `android` (Q-app-type) and ignores dev
   `kvStore` implements the injected `KeyValueStore` incl. `keys()`).
 - `src/platform/`: `polyfills.ts`, `deviceIdentity.ts` (M3).
 - Tests: 257 in 24 suites (`npm test`); Jest projects "app" and "core" (D-022, D-033).
-- `docs/decisions.md` (D-001 to D-044), `docs/open-questions.md`, `docs/new-strings.md`.
+- `docs/decisions.md` (D-001 to D-045), `docs/open-questions.md`, `docs/new-strings.md`.
 
 ## Running the app on the phone
 
