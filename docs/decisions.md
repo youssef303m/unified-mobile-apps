@@ -323,9 +323,12 @@ the player source-agnostic.
 R-005 says that when starting from the cache (backend unreachable), an expired-looking licence
 "is treated as valid (the app never locks the user out because the server is down)".
 device-and-auth.md §5 describes the TV differently: offline, only the displayed date changes
-(to 2438-01-02) and an expired device stays blocked. AGENTS.md says business rules are
-requirements, so **R-005 is implemented**: offline, an expired-looking licence routes to the
-trial/active state and shows 2438-01-02. **The owner should confirm this** (Q-offline-expired).
+(to 2438-01-02) and an expired device stays blocked.
+
+**Owner's answer (2026-09-26, Q-offline-expired):** offline, the app runs on the data of the last
+successful connection, and if its expiry date has passed the user is **not** let in. So
+`accountState` applies R-006 whether online or offline, and the 2438-01-02 display date is not
+used. This overrides the "treated as valid" part of R-005.
 
 ### D-036 · Playlist key renames match the id exactly
 
@@ -337,7 +340,7 @@ where the old id sits right after the prefix and is followed by `live`, `vod`, `
 
 R-070 gives the limits (500 live, 200 movies, 200 series) but not what happens at the limit. The
 phone refuses the add (`"full"`) rather than silently dropping an older favourite
-(Q-favourites-full).
+(Q-favourites-full, confirmed by the owner on 2026-09-26).
 
 ### D-038 · Watch progress storage
 

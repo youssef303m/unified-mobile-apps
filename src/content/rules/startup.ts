@@ -62,31 +62,19 @@ export function localIsoDate(date: Date): string {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
 }
 
-/** The date shown for an expired licence when starting offline (device-and-auth.md §5). */
-export const OFFLINE_DISPLAY_EXPIRY = "2438-01-02";
-
 export type AccountState = "expired" | "trial" | "active";
 
 /**
- * R-005, R-006, R-007: the account state that routes the app after device info. Offline (from
- * the cache), an expired-looking licence is treated as valid, so the user is never locked out
- * because the server is down (docs/decisions.md D-035).
+ * R-005, R-006, R-007: the account state that routes the app after device info. Offline, `info`
+ * is the cached reply of the last successful connection, and an expired date there blocks the app
+ * just as online (owner's answer to Q-offline-expired, docs/decisions.md D-035).
  */
 export function accountState(
   info: Pick<DeviceInfo, "expire_date" | "mac_registered">,
-  options: { offline: boolean; today?: Date },
+  options: { today?: Date } = {},
 ): AccountState {
-  if (!options.offline && isLicenseExpired(info.expire_date, options.today)) return "expired";
+  if (isLicenseExpired(info.expire_date, options.today)) return "expired";
   return info.mac_registered ? "active" : "trial";
-}
-
-/** R-005: the expiry shown when starting offline with an expired-looking licence. */
-export function displayedExpiry(
-  expireDate: string,
-  offline: boolean,
-  today: Date = new Date(),
-): string {
-  return offline && isLicenseExpired(expireDate, today) ? OFFLINE_DISPLAY_EXPIRY : expireDate;
 }
 
 /** R-008 (Q-is-trial): "Active" when is_trial is 2 or 3, otherwise "Trial". */

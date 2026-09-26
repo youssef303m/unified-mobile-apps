@@ -13,13 +13,11 @@ import {
   acceptTerms,
   accountState,
   deviceCredentials,
-  displayedExpiry,
   isLicenseExpired,
   isLoadable,
   LOADING_WATCHDOG_MS,
   licenseStatusLabel,
   mustReverify,
-  OFFLINE_DISPLAY_EXPIRY,
   removeDemoEntry,
   termsAccepted,
   watchdogDue,
@@ -80,32 +78,32 @@ describe("A. Startup, terms, device and licence", () => {
     expect(store.get(MANUAL_URL_KEY)).toBe(FIXTURE_PANEL_DOMAINS[1]);
   });
 
-  it("R-005: offline, an expired-looking licence does not lock the user out", () => {
-    const info = { expire_date: "2026-01-01", mac_registered: true };
-    expect(accountState(info, { offline: true, today })).toBe("active");
-    expect(displayedExpiry(info.expire_date, true, today)).toBe(OFFLINE_DISPLAY_EXPIRY);
-    expect(displayedExpiry(info.expire_date, false, today)).toBe("2026-01-01");
+  it("R-005: offline, the cached account is used and an expired cached date still blocks", () => {
+    const cached = { expire_date: "2026-01-01", mac_registered: true };
+    expect(whenAllServersFail(JSON.stringify(cached))).toBe("offline");
+    expect(accountState(cached, { today })).toBe("expired");
+    expect(accountState({ ...cached, expire_date: "2027-01-01" }, { today })).toBe("active");
   });
 
   it("R-006: expire_date before today blocks the app (expired screen)", () => {
     expect(isLicenseExpired("2026-09-25", today)).toBe(true);
     expect(isLicenseExpired("2026-09-26", today)).toBe(false);
-    expect(
-      accountState({ expire_date: "2026-09-25", mac_registered: true }, { offline: false, today }),
-    ).toBe("expired");
+    expect(accountState({ expire_date: "2026-09-25", mac_registered: true }, { today })).toBe(
+      "expired",
+    );
   });
 
   it("R-007: not registered → trial welcome; registered → active", () => {
-    expect(
-      accountState({ expire_date: "2027-01-01", mac_registered: false }, { offline: false, today }),
-    ).toBe("trial");
-    expect(
-      accountState({ expire_date: "2027-01-01", mac_registered: true }, { offline: false, today }),
-    ).toBe("active");
+    expect(accountState({ expire_date: "2027-01-01", mac_registered: false }, { today })).toBe(
+      "trial",
+    );
+    expect(accountState({ expire_date: "2027-01-01", mac_registered: true }, { today })).toBe(
+      "active",
+    );
     // Expiry wins over the trial state.
-    expect(
-      accountState({ expire_date: "2026-01-01", mac_registered: false }, { offline: false, today }),
-    ).toBe("expired");
+    expect(accountState({ expire_date: "2026-01-01", mac_registered: false }, { today })).toBe(
+      "expired",
+    );
   });
 
   it("R-008: status label is Active for is_trial 2 or 3, Trial otherwise", () => {
