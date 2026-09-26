@@ -393,3 +393,13 @@ the first non-empty row.
   `.undefined`, which never plays).
 - `StalkerSource` checks the profile on connect (R-026) and throws `AuthError` with
   `portal_expired` or `portal_unavailable`, so screens can show the matching TV message.
+
+### D-045 · `.npmrc`: `ignore-scripts=true`
+
+A clean `npm ci` failed on Windows without Visual Studio: `better-sqlite3` (dev only) ships
+prebuilt binaries and sets `"gypfile": false`, but `npm ci` builds packages from the lockfile
+entry, which does not record that flag, so it runs `node-gyp rebuild`. The only packages with
+install scripts are `msw` (copies a browser worker, not used in Node tests), `unrs-resolver` (a
+binding check) and `fsevents` (macOS only), so the project skips install scripts. **When adding a
+library, check whether it needs an install/postinstall script**; if one does, run it explicitly
+(`npm rebuild <pkg> --ignore-scripts=false`) or revisit this decision.

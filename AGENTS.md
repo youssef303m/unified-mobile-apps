@@ -29,6 +29,9 @@ npm run android             # expo run:android (needs JDK 17 + Android SDK)
 
 Type check, lint and tests must be green before a task is done.
 
+`.npmrc` sets `ignore-scripts=true` (docs/decisions.md D-045): dependency install scripts do not
+run. When adding a library, check whether it needs one.
+
 ## Layout
 
 - Routes live in **`app/`** at the repository root (04-build/architecture.md), not `src/app/`.
