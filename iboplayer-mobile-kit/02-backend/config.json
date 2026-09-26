@@ -1,0 +1,143 @@
+{
+  "app": {
+    "id": "iboplayer",
+    "brandName": "IBOPlayer",
+    "brandShort": "IBO",
+    "websiteUrl": "https://iboplayer.com",
+    "storagePrefix": "gz3rYzUIC7_",
+    "tvVersions": {
+      "samsung": "1.1.6",
+      "lg": "1.0.7",
+      "vidaa": "1.0.6",
+      "zeasn": "1.0.6",
+      "titanos": "1.0.6",
+      "vegaos": "1.0.0"
+    },
+    "mobileAppType": "android",
+    "mobileVersion": "1.0.0"
+  },
+
+  "iboBackend": {
+    "domainPolicy": "server",
+    "agentUrls": [
+      "https://babyeducate.com/api",
+      "https://babyeducationonline.com/api"
+    ],
+    "agentPath": "/playlist_info",
+    "agentTimeoutMs": 15000,
+    "fallbackDomains": {
+      "domains": ["app.ibo-dev.com", "iboapp.mimocodes.com", "iboapi.mimocodes.com"],
+      "main_domain": "api.ibo-dev.com"
+    },
+    "staticPanelUrls": [
+      "https://iboiptv.com/api",
+      "https://iboplayer.com/api",
+      "https://ibotvplayer.com/api",
+      "https://tvplayeribo.com/api",
+      "https://ibobtv.com/api"
+    ],
+    "mainDomain": "iboiptv.com",
+    "v4PathTemplate": "{panelBase}/{appType}/v4/{path}",
+    "v4TimeoutMs": 15000,
+    "legacyPanelPaths": {
+      "changeParentPin": "/changeParentPin",
+      "editPlaylist": "/edit_playlist"
+    },
+    "webVerifyPath": "/device/verify",
+    "qrPlaylistPath": "/qr-playlist",
+    "qrPlaylistFormat": "identifier",
+    "backgroundImagePath": "/images/upload/"
+  },
+
+  "crypto": {
+    "obfuscationAlphabet": "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890",
+    "qrAesPassphrase": "3R%6R2FJ*b5)Vmt84$^eWf0r@r?szdw*fwf*ewd&VXmne$%",
+    "uidAlphabet": "ACDEFHJKMNPQRTUVWXY13479",
+    "legacyUidAlphabet": "abcdefghjkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ123456789",
+    "uidLength": 6
+  },
+
+  "defaults": {
+    "parentalPin": "0000",
+    "parentalPinOffValue": "off",
+    "tvFallbackMac": "52:54:00:12:34:57"
+  },
+
+  "analytics": {
+    "url": "https://iboanalytics-backend.biduplive.com/api/events",
+    "apiKey": "IohXchmaQySbxoFJkceJWIrCbvnFQSEJU/bcRHInGis=",
+    "appName": "iboplayer",
+    "uploadThresholdEvents": 5,
+    "playlistFlushThreshold": 10,
+    "maxBufferedSessions": 10,
+    "maxEventAgeSeconds": 86400,
+    "timeoutMs": 15000
+  },
+
+  "stararcs": {
+    "baseUrl": "https://backend.stararcs.com",
+    "mirrorListUrl": "https://cdn.jsdelivr.net/gh/mr-akme/app-config@HEAD/stararcs/domain.json",
+    "appName": "iboplayer",
+    "attemptTimeoutMs": 8000,
+    "proxyGateTimeoutMs": 15000,
+    "proxyToken": "b3ea7102-9d44-43ff-b287-3c2c0d87c7f4_wETVZGLCEHWG57YHVwzSOHyLMFIActoc",
+    "proxyUrlTemplate": "http://{serverIp}:8080/?mimo_proxy_token_765={proxyToken}&mimo_proxy_target_765=",
+    "discoveryUrlTemplate": "http://{serverIp}:765",
+    "tvAssetToken": "0sqM4JmVp2jLjYxPfAyx1OYCn7h2NhM+8MIfTueTC+zUHs6MJcYEK6tVJAW1UUcIPo9iKUtGhLeCVYoHjU0Eqw==",
+    "paths": {
+      "general": "/api/v3/tv/general",
+      "unlink": "/api/v3/tv/device/unlink",
+      "countryChange": "/api/v3/tv/country/change",
+      "tvAsset": "/api/tv/server/asset"
+    }
+  },
+
+  "tmdb": {
+    "apiKey": "a3c79068cd6961a3526ba1b516c50c39",
+    "apiBase": "https://api.themoviedb.org/3",
+    "imageBase": "https://image.tmdb.org/t/p/"
+  },
+
+  "imageCache": {
+    "url": "https://tmdb.iboplayer.com/api",
+    "token": "sUdvdQKtYR54mx1bJEI7huTJxGI4H3bWIZ9ejVYApj6xCbMJrGXRptM8KEyreCOB"
+  },
+
+  "weather": {
+    "url": "https://api.weatherapi.com/v1/forecast.json",
+    "apiKey": "0c1f9db9b99649f3a2b124503241310",
+    "days": 14,
+    "cacheMaxAgeDays": 13
+  },
+
+  "subtitles": {
+    "searchUrl": "https://ibosub.com/api/get-subtitles-update",
+    "contentUrl": "https://ibosub.com/api/get-single-subtitle-content"
+  },
+
+  "store": {
+    "url": "https://backend.ibosol.com",
+    "appName": "IBOPLAYER",
+    "testingVersion": "1.0",
+    "applicationSettingsPath": "/api/application-settings/{appName}"
+  },
+
+  "tvBootOnly": {
+    "hostUrls": [
+      "https://iboiptv.com/",
+      "https://iboplayer.com/",
+      "https://ibotvplayer.com/",
+      "https://iboproplayertv.com/",
+      "https://tvplayeribo.com/",
+      "https://ibobtv.com/",
+      "https://apps.coderscodesdev.com/",
+      "https://coderscodesdev.com/",
+      "https://babyeducate.com/",
+      "https://babyeducationonline.com/"
+    ],
+    "hostAppName": "iboplayer/",
+    "cdnFallbackUrl": "https://cdn.jsdelivr.net/gh/MIMOCODES-DEV/CodersCode",
+    "fallbackTimeSeconds": 8,
+    "exitUrl": "iboplayer://exit"
+  }
+}
