@@ -4,7 +4,7 @@ import { router, useLocalSearchParams } from "expo-router";
 import { FIXTURES_ALLOWED } from "@/api/fixtureMode";
 import { resetAppData } from "@/session/boot";
 import { saveFixtureScenario, saveNetworkMode } from "@/session/network";
-import { NETWORK_MODES, type NetworkMode } from "@/session/networkMode";
+import { NETWORK_MODES, type DevNetworkMode } from "@/session/networkMode";
 import { resetTo } from "@/utils/navigation";
 
 type Account = "active" | "trial" | "expired";
@@ -29,7 +29,7 @@ export default function DevLinkScreen() {
     let reboot = false;
     if (FIXTURES_ALLOWED) {
       if (params.network && (NETWORK_MODES as readonly string[]).includes(params.network)) {
-        saveNetworkMode(params.network as NetworkMode);
+        saveNetworkMode(params.network as DevNetworkMode);
         reboot = true;
       }
       if (params.reset === "1") {

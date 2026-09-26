@@ -5,6 +5,7 @@ import { qrPlaylistUrl } from "@/api/ibo/links";
 import { AppText } from "@/components/AppText";
 import { Card } from "@/components/Card";
 import { CopyRow } from "@/components/CopyRow";
+import { DevLanguageSwitch } from "@/components/DevLanguageSwitch";
 import { DevNetworkSwitch } from "@/components/DevNetworkSwitch";
 import { ListRow } from "@/components/ListRow";
 import { Screen } from "@/components/Screen";
@@ -94,6 +95,12 @@ export default function AccountScreen() {
         testID="account-portals"
       />
       <ListRow
+        title={t("parent_control")}
+        chevron
+        onPress={() => router.push("/settings/parental")}
+        testID="account-parental"
+      />
+      <ListRow
         title={t("mobile_manage_playlists_website")}
         chevron
         onPress={() => void openUrl(qrPlaylistUrl(macAddress, "xc"))}
@@ -103,7 +110,16 @@ export default function AccountScreen() {
         chevron
         onPress={() => void openUrl(config.app.websiteUrl)}
       />
+      <DevLanguageSwitch />
       <DevNetworkSwitch />
+      {__DEV__ ? (
+        <ListRow
+          title={t("mobile_dev_gallery")}
+          chevron
+          onPress={() => router.push("/gallery")}
+          testID="account-gallery"
+        />
+      ) : null}
     </Screen>
   );
 }

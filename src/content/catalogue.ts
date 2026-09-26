@@ -81,7 +81,7 @@ export class CatalogueSession {
   private readonly pending = new Map<ContentKind, Promise<void>>();
 
   constructor(
-    private readonly db: Db,
+    readonly db: Db,
     public source: ContentSource,
     readonly playlist: Playlist,
   ) {}

@@ -46,3 +46,12 @@ export const scrims = {
   top: { angle: 180, colors: ["rgba(0,0,0,0.7)", "transparent"] },
   bottom: { angle: 0, colors: [colors.bg.base, "transparent"], heightRatio: 0.6 },
 } as const;
+
+// The scrims as CSS gradients for React Native's built-in `experimental_backgroundImage`
+// (New Architecture; docs/decisions.md D-057).
+export const gradients = {
+  scrimTop: "linear-gradient(180deg, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0) 100%)",
+  scrimBottom: "linear-gradient(0deg, #000000 0%, rgba(0,0,0,0) 100%)",
+  /** The Live Now card and the details backdrop fade. */
+  fadeBottom: "linear-gradient(0deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0) 100%)",
+} as const;

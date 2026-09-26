@@ -1,8 +1,5 @@
-import { useTranslation } from "react-i18next";
+import { VodTabScreen } from "@/screens/VodTabScreen";
 
-import { PlaceholderScreen } from "@/components/PlaceholderScreen";
-
-export default function SeriesScreen() {
-  const { t } = useTranslation();
-  return <PlaceholderScreen title={t("series")} />;
+export default function SeriesTab() {
+  return <VodTabScreen kind="series" />;
 }

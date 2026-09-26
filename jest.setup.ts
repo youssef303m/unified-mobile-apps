@@ -21,3 +21,18 @@ jest.mock("expo-secure-store", () => {
 // Reanimated and Worklets ship Jest mocks; their native modules do not exist in tests.
 jest.mock("react-native-worklets", () => jest.requireActual("react-native-worklets/src/mock"));
 jest.mock("react-native-reanimated", () => jest.requireActual("react-native-reanimated/mock"));
+
+// @gorhom/bottom-sheet ships a Jest mock (a sheet renders its content inline).
+jest.mock("@gorhom/bottom-sheet", () => jest.requireActual("@gorhom/bottom-sheet/mock"));
+// FlashList measures its views, which have no size in Jest; this gives them one (as the library's
+// jestSetup.js does; its FlashList replacement points at an export v2 no longer has).
+jest.mock("@shopify/flash-list/dist/recyclerview/utils/measureLayout", () => {
+  const actual = jest.requireActual("@shopify/flash-list/dist/recyclerview/utils/measureLayout");
+  const box = (width: number, height: number) => () => ({ x: 0, y: 0, width, height });
+  return {
+    ...actual,
+    measureParentSize: jest.fn(box(400, 900)),
+    measureFirstChildLayout: jest.fn(box(400, 900)),
+    measureItemLayout: jest.fn(box(100, 100)),
+  };
+});

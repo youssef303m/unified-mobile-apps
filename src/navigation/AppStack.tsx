@@ -17,8 +17,13 @@ export function AppStack() {
       <Stack.Screen name="(boot)" />
       <Stack.Screen name="loading" options={{ gestureEnabled: false }} />
       <Stack.Screen name="dev" />
+      <Stack.Screen name="gallery" />
       <Stack.Protected guard={canBrowse}>
         <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="movie/[id]" />
+        <Stack.Screen name="series/[id]" />
+        <Stack.Screen name="category" />
+        <Stack.Screen name="search" options={{ animation: "fade" }} />
       </Stack.Protected>
       <Stack.Protected guard={canUseAccount}>
         <Stack.Screen name="account" />
@@ -26,6 +31,7 @@ export function AppStack() {
         <Stack.Screen name="playlists/add" />
         <Stack.Screen name="portals/index" />
         <Stack.Screen name="portals/add" />
+        <Stack.Screen name="settings/parental" />
       </Stack.Protected>
     </Stack>
   );

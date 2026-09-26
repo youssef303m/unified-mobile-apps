@@ -274,11 +274,11 @@ describe("adding and deleting", () => {
 });
 
 describe("network mode (D-050)", () => {
-  it("defaults to the fixtures; the old switch set to off meant production", () => {
-    expect(parseNetworkMode(undefined, undefined)).toBe("fixtures");
-    expect(parseNetworkMode(undefined, "0")).toBe("production");
-    expect(parseNetworkMode("dev_backend", "0")).toBe("dev_backend");
-    expect(parseNetworkMode("bogus", undefined)).toBe("fixtures");
+  it("defaults to the fixtures; development builds can never choose production (D-061)", () => {
+    expect(parseNetworkMode(undefined)).toBe("fixtures");
+    expect(parseNetworkMode("dev_backend")).toBe("dev_backend");
+    expect(parseNetworkMode("production")).toBe("fixtures");
+    expect(parseNetworkMode("bogus")).toBe("fixtures");
   });
 
   it("the dev backend is the only panel and no agent is asked", async () => {

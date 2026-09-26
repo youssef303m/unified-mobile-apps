@@ -15,6 +15,7 @@ import {
   recentLiveIds,
   recordLiveChannel,
   removeFavourite,
+  removeProgress,
   removeStalkerObject,
   STALKER_OBJECT_LIMITS,
   stalkerObjects,
@@ -117,6 +118,15 @@ export async function continueWatching(
       },
     ];
   });
+}
+
+/** user-flows.md §12 Mobile: "Remove from Continue Watching" forgets the item's progress. */
+export function removeFromContinueWatching(
+  ctx: BrowseContext,
+  kind: "movie" | "series",
+  itemId: string,
+): void {
+  removeProgress(ctx.store, playlistIdOf(ctx), kind, itemId);
 }
 
 // ---------- recently viewed channels (R-072) ----------

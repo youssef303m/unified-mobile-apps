@@ -23,6 +23,7 @@ import {
   seriesPlayTarget,
 } from "../details";
 import { loadHome } from "../home";
+import { initialLiveSelection } from "../live";
 import {
   addRecentSearch,
   clearRecentSearches,
@@ -192,6 +193,32 @@ describe("tab rows and category lists", () => {
     const rest = await feed.next(60);
     expect(rest.done).toBe(true);
     expect(first.items.length + rest.items.length).toBe(20);
+  });
+});
+
+describe("Live tab", () => {
+  it("R-092: Default opens row 2 (Favourites) when it has channels, else the first non-empty row", async () => {
+    const ctx = await context();
+    expect(await initialLiveSelection(ctx, "default")).toEqual({
+      rowId: "10",
+      channelId: "10000",
+    });
+    addFavourite(ctx.store, ctx.catalogue.playlistId, "live", "10003", false);
+    expect(await initialLiveSelection(ctx, "default")).toEqual({
+      rowId: "favourite",
+      channelId: "10003",
+    });
+  });
+
+  it("R-092: Last opens the most recently watched channel in its category", async () => {
+    const ctx = await context();
+    recordChannelView(ctx, await item(ctx, "live", "10006"), false);
+    expect(await initialLiveSelection(ctx, "last")).toEqual({ rowId: "11", channelId: "10006" });
+  });
+
+  it("R-058: Stalker opens the first real portal category", async () => {
+    const ctx = await context(portal);
+    expect((await initialLiveSelection(ctx, "default")).rowId).toBe("5");
   });
 });
 

@@ -1,153 +1,307 @@
 import { useEffect, useState } from "react";
-import { Pressable, StyleSheet, View } from "react-native";
+import { RefreshControl, StyleSheet, View } from "react-native";
+import Animated, { useAnimatedScrollHandler, useSharedValue } from "react-native-reanimated";
 import { router } from "expo-router";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { CircleUserRound, ListVideo } from "lucide-react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
 
-import { AppText } from "@/components/AppText";
-import { Card } from "@/components/Card";
-import { DevLanguageSwitch } from "@/components/DevLanguageSwitch";
-import { DevNetworkSwitch } from "@/components/DevNetworkSwitch";
-import { Logo } from "@/components/Logo";
-import type { ContentKind } from "@/content/types";
-import { categories } from "@/db/queries/catalogue";
-import { catalogueDb } from "@/session/boot";
+import type { HomeRow } from "@/browse/home";
+import { removeFromContinueWatching } from "@/browse/library";
+import { Banner } from "@/components/Banner";
+import { CategoryChips } from "@/components/CategoryChips";
+import { ContentRow } from "@/components/ContentRow";
+import { ContinueCard } from "@/components/ContinueCard";
+import { HeroBanner } from "@/components/HeroBanner";
+import { LiveNowCard } from "@/components/LiveNowCard";
+import { PosterCard } from "@/components/PosterCard";
+import { openQuickActions } from "@/components/QuickActionsSheet";
+import { TopBar } from "@/components/TopBar";
+import { isNewlyAdded } from "@/content/rules/content";
+import { favouriteIds } from "@/content/rules/library";
+import type { CatalogueItem } from "@/content/types";
+import { refreshBrowse } from "@/hooks/queryClient";
+import { browseContext } from "@/hooks/useBrowse";
+import { useHome } from "@/hooks/useBrowseQueries";
+import { useMovieDetails } from "@/hooks/useDetails";
+import { useEpgNow } from "@/hooks/useEpgNow";
+import { useIsFavourite, useToggleFavourite } from "@/hooks/useFavourite";
+import { prefetchForHome, refreshCatalogue, useSection } from "@/hooks/useSection";
+import { useTabBack } from "@/hooks/useTabBack";
 import { useSession } from "@/session/store";
-import { colors, layout, radius, spacing } from "@/theme/tokens";
+import { kvStore } from "@/storage/kv";
+import { artwork, colors, layout, spacing } from "@/theme/tokens";
+import { openItem, play } from "@/utils/content";
+import { genreList } from "@/utils/format";
+import { playlistTitle } from "@/utils/playlists";
 
-const SECTION_KEYS = { live: "live_tv", movie: "movies", series: "series" } as const;
-const PREVIEW_CATEGORIES = 5;
+const posterSize = { width: artwork.poster.width, height: artwork.poster.height };
+const continueSize = { width: artwork.continueCard.width, height: artwork.continueCard.height };
+const liveSize = { width: artwork.liveNowCard.width, height: artwork.liveNowCard.height };
 
-type SectionState =
-  { kind: "loading" } | { kind: "ready"; total: number; names: string[] } | { kind: "error" };
+const nowSeconds = () => Math.floor(Date.now() / 1000);
 
-// Home placeholder (M3): the playlist chip, the Account avatar, and the first live categories
-// of the active playlist, loaded in the background after Home appears (user-flows.md §4 Mobile).
-// The rows (N-01) replace the summary in M4.
-function useLiveSummary(): SectionState {
-  const active = useSession((s) => s.active);
-  // Keyed by playlist: a switch shows "loading" until the new summary arrives.
-  const [result, setResult] = useState<{ playlistId: string; state: SectionState } | undefined>();
-  useEffect(() => {
-    if (!active) return;
-    let cancelled = false;
-    const kind: ContentKind = "live";
-    const playlistId = active.catalogue.playlistId;
-    const setState = (state: SectionState) => {
-      if (!cancelled) setResult({ playlistId, state });
-    };
-    (async () => {
-      await active.catalogue.ensureSection(kind);
-      const rows = await categories(await catalogueDb(), playlistId, kind);
-      setState({
-        kind: "ready",
-        total: rows.length,
-        names: rows.slice(0, PREVIEW_CATEGORIES).map((r) => r.category_name),
-      });
-    })().catch(() => setState({ kind: "error" }));
-    return () => {
-      cancelled = true;
-    };
-  }, [active]);
-  return result && result.playlistId === active?.catalogue.playlistId
-    ? result.state
-    : { kind: "loading" };
+function quickActions(item: CatalogueItem, onRemoveFromRow?: () => void) {
+  // Home rows never hold adult items (N-01).
+  openQuickActions({ item, isAdult: false, onInfo: () => openItem(item), onRemoveFromRow });
 }
 
+function Poster({ item }: { item: CatalogueItem }) {
+  return (
+    <PosterCard
+      title={item.name}
+      image={item.icon}
+      badge={item.kind !== "live" && isNewlyAdded(item.added, nowSeconds()) ? "new" : undefined}
+      onPress={() => openItem(item)}
+      onLongPress={() => quickActions(item)}
+      testID={`poster-${item.item_id}`}
+    />
+  );
+}
+
+function LiveCard({ item }: { item: CatalogueItem }) {
+  const { t } = useTranslation();
+  const now = useEpgNow(item);
+  return (
+    <LiveNowCard
+      name={item.name}
+      logo={item.icon}
+      programme={now?.current?.title}
+      progress={now?.current ? now.progress : undefined}
+      liveLabel={t("live")}
+      onPress={() => openItem(item)}
+      onLongPress={() => quickActions(item)}
+      testID={`live-now-${item.item_id}`}
+    />
+  );
+}
+
+function Row({ row }: { row: HomeRow }) {
+  const { t } = useTranslation();
+  switch (row.style) {
+    case "continue": {
+      const kind = row.id === "continue_movies" ? "movie" : "series";
+      return (
+        <ContentRow
+          title={t(
+            row.id === "continue_movies" ? "continue_watching" : "mobile_row_continue_series",
+          )}
+          data={row.entries}
+          keyExtractor={(e) => e.item.item_id}
+          itemSize={continueSize}
+          testID={`home-row-${row.id}`}
+          renderItem={(e) => {
+            const remove = () => {
+              const ctx = browseContext();
+              if (!ctx) return;
+              removeFromContinueWatching(ctx, kind, e.item.item_id);
+              refreshBrowse(ctx.catalogue.playlistId);
+            };
+            return (
+              <ContinueCard
+                title={e.item.name}
+                image={(e.item.data?.backdrop as string | undefined) || e.item.icon}
+                fraction={e.fraction}
+                caption={
+                  e.episode
+                    ? t("mobile_episode_short", { s: e.episode.season, e: e.episode.episode })
+                    : undefined
+                }
+                onPress={() => openItem(e.item)}
+                onMenu={() => quickActions(e.item, remove)}
+                testID={`continue-${e.item.item_id}`}
+              />
+            );
+          }}
+        />
+      );
+    }
+    case "live":
+      return (
+        <ContentRow
+          title={t("mobile_row_live_now")}
+          data={row.items}
+          keyExtractor={(i) => i.item_id}
+          itemSize={liveSize}
+          onSeeAll={() => router.navigate({ pathname: "/live", params: { category: "favourite" } })}
+          testID="home-row-live_now"
+          renderItem={(item) => <LiveCard item={item} />}
+        />
+      );
+    case "poster": {
+      const title =
+        "name" in row
+          ? row.name
+          : t(
+              row.id === "my_list"
+                ? "mobile_tab_my_list"
+                : row.id === "recent_movies"
+                  ? "mobile_row_recent_movies"
+                  : "mobile_row_recent_series",
+            );
+      const seeAll =
+        "categoryId" in row
+          ? () =>
+              router.push({
+                pathname: "/category",
+                params: { kind: row.kind, type: "category", id: row.categoryId, name: row.name },
+              })
+          : row.id === "my_list"
+            ? () => router.navigate("/my-list")
+            : undefined;
+      return (
+        <ContentRow
+          title={title}
+          data={row.items}
+          keyExtractor={(i) => `${i.kind}:${i.item_id}`}
+          itemSize={posterSize}
+          onSeeAll={seeAll}
+          testID={`home-row-${row.id}`}
+          renderItem={(item) => <Poster item={item} />}
+        />
+      );
+    }
+  }
+}
+
+function SkeletonRow({ title }: { title: string }) {
+  return (
+    <ContentRow
+      title={title}
+      data={[]}
+      renderItem={() => <View />}
+      keyExtractor={() => ""}
+      itemSize={posterSize}
+      loading
+    />
+  );
+}
+
+function Hero({ item }: { item: CatalogueItem }) {
+  const { info } = useMovieDetails(item.kind, item.item_id);
+  const inMyList = useIsFavourite(item);
+  const toggle = useToggleFavourite();
+  const genres = genreList(info.data?.genre ?? (item.data?.genre as string | undefined));
+  return (
+    <HeroBanner
+      title={item.name}
+      image={info.data?.backdrop || item.icon}
+      genres={genres}
+      inMyList={inMyList}
+      onToggleMyList={() => toggle(item, false)}
+      onPlay={() => play(item)}
+      onInfo={() => openItem(item)}
+      testID="home-hero"
+    />
+  );
+}
+
+// Home (N-01, screens.md): the hero and the rows, from the local catalogue. Movies and series
+// download in the background after Home appears (Q-home-prefetch); pull to refresh re-syncs the
+// playlist (N-09).
 export default function HomeScreen() {
   const { t } = useTranslation();
+  useTabBack(true);
+  const insets = useSafeAreaInsets();
   const active = useSession((s) => s.active);
   const offline = useSession((s) => s.offline);
-  const live = useLiveSummary();
-  const name = active?.playlist.playlist_name ?? active?.playlist.portal_name ?? "";
-  const section = t(SECTION_KEYS.live);
+  const home = useHome();
+  const movies = useSection("movie", false);
+  const series = useSection("series", false);
+  const [refreshing, setRefreshing] = useState(false);
+  const scrollY = useSharedValue(0);
+  const onScroll = useAnimatedScrollHandler((e) => {
+    scrollY.value = e.contentOffset.y;
+  });
+
+  const pid = active?.catalogue.playlistId;
+  useEffect(() => {
+    if (!pid) return;
+    void prefetchForHome(favouriteIds(kvStore, pid, "live").length > 0);
+  }, [pid]);
+
+  const syncing = movies.state === "loading" || series.state === "loading";
+  const failed = movies.state === "error" || series.state === "error";
+  const data = home.data;
+  const empty = !data || data.rows.length === 0;
+
+  const refresh = async () => {
+    setRefreshing(true);
+    try {
+      await refreshCatalogue();
+    } finally {
+      setRefreshing(false);
+      if (pid) refreshBrowse(pid);
+    }
+  };
+
+  const playlist = active ? playlistTitle(active.playlist) : "";
   return (
-    <SafeAreaView style={styles.root} edges={["top"]} testID="home-screen">
-      <View style={styles.header}>
-        <Logo size={layout.topBarLogoHeight + spacing.md} />
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={`${t("mobile_home_playlist")}: ${name}`}
-          onPress={() => router.push("/playlists")}
-          style={styles.chip}
-          testID="home-playlist-chip"
-        >
-          <ListVideo size={layout.iconSize - spacing.xs} color={colors.text.primary} />
-          <AppText variant="meta" numberOfLines={1} style={styles.chipText}>
-            {name}
-          </AppText>
-        </Pressable>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={t("account")}
-          onPress={() => router.push("/account")}
-          style={styles.avatar}
-          testID="home-account"
-        >
-          <CircleUserRound size={layout.iconSize + spacing.xs} color={colors.text.primary} />
-        </Pressable>
-      </View>
-      <View style={styles.body}>
-        {offline ? (
-          <AppText variant="meta" color="warning">
-            {t("mobile_offline_notice")}
-          </AppText>
+    <View style={styles.root} testID="home-screen">
+      <TopBar
+        overlay
+        scrollY={scrollY}
+        onSearch={() => router.push("/search")}
+        onAccount={() => router.push("/account")}
+      />
+      <Animated.ScrollView
+        onScroll={onScroll}
+        scrollEventThrottle={16}
+        contentContainerStyle={styles.content}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={() => void refresh()}
+            progressViewOffset={insets.top + layout.touchTarget}
+            colors={[colors.brand.primary]}
+            progressBackgroundColor={colors.surface[1]}
+          />
+        }
+      >
+        {data?.hero ? (
+          <Hero item={data.hero} />
+        ) : (
+          <View style={{ height: insets.top + layout.touchTarget + spacing.lg }} />
+        )}
+        <CategoryChips
+          chips={[
+            { key: "playlist", label: playlist, dropdown: true, testID: "home-playlist-chip" },
+            { key: "live", label: t("live_tv") },
+            { key: "movies", label: t("movies") },
+            { key: "series", label: t("series") },
+          ]}
+          onPress={(key) => {
+            if (key === "playlist") router.push("/playlists");
+            else router.navigate(`/${key as "live" | "movies" | "series"}`);
+          }}
+        />
+        {offline || failed ? (
+          <View style={styles.banners}>
+            {offline ? <Banner tone="warning" lines={[t("mobile_offline_notice")]} /> : null}
+            {failed ? (
+              <Banner
+                lines={[t("msg_data_loading_failed")]}
+                action={{ label: t("try_again"), onPress: () => void prefetchForHome(false) }}
+                testID="home-sync-failed"
+              />
+            ) : null}
+          </View>
         ) : null}
-        <Card title={section}>
-          {live.kind === "loading" ? (
-            <AppText color="secondary">{t("mobile_home_loading_section", { section })}</AppText>
-          ) : null}
-          {live.kind === "error" ? (
-            <AppText color="danger">{t("msg_data_loading_failed")}</AppText>
-          ) : null}
-          {live.kind === "ready" ? (
-            <>
-              <AppText variant="bodyStrong" testID="home-live-count">
-                {t("mobile_home_categories", { section, count: live.total })}
-              </AppText>
-              {live.names.map((n) => (
-                <AppText key={n} color="secondary">
-                  {n}
-                </AppText>
-              ))}
-            </>
-          ) : null}
-        </Card>
-        <AppText color="tertiary">{t("mobile_placeholder_title")}</AppText>
-        <DevLanguageSwitch />
-        <DevNetworkSwitch />
-      </View>
-    </SafeAreaView>
+        {data?.rows.map((row) => (
+          <Row key={row.id} row={row} />
+        ))}
+        {empty && (syncing || home.isPending) ? (
+          <>
+            <SkeletonRow title={t("mobile_row_recent_movies")} />
+            <SkeletonRow title={t("mobile_row_recent_series")} />
+          </>
+        ) : null}
+      </Animated.ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.bg.base },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.md,
-    paddingHorizontal: layout.gutter,
-    minHeight: layout.touchTarget + spacing.sm,
-  },
-  chip: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.sm,
-    minHeight: layout.touchTarget - spacing.sm,
-    paddingHorizontal: spacing.md,
-    borderRadius: radius.chip,
-    borderWidth: 1,
-    borderColor: colors.text.tertiary,
-  },
-  chipText: { flex: 1 },
-  avatar: {
-    width: layout.touchTarget,
-    height: layout.touchTarget,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  body: { flex: 1, padding: layout.gutter, gap: spacing.lg },
+  content: { gap: layout.rowGap, paddingBottom: spacing.xxxl },
+  banners: { gap: spacing.sm, paddingHorizontal: layout.gutter },
 });

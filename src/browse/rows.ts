@@ -122,21 +122,36 @@ export class CategoryFeed {
     return Boolean(this.ctx.catalogue.source.page);
   }
 
+  /** The next page after the ones already read. */
   async next(limit = FEED_PAGE): Promise<{ items: CatalogueItem[]; done: boolean }> {
+    const result = await this.page(this.offset, limit);
+    this.offset += result.items.length;
+    return result;
+  }
+
+  /**
+   * One page by offset (infinite lists refetch from offset 0). Virtual rows are read again at
+   * offset 0, so a refetch shows the latest favourites and history.
+   */
+  async page(
+    offset: number,
+    limit = FEED_PAGE,
+  ): Promise<{ items: CatalogueItem[]; done: boolean }> {
     if (this.row.type !== "category") {
-      this.virtual ??= (await virtualItems(this.ctx, this.kind, this.row)).items;
-      const items = this.virtual.slice(this.offset, this.offset + limit);
-      this.offset += items.length;
-      return { items, done: this.offset >= this.virtual.length };
+      if (offset === 0 || !this.virtual)
+        this.virtual = (await virtualItems(this.ctx, this.kind, this.row)).items;
+      const items = this.virtual.slice(offset, offset + limit);
+      return { items, done: offset + items.length >= this.virtual.length };
     }
     const pid = playlistIdOf(this.ctx);
     const categoryId = this.row.id;
     if (this.paged) {
-      // Fetch portal pages until this page is covered or the category is complete.
+      // Fetch portal pages until this page is covered or the category is complete. Page 1 is
+      // fetched again once per feed, so a new session shows the portal's current list.
       while (
         this.nextPortalPage !== undefined &&
         (this.nextPortalPage === 1 ||
-          (await categoryCount(this.ctx.db, pid, this.kind, categoryId)) < this.offset + limit)
+          (await categoryCount(this.ctx.db, pid, this.kind, categoryId)) < offset + limit)
       ) {
         this.nextPortalPage = await this.ctx.catalogue.loadPages(
           this.kind,
@@ -147,12 +162,11 @@ export class CategoryFeed {
       }
     }
     const items = await itemsPage(this.ctx.db, pid, this.kind, categoryId, {
-      offset: this.offset,
+      offset,
       limit,
       // Portal lists are already in the portal's sort order.
       sort: this.paged ? "default" : this.sort,
     });
-    this.offset += items.length;
     const done = items.length < limit && (!this.paged || this.nextPortalPage === undefined);
     return { items, done };
   }

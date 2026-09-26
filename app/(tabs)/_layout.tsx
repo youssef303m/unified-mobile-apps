@@ -1,66 +1,51 @@
-import type { ColorValue } from "react-native";
-import Tabs from "expo-router/js-tabs";
-import { Bookmark, Clapperboard, Film, House, Tv, type LucideIcon } from "lucide-react-native";
+import Tabs, { type BottomTabBarProps } from "expo-router/js-tabs";
+import { Bookmark, Clapperboard, Film, House, Tv } from "lucide-react-native";
 import { useTranslation } from "react-i18next";
 
-import { AppText } from "@/components/AppText";
-import { colors, layout } from "@/theme/tokens";
-import { maxFontSizeMultiplier } from "@/theme/typography";
+import { TabBar, type TabItem } from "@/components/TabBar";
+import { colors } from "@/theme/tokens";
 
-// Placeholder tab bar (M0). The design-system TabBar component replaces it in M4.
-function tabIcon(Icon: LucideIcon) {
-  function TabIcon({ focused, color }: { focused: boolean; color: ColorValue }) {
-    return (
-      <Icon
-        size={layout.iconSize}
-        strokeWidth={layout.iconStroke}
-        color={color}
-        fill={focused ? color : "none"}
-      />
-    );
-  }
-  return TabIcon;
-}
-
-function TabLabel({ focused, children }: { focused: boolean; children: string }) {
+// The bottom tabs (03-design/screens.md): Home · Live TV · Movies · Series · My List, drawn by the
+// design-system TabBar.
+function AppTabBar({ state, navigation }: BottomTabBarProps) {
+  const { t } = useTranslation();
+  const tabs: TabItem[] = [
+    { key: "home", label: t("mobile_tab_home"), icon: House },
+    { key: "live", label: t("live_tv"), icon: Tv },
+    { key: "movies", label: t("movies"), icon: Film },
+    { key: "series", label: t("series"), icon: Clapperboard },
+    { key: "my-list", label: t("mobile_tab_my_list"), icon: Bookmark },
+  ];
+  const active = state.routes[state.index]?.name ?? "home";
   return (
-    <AppText
-      variant="caption"
-      color={focused ? "primary" : "secondary"}
-      maxFontSizeMultiplier={maxFontSizeMultiplier}
-    >
-      {children}
-    </AppText>
+    <TabBar
+      tabs={tabs}
+      activeKey={active}
+      onPress={(key) => {
+        const route = state.routes.find((r) => r.name === key);
+        if (!route) return;
+        const event = navigation.emit({
+          type: "tabPress",
+          target: route.key,
+          canPreventDefault: true,
+        });
+        if (key !== active && !event.defaultPrevented) navigation.navigate(key);
+      }}
+    />
   );
 }
 
 export default function TabsLayout() {
-  const { t } = useTranslation();
   return (
     <Tabs
-      screenOptions={{
-        headerShown: false,
-        tabBarActiveTintColor: colors.text.primary,
-        tabBarInactiveTintColor: colors.text.secondary,
-        tabBarStyle: { backgroundColor: colors.bg.elevated, borderTopColor: colors.border.subtle },
-        tabBarLabel: TabLabel,
-        sceneStyle: { backgroundColor: colors.bg.base },
-      }}
+      tabBar={(props) => <AppTabBar {...props} />}
+      screenOptions={{ headerShown: false, sceneStyle: { backgroundColor: colors.bg.base } }}
     >
-      <Tabs.Screen
-        name="home"
-        options={{ title: t("mobile_tab_home"), tabBarIcon: tabIcon(House) }}
-      />
-      <Tabs.Screen name="live" options={{ title: t("live_tv"), tabBarIcon: tabIcon(Tv) }} />
-      <Tabs.Screen name="movies" options={{ title: t("movies"), tabBarIcon: tabIcon(Film) }} />
-      <Tabs.Screen
-        name="series"
-        options={{ title: t("series"), tabBarIcon: tabIcon(Clapperboard) }}
-      />
-      <Tabs.Screen
-        name="my-list"
-        options={{ title: t("mobile_tab_my_list"), tabBarIcon: tabIcon(Bookmark) }}
-      />
+      <Tabs.Screen name="home" />
+      <Tabs.Screen name="live" />
+      <Tabs.Screen name="movies" />
+      <Tabs.Screen name="series" />
+      <Tabs.Screen name="my-list" />
     </Tabs>
   );
 }

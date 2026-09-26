@@ -3,7 +3,7 @@
 import { FIXTURES_ALLOWED, setFixtureMode, setFixtureScenario } from "@/api/fixtureMode";
 import { getString, KEYS, setString } from "@/storage/kv";
 
-import { parseNetworkMode, type NetworkMode } from "./networkMode";
+import { parseNetworkMode, type DevNetworkMode, type NetworkMode } from "./networkMode";
 
 export const NETWORK_SWITCH_ALLOWED = FIXTURES_ALLOWED;
 
@@ -11,7 +11,7 @@ type ScenarioPatch = Parameters<typeof setFixtureScenario>[0];
 
 export function networkMode(): NetworkMode {
   if (!FIXTURES_ALLOWED) return "production";
-  return parseNetworkMode(getString(KEYS.networkMode), getString(KEYS.useFixtures));
+  return parseNetworkMode(getString(KEYS.networkMode));
 }
 
 function savedScenario(): ScenarioPatch {
@@ -28,7 +28,7 @@ export function applyNetworkSetting(): void {
   if (fixtures) setFixtureScenario(savedScenario());
 }
 
-export function saveNetworkMode(mode: NetworkMode): void {
+export function saveNetworkMode(mode: DevNetworkMode): void {
   if (!FIXTURES_ALLOWED) return;
   setString(KEYS.networkMode, mode);
   setFixtureMode(mode === "fixtures");

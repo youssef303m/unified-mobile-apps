@@ -4,10 +4,15 @@ import { reloadAppAsync } from "expo";
 import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
+import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
+import { QueryClientProvider } from "@tanstack/react-query";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
+import { PinPrompt } from "@/components/PinPrompt";
+import { QuickActionsSheet } from "@/components/QuickActionsSheet";
 import { ToastHost } from "@/components/Toast";
+import { queryClient } from "@/hooks/queryClient";
 import { initI18n } from "@/i18n";
 import { AppStack } from "@/navigation/AppStack";
 import { applyNetworkSetting } from "@/session/network";
@@ -40,9 +45,15 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={styles.root}>
       <SafeAreaProvider>
-        <StatusBar style="light" />
-        <AppStack />
-        <ToastHost />
+        <QueryClientProvider client={queryClient}>
+          <BottomSheetModalProvider>
+            <StatusBar style="light" />
+            <AppStack />
+            <PinPrompt />
+            <QuickActionsSheet />
+            <ToastHost />
+          </BottomSheetModalProvider>
+        </QueryClientProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );

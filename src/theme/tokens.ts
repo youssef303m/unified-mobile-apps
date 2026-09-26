@@ -1,7 +1,7 @@
 // Spacing, radius, elevation and artwork tokens: 03-design/design-system.md §3-4, §7.
-import { colors, scrims } from "./colors";
+import { colors, gradients, scrims } from "./colors";
 
-export { colors, scrims };
+export { colors, gradients, scrims };
 
 export const spacing = {
   xxs: 2,

@@ -374,6 +374,25 @@ export function clearWatchList(store: KeyValueStore, pid: string, kind: "movie" 
   );
 }
 
+/**
+ * user-flows.md §12 Mobile (new, optional): "Remove from Continue Watching" deletes that item's
+ * progress (a series: every episode position).
+ */
+export function removeProgress(
+  store: KeyValueStore,
+  pid: string,
+  kind: "movie" | "series",
+  id: string,
+): void {
+  if (kind === "movie") {
+    const next = movieList(store, pid).filter((m) => m.stream_id !== id);
+    store.set(playlistKeys(pid).savedVodTimes, JSON.stringify(next));
+  } else {
+    const next = seriesList(store, pid).filter((s) => s.stream_id !== id);
+    store.set(playlistKeys(pid).savedSeriesTimes, JSON.stringify(next));
+  }
+}
+
 // ---------- R-078 favourite from details ----------
 
 /** R-078: the details page toggle is applied when leaving the page (the net change only). */

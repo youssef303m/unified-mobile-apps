@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 
 import { resetAppData } from "@/session/boot";
 import { NETWORK_SWITCH_ALLOWED, networkMode, saveNetworkMode } from "@/session/network";
-import { NETWORK_MODES, type NetworkMode } from "@/session/networkMode";
+import { NETWORK_MODES, type DevNetworkMode } from "@/session/networkMode";
 import { colors, layout, radius, spacing } from "@/theme/tokens";
 
 import { AppText } from "./AppText";
@@ -12,7 +12,6 @@ import { AppText } from "./AppText";
 const LABELS = {
   fixtures: "mobile_dev_network_fixtures",
   dev_backend: "mobile_dev_network_dev_backend",
-  production: "mobile_dev_network_production",
 } as const;
 
 // Dev and preview builds: where IBO calls go (docs/decisions.md D-050). Switching forgets the
@@ -21,7 +20,7 @@ export function DevNetworkSwitch() {
   const { t } = useTranslation();
   if (!NETWORK_SWITCH_ALLOWED) return null;
   const current = networkMode();
-  const choose = (mode: NetworkMode) => {
+  const choose = (mode: DevNetworkMode) => {
     if (mode === current) return;
     saveNetworkMode(mode);
     resetAppData();

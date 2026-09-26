@@ -1,23 +1,27 @@
-// Where IBO calls go (docs/decisions.md D-050). Development and preview builds choose between the
-// fixtures (default), the owner's development backend, and production; production builds always
-// use production. Platform-free (persistence is in network.ts).
+// Where IBO calls go (docs/decisions.md D-050, D-061). Development and preview builds choose
+// between the fixtures (default) and the owner's development backend; they can never reach the
+// production backend (the owner's rule: no test data in the real database). Production builds
+// always use production. Platform-free (persistence is in network.ts).
 import { buildPanelUrls, fetchDomainList } from "@/api/ibo/servers";
 import type { KeyValueStore } from "@/api/store";
 
 export type NetworkMode = "fixtures" | "dev_backend" | "production";
 
-export const NETWORK_MODES: readonly NetworkMode[] = ["fixtures", "dev_backend", "production"];
+/** The modes a development or preview build can choose. */
+export type DevNetworkMode = Exclude<NetworkMode, "production">;
+export const NETWORK_MODES: readonly DevNetworkMode[] = ["fixtures", "dev_backend"];
 
 /** The owner's development IBO backend (the same API as production, its own database). */
 export const DEV_BACKEND_DOMAIN = "iboplayer-backend.youssef-dev.online";
 
-/** The stored mode; an older "use fixtures" switch set to off meant production. */
-export function parseNetworkMode(
-  stored: string | undefined,
-  legacyUseFixtures: string | undefined,
-): NetworkMode {
-  if ((NETWORK_MODES as readonly string[]).includes(stored ?? "")) return stored as NetworkMode;
-  return legacyUseFixtures === "0" ? "production" : "fixtures";
+/**
+ * The stored mode of a development or preview build. Anything else (an unknown value, a
+ * "production" saved before D-061, or the old "use fixtures" switch) means the fixtures.
+ */
+export function parseNetworkMode(stored: string | undefined): DevNetworkMode {
+  return (NETWORK_MODES as readonly string[]).includes(stored ?? "")
+    ? (stored as DevNetworkMode)
+    : "fixtures";
 }
 
 /**

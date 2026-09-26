@@ -93,6 +93,11 @@ export class PanelClient {
     return buildFailoverBases(this.options.panelUrls, this.options.store.get(MANUAL_URL_KEY));
   }
 
+  /** The panel bases in failover order (the legacy PIN call tries each of them, R-066). */
+  get serverBases(): string[] {
+    return this.bases();
+  }
+
   private async tryBase(base: string, call: V4Call): Promise<{ status: number; answer: unknown }> {
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
