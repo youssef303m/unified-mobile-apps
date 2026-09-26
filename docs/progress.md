@@ -62,7 +62,6 @@ android`) only after adding a native library or changing native config. **Needed
 
 ## Blockers and later needs (owner)
 
-- Confirm the device id case with the backend (D-024), and Q-app-type, before going live.
 - Before M3: JDK 17 and Android SDK Platform-Tools, for Maestro over USB.
 - Later: a GitHub remote so CI runs, and the `EXPO_TOKEN` secret for tag builds.
 

@@ -202,6 +202,10 @@ lowercase). As instructed, the open-question default (uppercase) is implemented,
 before release**: if the backend compares MACs case-sensitively, TV devices (lowercase) and the
 phone would use different formats, and the user types the id on the website.
 
+**Answered 2026-09-26 by the owner:** the backend compares device ids case-insensitively, so
+uppercase stays. The owner also confirmed the backend accepts `android` as the app type
+(Q-app-type).
+
 ### D-025 · M3U parser fixes (m3u.md "Recommended for mobile")
 
 Kept exactly: the live/vod/series URL tests (including the `vod` substring rule), the two parser

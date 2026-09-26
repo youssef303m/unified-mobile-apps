@@ -12,8 +12,8 @@ decided (the kit and the code are updated).
 
 | Id                 | Default (short)                                                        | Status                                                           | Marked in                                                       |
 | ------------------ | ---------------------------------------------------------------------- | ---------------------------------------------------------------- | --------------------------------------------------------------- |
-| Q-app-type         | `android`                                                              | default                                                          | `src/api/ibo/panel.ts`                                          |
-| Q-device-id        | MAC-format id from SHA-256 of ANDROID_ID, uppercase, in secure storage | default; **case to confirm** (decisions D-024)                   | `src/api/ibo/identity.ts`, `src/platform/deviceIdentity.ts`     |
+| Q-app-type         | `android`                                                              | **answered 2026-09-26**: the backend accepts `android`           | `src/api/ibo/panel.ts`                                          |
+| Q-device-id        | MAC-format id from SHA-256 of ANDROID_ID, uppercase, in secure storage | default; case **answered 2026-09-26**: the backend ignores case  | `src/api/ibo/identity.ts`, `src/platform/deviceIdentity.ts`     |
 | Q-shared-account   | no                                                                     | pending (M3)                                                     |                                                                 |
 | Q-utf8             | encode payloads as UTF-8                                               | default                                                          | `src/api/crypto.ts`                                             |
 | Q-response-shapes  | parse leniently, validate only used fields                             | default                                                          | `src/api/parse.ts`                                              |
@@ -41,9 +41,9 @@ decided (the kit and the code are updated).
 
 ## New questions
 
-| Id                    | Question                                                                                    | Default chosen                                        |
-| --------------------- | ------------------------------------------------------------------------------------------- | ----------------------------------------------------- |
-| Q-backup              | Should Android cloud backup be allowed? It would restore encrypted storage without its key. | no (`allowBackup: false`, decisions D-008)            |
-| Q-expo-updates        | Use EAS Update for JS-only fixes? (tech-stack.md "decide")                                  | not installed; the RTL reload doesn't need it (D-005) |
-| Q-device-id-case      | The device id: uppercase (open-questions default) or lowercase (device-and-auth.md §2.1)?   | uppercase, one constant to change (D-024)             |
-| Q-custom-proxy-header | Does the backend need `Custom-Proxy-Mode: 1` on `edit_playlist`?                            | kept, as documented (D-030)                           |
+| Id                    | Question                                                                                    | Default chosen                                                                       |
+| --------------------- | ------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| Q-backup              | Should Android cloud backup be allowed? It would restore encrypted storage without its key. | no (`allowBackup: false`, decisions D-008)                                           |
+| Q-expo-updates        | Use EAS Update for JS-only fixes? (tech-stack.md "decide")                                  | not installed; the RTL reload doesn't need it (D-005)                                |
+| Q-device-id-case      | The device id: uppercase or lowercase?                                                      | **answered 2026-09-26**: case does not matter to the backend; uppercase kept (D-024) |
+| Q-custom-proxy-header | Does the backend need `Custom-Proxy-Mode: 1` on `edit_playlist`?                            | kept, as documented (D-030)                                                          |
