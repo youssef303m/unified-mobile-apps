@@ -472,5 +472,6 @@
   "mobile_tab_home": "Home",
   "mobile_tab_my_list": "My List",
   "mobile_placeholder_title": "Coming soon",
-  "mobile_dev_language": "Language (dev)"
+  "mobile_dev_language": "Language (dev)",
+  "mobile_dev_fixtures": "Use fixtures (dev)"
 }

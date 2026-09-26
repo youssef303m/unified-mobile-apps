@@ -2,6 +2,8 @@
 // names and value shapes (02-backend/data-models.md §12). The full key set arrives in M2.
 import { createMMKV, type MMKV } from "react-native-mmkv";
 
+import type { KeyValueStore } from "@/api/store";
+
 import { getOrCreateMmkvEncryptionKey } from "./secure";
 
 // The TV app's storage prefix (`runtime.storageId`).
@@ -12,6 +14,8 @@ export const KEYS = {
   language: "language",
   // Phone only: the language a direction reload was last attempted for (reload-loop guard).
   directionReload: "mobile_direction_reload",
+  // Phone only, dev/preview builds: "1" = answer every request from the fixtures (default).
+  useFixtures: "mobile_use_fixtures",
 } as const;
 
 export type KvKey = (typeof KEYS)[keyof typeof KEYS];
@@ -42,3 +46,10 @@ export function setString(key: KvKey, value: string): void {
 export function remove(key: KvKey): void {
   store().remove(prefixed(key));
 }
+
+/** Full-key access for src/api modules (some TV keys are unprefixed, e.g. `stalker_mac`). */
+export const kvStore: KeyValueStore = {
+  get: (key) => store().getString(key),
+  set: (key, value) => store().set(key, value),
+  remove: (key) => void store().remove(key),
+};
