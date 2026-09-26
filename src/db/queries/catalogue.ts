@@ -267,3 +267,68 @@ export async function syncState(
     [playlistId, kind],
   );
 }
+
+export interface CategoryFlags {
+  name: string;
+  /** R-060 test A: PIN lock, favourites, history, search. */
+  isAdult: boolean;
+  /** R-060 test B: kept out of the Top Rated / Newly Added / Home rows. */
+  hideFromRows: boolean;
+}
+
+/** The R-060 flags of every category of a section, by category id. */
+export async function categoryFlags(
+  db: Db,
+  playlistId: string,
+  kind: ContentKind,
+): Promise<Map<string, CategoryFlags>> {
+  const rows = await db.all<{
+    category_id: string;
+    name: string;
+    is_adult: number;
+    hide_from_rows: number;
+  }>(
+    `SELECT category_id, name, is_adult, hide_from_rows FROM categories WHERE playlist_id = ? AND kind = ?`,
+    [playlistId, kind],
+  );
+  return new Map(
+    rows.map((r) => [
+      r.category_id,
+      { name: r.name, isAdult: r.is_adult === 1, hideFromRows: r.hide_from_rows === 1 },
+    ]),
+  );
+}
+
+/**
+ * N-01: the Home hero candidates: movies (or series) with artwork outside the test-B adult
+ * categories, the most recently added first (provider order when there is no date, as in M3U).
+ */
+export async function heroCandidates(
+  db: Db,
+  playlistId: string,
+  kind: "movie" | "series",
+  limit = 1,
+): Promise<CatalogueItem[]> {
+  const rows = await db.all<ItemRow>(
+    `SELECT ${ITEM_COLUMNS} FROM items i
+       JOIN categories c ON c.playlist_id = i.playlist_id AND c.kind = i.kind AND c.category_id = i.category_id
+      WHERE i.playlist_id = ? AND i.kind = ? AND c.hide_from_rows = 0 AND i.icon <> ''
+      ORDER BY i.added IS NULL, i.added DESC, i.position LIMIT ?`,
+    [playlistId, kind, limit],
+  );
+  return rows.map(toItem);
+}
+
+/** How many items of a category are stored (Stalker: the pages loaded so far). */
+export async function categoryCount(
+  db: Db,
+  playlistId: string,
+  kind: ContentKind,
+  categoryId: string,
+): Promise<number> {
+  const row = await db.first<{ n: number }>(
+    `SELECT COUNT(*) AS n FROM items WHERE playlist_id = ? AND kind = ? AND category_id = ?`,
+    [playlistId, kind, categoryId],
+  );
+  return row?.n ?? 0;
+}

@@ -302,6 +302,43 @@ export function episodeResumePosition(
   );
 }
 
+export interface SavedProgress {
+  time: number;
+  duration: number;
+  updatedAt: number;
+}
+
+/** R-073 / R-075: a movie's saved position (Continue Watching card, details page). */
+export function movieProgress(
+  store: KeyValueStore,
+  pid: string,
+  movieId: string,
+): SavedProgress | undefined {
+  const m = movieList(store, pid).find((e) => e.stream_id === movieId);
+  return m ? { time: m.time, duration: m.duration, updatedAt: m.updated_at ?? 0 } : undefined;
+}
+
+/** R-073: every saved episode position of a series, by episode id. */
+export function episodeProgress(
+  store: KeyValueStore,
+  pid: string,
+  seriesId: string,
+): Record<string, SavedProgress & { season: number; episode: number }> {
+  const s = seriesList(store, pid).find((e) => e.stream_id === seriesId);
+  return Object.fromEntries(
+    Object.entries(s?.episodes ?? {}).map(([id, e]) => [
+      id,
+      {
+        time: e.time,
+        duration: e.duration,
+        updatedAt: e.updated_at,
+        season: e.season,
+        episode: e.episode,
+      },
+    ]),
+  );
+}
+
 /** R-075: the prompt is offered when there is a saved position and the stream can seek. */
 export function shouldOfferResume(position: number, seekable: boolean): boolean {
   return position > 0 && seekable;

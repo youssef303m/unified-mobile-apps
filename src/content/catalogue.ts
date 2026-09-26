@@ -83,7 +83,7 @@ export class CatalogueSession {
   constructor(
     private readonly db: Db,
     public source: ContentSource,
-    private readonly playlist: Playlist,
+    readonly playlist: Playlist,
   ) {}
 
   get playlistId(): string {

@@ -70,6 +70,10 @@ export const playlistKeys = (pid: string) => ({
     `${P}${pid}_stalker_${type}_${list}_objs`,
   stalkerCustomMembers: (type: ListType, catId: string) =>
     `${P}${pid}_stalker_${type}_cc_${catId}_objs`,
+  // Phone-only keys (docs/decisions.md D-058): how often each category was opened (the Home
+  // category rows, N-01) and the recent search queries (Search screen).
+  categoryOpens: `${P}${pid}_mobile_category_opens`,
+  recentSearches: `${P}${pid}_mobile_recent_searches`,
 });
 
 /** The stored list type for a content kind. */
