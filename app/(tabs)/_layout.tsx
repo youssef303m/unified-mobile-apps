@@ -48,7 +48,7 @@ export default function TabsLayout() {
       }}
     >
       <Tabs.Screen
-        name="index"
+        name="home"
         options={{ title: t("mobile_tab_home"), tabBarIcon: tabIcon(House) }}
       />
       <Tabs.Screen name="live" options={{ title: t("live_tv"), tabBarIcon: tabIcon(Tv) }} />

@@ -14,8 +14,11 @@ export const KEYS = {
   language: "language",
   // Phone only: the language a direction reload was last attempted for (reload-loop guard).
   directionReload: "mobile_direction_reload",
-  // Phone only, dev/preview builds: "1" = answer every request from the fixtures (default).
+  // Phone only, dev/preview builds (M1-M2): "0" = the "use fixtures" switch was off. Read once to
+  // migrate to networkMode.
   useFixtures: "mobile_use_fixtures",
+  // Phone only, dev/preview builds: "fixtures" (default), "dev_backend" or "production".
+  networkMode: "mobile_network_mode",
 } as const;
 
 export type KvKey = (typeof KEYS)[keyof typeof KEYS];

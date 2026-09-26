@@ -2,21 +2,22 @@ import { useEffect, useState } from "react";
 import { StyleSheet } from "react-native";
 import { reloadAppAsync } from "expo";
 import { useFonts } from "expo-font";
-import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
+import { ToastHost } from "@/components/Toast";
 import { initI18n } from "@/i18n";
-import { applyFixtureSetting } from "@/session/fixtures";
+import { AppStack } from "@/navigation/AppStack";
+import { applyNetworkSetting } from "@/session/network";
 import { fontMap } from "@/theme/fonts";
 import { colors } from "@/theme/tokens";
 
 void SplashScreen.preventAutoHideAsync();
 
 function boot() {
-  applyFixtureSetting();
+  applyNetworkSetting();
   return initI18n();
 }
 
@@ -40,7 +41,8 @@ export default function RootLayout() {
     <GestureHandlerRootView style={styles.root}>
       <SafeAreaProvider>
         <StatusBar style="light" />
-        <Stack screenOptions={{ headerShown: false, contentStyle: styles.root }} />
+        <AppStack />
+        <ToastHost />
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );

@@ -4,7 +4,15 @@ import { useTranslation } from "react-i18next";
 import { colors } from "@/theme/tokens";
 import { textStyle, type TextVariant } from "@/theme/typography";
 
-type TextColor = keyof typeof colors.text;
+const TONES = {
+  ...colors.text,
+  danger: colors.status.danger,
+  success: colors.status.success,
+  warning: colors.status.warning,
+  brandLight: colors.brand.light,
+} as const;
+
+export type TextColor = keyof typeof TONES;
 
 export interface AppTextProps extends TextProps {
   variant?: TextVariant;
@@ -15,9 +23,6 @@ export interface AppTextProps extends TextProps {
 export function AppText({ variant = "body", color = "primary", style, ...rest }: AppTextProps) {
   const { i18n } = useTranslation();
   return (
-    <Text
-      style={[textStyle(variant, i18n.language), { color: colors.text[color] }, style]}
-      {...rest}
-    />
+    <Text style={[textStyle(variant, i18n.language), { color: TONES[color] }, style]} {...rest} />
   );
 }

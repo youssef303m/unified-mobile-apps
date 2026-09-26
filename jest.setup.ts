@@ -17,3 +17,7 @@ jest.mock("expo-secure-store", () => {
     setItem: (key: string, value: string) => void values.set(key, value),
   };
 });
+
+// Reanimated and Worklets ship Jest mocks; their native modules do not exist in tests.
+jest.mock("react-native-worklets", () => jest.requireActual("react-native-worklets/src/mock"));
+jest.mock("react-native-reanimated", () => jest.requireActual("react-native-reanimated/mock"));

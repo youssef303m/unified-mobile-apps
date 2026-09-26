@@ -16,3 +16,13 @@ export function setFixtureMode(enabled: boolean): void {
     resetTransport();
   }
 }
+
+/** Dev and preview builds: change the fixture servers' scenario (e2e flows, via the dev link). */
+export function setFixtureScenario(
+  patch: Partial<import("./__fixtures__/scenario").Scenario>,
+): void {
+  if (!FIXTURES_ALLOWED) return;
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const lazy = require("./__fixtures__/scenario") as typeof import("./__fixtures__/scenario");
+  lazy.setScenario(patch);
+}
