@@ -1,0 +1,8 @@
+node_modules/
+iboplayer-mobile-kit/
+android/
+ios/
+.expo/
+coverage/
+src/i18n/locales/
+package-lock.json
