@@ -2,7 +2,19 @@
 
 A new session must be able to continue from this file alone. Read `AGENTS.md` first.
 
-## Current milestone: M1 · Fixtures and API clients. Code complete; waiting for the owner's review
+## Current milestone: M2 · Content layer and storage (in progress, started 2026-09-26)
+
+Owner answers: the backend accepts `android` (Q-app-type) and ignores device id case (D-024).
+
+## Dev IBO backend (from the owner)
+
+- Hosted: `https://iboplayer-backend.youssef-dev.online/` (panel base `…/api`; routes
+  `/api/<app_type>/v4/...`, `android` allowed). Source: `d:\dev\Backend\iboplayer-backend`
+  (Express; `routes/api.js`, `controllers/`). Do not read its `.env` (secrets).
+- Use it from M3 as a "dev backend" network mode: IBO calls go only to it, skipping the real agent
+  servers. Its source is the reference for real response shapes (Q-response-shapes).
+
+## M1 · Fixtures and API clients: accepted 2026-09-26
 
 | M1 item (04-build/roadmap.md)                                                                  | Status                                                                |
 | ---------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
@@ -67,8 +79,8 @@ android`) only after adding a native library or changing native config. **Needed
 
 ## Next
 
-- Owner review of M1, then M2 · Content layer and storage: read 01-product/business-rules.md and
-  02-backend/data-models.md fully first.
+- M2 · Content layer and storage: read 01-product/business-rules.md and 02-backend/data-models.md
+  fully first. Then stop and report.
 
 ## How to verify
 
