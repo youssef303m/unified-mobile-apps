@@ -67,7 +67,7 @@ function isoDate(offsetDays: number): string {
 export function deviceInfoReply(): Record<string, unknown> {
   const byState = {
     active: { mac_registered: true, expire_date: isoDate(180), is_trial: 2 },
-    trial: { mac_registered: false, expire_date: isoDate(7), is_trial: 1 },
+    trial: { mac_registered: false, expire_date: isoDate(7), is_trial: 0 },
     expired: { mac_registered: true, expire_date: isoDate(-3), is_trial: 1 },
   }[scenario.account];
   return {
@@ -81,7 +81,8 @@ export function deviceInfoReply(): Record<string, unknown> {
     ],
     languages: [],
     notification: {},
-    urls: scenario.demoOnly ? [demoPlaylist] : [demoPlaylist, ...fixturePlaylists],
+    // A device with no playlists gets the demo as a bare URL string, as the real backend sends it.
+    urls: scenario.demoOnly ? [demoPlaylist.url] : [demoPlaylist, ...fixturePlaylists],
   };
 }
 
@@ -98,8 +99,10 @@ function bearerOk(request: FixtureRequest): boolean {
   return request.headers.authorization === `Bearer ${FIXTURE_TOKEN}`;
 }
 
+// As the real backend sends it (ApiController getDeviceInfoAnyDevice), with error_code 401.
 const uidMismatch = {
   status: "uid_mismatch_captcha",
+  error_code: 401,
   captcha: '<svg xmlns="http://www.w3.org/2000/svg"><text>K7MQ3X</text></svg>',
   captcha_token: "9a8b7c",
   message: "Device ID mismatch. Enter the code shown to verify ownership.",

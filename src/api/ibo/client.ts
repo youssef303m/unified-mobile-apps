@@ -182,7 +182,8 @@ async function manage(
   });
   const o = asObject(reply);
   if (str(o.status) === "success") return { kind: "success", playlist: asObject(o.playlist) };
-  return { kind: "error", message: optStr(o.msg) ?? optStr(o.message) };
+  // The backend puts some errors under `result` ("not found", another device's playlist).
+  return { kind: "error", message: optStr(o.msg) ?? optStr(o.message) ?? optStr(o.result) };
 }
 
 export function savePlaylist(

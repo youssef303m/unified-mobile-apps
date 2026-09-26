@@ -33,6 +33,10 @@ export function convertPlaylistPath(entry: Playlist): Playlist {
 }
 
 export function parsePlaylist(value: unknown): Playlist {
+  // A device without playlists gets the demo as a bare URL string (ApiController
+  // getDeviceInfoAnyDevice `[parseM3uUrl(demo_url)]`); the TV treats it as the "demo" entry.
+  if (typeof value === "string")
+    return convertPlaylistPath({ id: "demo", playlist_type: "general", url: value });
   const o = asObject(value);
   const entry: Playlist = {
     id: str(o.id) || str(o._id),

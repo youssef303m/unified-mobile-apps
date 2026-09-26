@@ -72,6 +72,9 @@ function interpret(response: HttpResponse, mode: ResponseMode): unknown {
 export function isAuthFailure(status: number, answer: unknown): boolean {
   if (status === 401 || status === 403) return true;
   const obj = asObject(answer);
+  // The backend sends its ownership check with error_code 401; it is a captcha, not an expired
+  // session (device-and-auth.md §4.2 fetchDeviceInfo, docs/decisions.md D-048).
+  if (str(obj.status) === "uid_mismatch_captcha") return false;
   const code = num(obj.error_code);
   if (code === 401 || code === 403) return true;
   return str(obj.status) === "error" && AUTH_MESSAGE.test(str(obj.message));

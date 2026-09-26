@@ -19,9 +19,22 @@ export function base64DecodeUtf8(b64: string): string {
   return CryptoJS.enc.Base64.parse(b64).toString(CryptoJS.enc.Utf8);
 }
 
+/**
+ * JSON with every non-ASCII character written as a `\uXXXX` escape. The IBO backend decodes the
+ * request Base64 as ASCII, not UTF-8, so raw UTF-8 bytes (an Arabic playlist name) arrive garbled;
+ * escapes are plain ASCII and JSON.parse restores the text. Identical to JSON.stringify for ASCII
+ * payloads (docs/decisions.md D-047).
+ */
+export function asciiJson(data: unknown): string {
+  return JSON.stringify(data).replace(
+    /[\u007f-￿]/g,
+    (c) => `\\u${c.charCodeAt(0).toString(16).padStart(4, "0")}`,
+  );
+}
+
 /** Client → server: 2 marker characters first, then Base64 with a random filler spliced in. */
 export function encryptRequest(data: unknown, random: RandomSource = secureRandom): string {
-  const b64 = base64EncodeUtf8(JSON.stringify(data));
+  const b64 = base64EncodeUtf8(asciiJson(data));
   let keyLen = random.int(30);
   if (keyLen < 20) keyLen = 20;
   let pos = b64.length > 0 ? random.int(b64.length) : 0;

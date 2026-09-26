@@ -4,6 +4,7 @@ import {
   FIXTURE_DEVICE_KEY,
   FIXTURE_RECAPTCHA_TOKEN,
   FIXTURE_TOKEN,
+  demoPlaylist,
 } from "../../__fixtures__/ibo";
 import { setScenario } from "../../__fixtures__/scenario";
 import { AllServersFailedError, AuthError } from "../../errors";
@@ -119,10 +120,12 @@ describe("V4 device_info (#4)", () => {
     expect(expired.kind === "ok" && expired.info.expire_date < today).toBe(true);
   });
 
-  it("demo-only playlist list", async () => {
+  it("demo-only playlist list: the backend sends the demo as a bare URL string", async () => {
     setScenario({ demoOnly: true });
     const result = await deviceInfo(newPanel(), id, FIXTURE_TOKEN);
-    expect(result.kind === "ok" && result.info.urls.map((u) => u.id)).toEqual(["demo"]);
+    expect(result.kind === "ok" && result.info.urls).toEqual([
+      { id: "demo", playlist_type: "general", url: demoPlaylist.url },
+    ]);
   });
 
   it("an invalid or missing token is an AuthError (session expired)", async () => {

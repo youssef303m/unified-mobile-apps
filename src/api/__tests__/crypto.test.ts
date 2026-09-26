@@ -4,6 +4,7 @@ import { config } from "@/config";
 
 import { decryptRequest, encryptResponse } from "../__fixtures__/serverCrypto";
 import {
+  asciiJson,
   base64EncodeUtf8,
   decryptResponse,
   encryptRequest,
@@ -22,6 +23,7 @@ function sequence(values: number[]): RandomSource {
   return { int: () => values[i++] ?? 0 };
 }
 const range = (n: number) => Array.from({ length: n }, (_, i) => i);
+const ALPHABET = config.crypto.obfuscationAlphabet;
 
 // Vectors computed independently with Node's Buffer (device-and-auth.md §3 algorithm).
 const MAC_PAYLOAD = { mac_address: "a1:b2:c3:d4:e5:f6" };
@@ -64,6 +66,18 @@ describe("encryptRequest (device-and-auth.md §3.1)", () => {
     expect(decryptRequest(encryptRequest({ playListName: "قناة" }))).toEqual({
       playListName: "قناة",
     });
+  });
+
+  it("D-047: non-ASCII text survives the backend's ASCII decoding", () => {
+    const payload = { playListName: "قناة Élan 📺", mac_address: "A1:B2:C3:D4:E5:F6" };
+    expect(asciiJson({ mac_address: "A1:B2" })).toBe(JSON.stringify({ mac_address: "A1:B2" }));
+    const blob = encryptRequest(payload);
+    // The backend (ApiController decryptRequest): markers first, filler cut, Base64 → 'ascii'.
+    const pos = ALPHABET.indexOf(blob.charAt(0));
+    const len = ALPHABET.indexOf(blob.charAt(1));
+    const body = blob.slice(2);
+    const b64 = body.slice(0, pos) + body.slice(pos + len);
+    expect(JSON.parse(Buffer.from(b64, "base64").toString("ascii"))).toEqual(payload);
   });
 });
 
