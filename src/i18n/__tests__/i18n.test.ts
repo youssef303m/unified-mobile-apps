@@ -51,7 +51,7 @@ describe("i18n", () => {
     expect(initI18n().language).toBe("ar");
   });
 
-  it("falls back to English for keys a language file lacks", async () => {
+  it("R-121: a language change applies immediately; missing keys fall back to English", async () => {
     initI18n();
     await i18n.changeLanguage("ar");
     expect(i18n.t("mobile_tab_home")).toBe("Home");
