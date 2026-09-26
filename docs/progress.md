@@ -71,7 +71,7 @@ android`) only after adding a native library or changing native config. **Needed
 ## Blockers and later needs (owner)
 
 - (answered 2026-09-26) Q-offline-expired: an expired cached date blocks offline (D-035); Q-favourites-full: refuse (D-037).
-- Before M3: JDK 17 and Android SDK Platform-Tools, for Maestro over USB.
+- (done 2026-09-26) JDK 17 (Temurin, JAVA_HOME), Platform-Tools at `C:\Android\platform-tools`, Maestro 2.10.0 at `%LOCALAPPDATA%\maestro\bin`; the phone is authorised for USB debugging.
 - Later: a GitHub remote so CI runs, and the `EXPO_TOKEN` secret for tag builds.
 
 ## Next
