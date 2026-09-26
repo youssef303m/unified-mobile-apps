@@ -161,3 +161,128 @@ only Hindi used. This deviates from the kit (18 languages, translations.md). A p
 language is not English or Arabic starts in English. To add a language back: copy its file from
 the kit, add it to `src/i18n/languages.ts` and `resources.ts`, and for fa/ur add it to the RTL
 list and the Arabic script in `src/theme/typography.ts` (hi needs the Devanagari font again).
+
+## M1 · Fixtures and API clients
+
+### D-021 · Libraries added in M1
+
+- `crypto-js` (in the table): obfuscation Base64/UTF-8, SHA-1/SHA-256, the QR AES. It also does
+  the UTF-8 Base64, so the `buffer` package from the device-and-auth.md sketch is not needed.
+- `msw` (in the tooling table): HTTP fixtures in tests.
+- `expo-application` (in the table): ANDROID_ID for the device id. It is a native module that is
+  **not in the current development build**. Nothing imports it yet
+  (`src/platform/deviceIdentity.ts` is first used in M3), so the phone build keeps working.
+  Rebuild the development client at the start of M3.
+- `babel-preset-expo` as an explicit dev dependency (the SDK-matched version it already had,
+  nested under `expo`), for the Node test project.
+- `react-native-get-random-values` is not added: `expo-crypto` provides the random source (D-026).
+
+### D-022 · Two Jest projects
+
+`jest.config.js` has an **app** project (jest-expo, React Native code) and an **api** project
+(plain Node, `src/api`), where MSW intercepts `fetch` without React Native polyfills. The API
+layer has no React Native imports, which keeps it testable in Node. MSW 2 depends on ESM-only
+packages (`rettime`, `until-async`, `@open-draft/*`), which the api project transforms
+explicitly.
+
+### D-023 · Timeouts where the TV has none
+
+The TV sets no timeout on the Xtream catalogue calls, the M3U download, `changeParentPin` and
+`edit_playlist`. A phone request that never ends would hang the UI, so catalogue and M3U
+downloads get 120 s (`LARGE_DOWNLOAD_TIMEOUT_MS`) and the two legacy calls get 30 s. Every other
+timeout is the documented one (15 s for V4, the agent, the Xtream login and Stalker).
+
+### D-024 · Device id case (kit contradiction)
+
+05-reference/open-questions.md Q-device-id says the default is **uppercase**. device-and-auth.md
+§2.1 step 4 says the proposed format is **lowercase**, and its Note 3 recommends always sending
+lowercase, because `legacyUid` lowercases the MAC (which suggests the backend normalises to
+lowercase). As instructed, the open-question default (uppercase) is implemented, in one place
+(`formatMac` in `src/api/ibo/identity.ts`). **The owner should confirm the case with the backend
+before release**: if the backend compares MACs case-sensitively, TV devices (lowercase) and the
+phone would use different formats, and the user types the id on the website.
+
+### D-025 · M3U parser fixes (m3u.md "Recommended for mobile")
+
+Kept exactly: the live/vod/series URL tests (including the `vod` substring rule), the two parser
+modes chosen by `tvg-` anywhere in the file, `stream_id` = tvg-id or name, the "All" →
+"Uncategorized" rename, and "Season NN" grouping (a space is needed before `SNN`).
+
+Fixed: quotes are kept in names and URLs, CRLF is handled, and values are trimmed.
+`key="value"` attributes (also single-quoted or unquoted ones) are parsed properly, so commas
+and `=` inside values survive. The display name is everything after the attribute section.
+Directive lines (`#EXTVLCOPT`, …) between `#EXTINF` and the URL no longer drop the entry. When a
+file has both an empty `group-title` and entries with none, the two "Uncategorized" categories
+are merged. A leading BOM or whitespace before `#EXTM3U` is accepted.
+
+The parser is incremental (`push()` chunks), and `parseM3uText` yields to the event loop between
+slices. The 20,000-entry fixture parses in about 0.14 s under Jest.
+
+### D-026 · Custom entry file and the crypto polyfill
+
+`package.json` `main` is `index.ts`, which imports `src/platform/polyfills.ts` and then
+`expo-router/entry`. Hermes has no `crypto.getRandomValues`, and crypto-js looks it up once when
+it loads (for the QR AES salt), so the polyfill (from `expo-crypto`, already in the development
+build) must run before anything else.
+
+### D-027 · Error model details
+
+- Beyond the five architecture types: `AllServersFailedError` (a `NetworkError`, for the "Server
+  URLs failed" screen), `CancelledError` (a caller abort, never shown as a failure), and an
+  `AuthError.reason` (`token`, `provider_expired`, `provider_banned`, …) so screens can show the
+  matching TV message.
+- `http.send` returns HTTP error statuses as responses and throws only for transport problems,
+  because several protocols treat error bodies as answers (IBO V4 JSON errors, the Stalker 405,
+  Stararcs 422). `expectOk` maps 401/403 to `AuthError` and other error statuses to
+  `ServerError`, which carries the status.
+- IBO endpoints return typed result unions (`captcha`, `uid_captcha`, `not_found`, …) rather than
+  throwing for documented challenge states.
+
+### D-028 · Fixtures and the "use fixtures" mode
+
+- Each fixture server is a pure function from a request to a response
+  (`src/api/__fixtures__/`). The same functions serve MSW in tests and the in-app transport
+  (`src/api/fixtureTransport.ts`), so the app and the tests exercise identical data.
+- Fake hosts use the reserved `.test` TLD, and the credentials are fake. The fixture panel
+  decrypts the app's payloads and checks tokens, so the tests verify the real wire format.
+- In tests, a request with no fixture fails the test (`jest.server.ts`), so no test can reach a
+  real server.
+- In the app, the mode is **on by default** in development and preview builds, so development
+  never calls real servers. A dev-only switch on the Home placeholder turns it off. The mode is
+  compiled out of production (`FIXTURES_ALLOWED` is constant there, so the fixture servers are
+  not bundled). The preview profile sets `EXPO_PUBLIC_ENABLE_FIXTURES=1`.
+- Public test streams (a Mux HLS stream and an ExoPlayer demo MP4) are in `hosts.ts`. The M3U
+  fixture's first live channel plays the HLS one; mapping Xtream fixture stream URLs to them is
+  M5 work.
+
+### D-029 · What M1 does not include, and where it goes
+
+- The session and service logic that chains the endpoints: the verification flow,
+  account-state routing, demo playlist removal and the offline start (M3); the Xtream → M3U
+  fallback (Q-behaviour-fixes #8), load modes, Stalker 5-page batching and the stored
+  recent/favourite objects (M2); a fresh `create_link` before each reconnect (#10, M5).
+- Clients for Stararcs (M6, if in scope), subtitles (M5) and weather (optional). The roadmap
+  lists only TMDB, the image cache and analytics for M1.
+- EPG guide lazy loading with 4 concurrent requests is guide UI work (M5). The parsing and
+  normalisation helpers already exist in `src/utils/epgTime.ts`.
+
+### D-030 · Kit gaps and ambiguities found in M1
+
+- **Stalker catch-up cascade** (stalker.md §4.9): attempts with an empty `series` are
+  "skipped", yet the first attempt (`reference_media_mpg`) has an empty `series` by definition.
+  It is kept (only when the programme has a raw id); every other empty-series attempt is skipped.
+- **Stalker catch-up titles**: the TV base64-encodes them only to reuse its Xtream screen. The
+  phone keeps them as plain text.
+- **Stalker expired token**: the architecture says a token error gets one re-handshake and a
+  retry. Content calls do this on 401/403 (`StalkerClient.call`); the keepalive reconnects as on
+  TV.
+- **`Custom-Proxy-Mode: 1`** on `edit_playlist` is kept, because Q-legacy-endpoints says to keep
+  these endpoints exactly as documented. ibo-api-reference.md suggests dropping it if the backend
+  doesn't need it; that is for the owner to confirm.
+
+### D-031 · Q-behaviour-fixes applied in M1
+
+#5 (the Xtream catch-up description is kept and shown), #6 (Stalker `tv_archive: "0"` means no
+archive), #9 (explicit time parsing; the server offset applies only to wall-clock strings) and
+#11 (Xtream credentials URL-encoded in API, stream and catch-up URLs). #2, #3, #4, #7, #8, #10
+and #12 belong to the service and UI layers (M2–M5).
