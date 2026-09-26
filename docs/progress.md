@@ -2,9 +2,20 @@
 
 A new session must be able to continue from this file alone. Read `AGENTS.md` first.
 
-## Current milestone: M2 · Content layer and storage (in progress, started 2026-09-26)
+## Current milestone: M2 · Content layer and storage. Code complete; waiting for the owner's review
 
-Owner answers: the backend accepts `android` (Q-app-type) and ignores device id case (D-024).
+| M2 item (04-build/roadmap.md)                                              | Status                                                                    |
+| -------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| SQLite schema and FTS5                                                     | done (`src/db/`: schema, migrations, FTS5 kept in sync by triggers)       |
+| The `ContentSource` interface and its three implementations                | done (`src/content/XtreamSource.ts`, `M3uSource.ts`, `StalkerSource.ts`)  |
+| Sync with progress, including load on demand                               | done (`src/content/sync.ts`, `catalogue.ts` `CatalogueSession`)           |
+| MMKV key-value storage with the TV key names                               | done (`src/storage/keys.ts`, `settings.ts`; MMKV wrapper `kv.ts`)         |
+| Business rules module, one test per R-xxx                                  | done (`src/content/rules/`; a test checks every R-xxx in the kit has one) |
+| **Accept:** a fixture playlist of each type syncs into SQLite              | passing (`src/content/__tests__/catalogue.test.ts`)                       |
+| **Accept:** category pages, lookups by id and search return the right data | passing (same file; search < 300 ms on 20,000 channels)                   |
+| **Accept:** every R-xxx test passes                                        | passing (88 rules)                                                        |
+
+Owner answers so far: the backend accepts `android` (Q-app-type) and ignores device id case (D-024).
 
 ## Dev IBO backend (from the owner)
 
@@ -14,53 +25,38 @@ Owner answers: the backend accepts `android` (Q-app-type) and ignores device id 
 - Use it from M3 as a "dev backend" network mode: IBO calls go only to it, skipping the real agent
   servers. Its source is the reference for real response shapes (Q-response-shapes).
 
-## M1 · Fixtures and API clients: accepted 2026-09-26
+## Accepted milestones
 
-| M1 item (04-build/roadmap.md)                                                                  | Status                                                                |
-| ---------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
-| `src/api/http.ts` and the typed errors                                                         | done (`http.ts`, `errors.ts`, `log.ts` with URL redaction)            |
-| IBO client: server selection, device identity, registration, playlists, every endpoint, crypto | done (`src/api/ibo/`, `src/api/crypto.ts`)                            |
-| Xtream, M3U and Stalker clients                                                                | done (`src/api/xtream/`, `m3u/`, `stalker/`)                          |
-| EPG and catch-up                                                                               | done (`src/utils/epgTime.ts`; per-source parsing in the clients)      |
-| TMDB, image cache, analytics                                                                   | done (`src/api/tmdb.ts`, `imageCache.ts`, `analytics.ts`)             |
-| Fixtures + MSW + the "use fixtures" dev toggle                                                 | done (`src/api/__fixtures__/`, `fixtureTransport.ts`, switch on Home) |
-| **Accept:** unit tests cover every endpoint against the fixtures                               | passing                                                               |
-| **Accept:** crypto test vectors pass                                                           | passing (`src/api/__tests__/crypto.test.ts`)                          |
-| **Accept:** M3U parser handles 20,000 entries in < 3 s under Jest                              | passing (~0.14 s)                                                     |
-
-## M0 · Project skeleton: accepted 2026-09-26
-
-- Accepted by the owner on their phone (EAS development build, D-019): the splash, the five
-  tabs, and the English ⇄ Arabic switch. Not reported: persistence after a restart and the
-  large-font check; nothing blocking.
-- The owner then narrowed the languages to English and Arabic (D-020).
+- **M0 · Project skeleton** (2026-09-26): accepted on the owner's phone (EAS development build,
+  D-019). Languages then narrowed to English and Arabic (D-020).
+- **M1 · Fixtures and API clients** (2026-09-26): every endpoint tested against fixtures, crypto
+  vectors, M3U 20,000 entries in ~0.14 s.
 
 ## What exists
 
 - `index.ts`: the entry (polyfills, then expo-router). `app/_layout.tsx`: applies the fixture
   setting, i18n, fonts, the RTL reload, then the stack. `app/(tabs)/`: placeholder tabs; Home has
   dev-only language and "use fixtures" switches.
-- `src/config.ts`: generated from the kit's config.json (`npm run config:generate`); a test
-  checks it still matches.
-- `src/api/`: platform-free API layer (no React Native imports), tested in Node with MSW.
-  - `http.ts` (swappable transport), `errors.ts`, `crypto.ts`, `random.ts`, `parse.ts`,
-    `store.ts` (the injected key-value store interface).
-  - `ibo/`: `servers.ts` (agent, domain cache, fallback, panel URLs), `panel.ts` (V4 failover,
-    decoding, auth-failure detection), `client.ts` (every endpoint), `links.ts`, `playlists.ts`,
-    `identity.ts` (device id derivation).
-  - `xtream/`, `m3u/`, `stalker/` clients; `tmdb.ts`, `imageCache.ts`, `analytics.ts`.
-  - `__fixtures__/`: fixture servers (IBO agent + panel, Xtream + a 20,000-channel host, M3U
-    variants + 20,000 entries, Stalker portal, TMDB, image cache, analytics), the scenario
-    switches, MSW handlers and the Jest server.
-  - `fixtureTransport.ts` / `fixtureMode.ts`: the in-app "use fixtures" mode (on by default in
-    dev and preview; compiled out of production).
-- `src/platform/`: `polyfills.ts` (crypto.getRandomValues), `deviceIdentity.ts` (not used until
-  M3; needs `expo-application` in the development build).
-- `src/session/fixtures.ts`: the persisted fixture setting.
-- `src/utils/epgTime.ts`: EPG time parsing, now/next, catch-up grouping, guide normalisation.
-- Theme, i18n (English + Arabic), storage, components from M0.
-- Tests: 154 in 16 suites (`npm test`); two Jest projects (app, api), decisions D-022.
-- `docs/decisions.md` (D-001 to D-031), `docs/open-questions.md`, `docs/new-strings.md`.
+- `src/config.ts`: generated from the kit's config.json (`npm run config:generate`).
+- `src/api/` (M1): platform-free API layer: HTTP, errors, crypto, IBO, Xtream, M3U, Stalker,
+  TMDB, image cache, analytics, fixtures (`__fixtures__/`) and the "use fixtures" transport.
+- `src/db/` (M2): `database.ts` (the `Db` interface), `expoDb.ts` (expo-sqlite, first used in
+  M3), `schema.ts` + `migrations/` (categories, items, `items_fts`, sync_state),
+  `queries/catalogue.ts` (categories with counts, pages with R-090 sorts, by id, by ids, FTS
+  search, recently added, top-rated candidates), `testing/testDb.ts` (better-sqlite3 for tests).
+- `src/content/` (M2):
+  - `types.ts`, `ContentSource.ts` (D-034), the three sources.
+  - `sync.ts`: `writeCatalogue` (batched, one transaction, progress; Uncategorized only when
+    needed), `writeCategories` + `cachePage` (Stalker), `forgetPlaylist`.
+  - `catalogue.ts`: `createSource`, `login` (R-023/R-024/R-025/R-026, fix #8), `CatalogueSession`
+    (R-050 per-section loading, `loadAll`, `refresh` (R-052), Stalker 5-page batches).
+  - `rules/`: `startup` (A), `playlists` (B–D), `content` (E), `parental` (F), `library` (G),
+    `customCategories` (H), `sports` (R-100/101), `live` (I), `app` (J–M).
+- `src/storage/`: `keys.ts` (every TV key), `settings.ts` (TV defaults), `kv.ts` (MMKV,
+  `kvStore` implements the injected `KeyValueStore` incl. `keys()`).
+- `src/platform/`: `polyfills.ts`, `deviceIdentity.ts` (M3).
+- Tests: 257 in 24 suites (`npm test`); Jest projects "app" and "core" (D-022, D-033).
+- `docs/decisions.md` (D-001 to D-044), `docs/open-questions.md`, `docs/new-strings.md`.
 
 ## Running the app on the phone
 
@@ -70,17 +66,20 @@ Owner answers: the backend accepts `android` (Q-app-type) and ignores device id 
   can leave the Metro node process holding port 8081: stop that process too.
 - Rebuild the development client (`npx eas-cli@latest build --profile development --platform
 android`) only after adding a native library or changing native config. **Needed at the start
-  of M3** (`expo-application`, D-021).
+  of M3** (`expo-application` D-021, `expo-sqlite` D-032).
 
 ## Blockers and later needs (owner)
 
+- Confirm Q-offline-expired (D-035) and Q-favourites-full (D-037) when convenient.
 - Before M3: JDK 17 and Android SDK Platform-Tools, for Maestro over USB.
 - Later: a GitHub remote so CI runs, and the `EXPO_TOKEN` secret for tag builds.
 
 ## Next
 
-- M2 · Content layer and storage: read 01-product/business-rules.md and 02-backend/data-models.md
-  fully first. Then stop and report.
+- Owner review of M2, then M3 · Boot, activation and playlists: rebuild the development client
+  first; read 01-product/user-flows.md (first launch), current-app-inventory.md (boot, playlists,
+  portals, account screens), 03-design/screens.md, and 04-build/testing.md §4 flows 1, 7, 10.
+  Add the "dev backend" network mode.
 
 ## How to verify
 

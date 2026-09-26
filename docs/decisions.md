@@ -290,3 +290,106 @@ build) must run before anything else.
 archive), #9 (explicit time parsing; the server offset applies only to wall-clock strings) and
 #11 (Xtream credentials URL-encoded in API, stream and catch-up URLs). #2, #3, #4, #7, #8, #10
 and #12 belong to the service and UI layers (M2–M5).
+
+## M2 · Content layer and storage
+
+### D-032 · Libraries added in M2
+
+- `expo-sqlite` (in the table): the catalogue database. Its Android build has FTS5 on by default
+  (`expo.sqlite.enableFTS`). It is a native module that is **not in the current development
+  build**. Nothing in the app imports it yet (`src/db/expoDb.ts` is first used in M3), so the phone
+  build keeps working. It joins `expo-application` in the rebuild at the start of M3.
+- `better-sqlite3` (dev only, never bundled): a real SQLite with FTS5 for the Node tests. Node
+  22's built-in `node:sqlite` has no FTS5, so it cannot stand in for the phone's database.
+
+### D-033 · The Node test project covers the whole core
+
+The Jest "api" project became "core" (`src/api`, `src/content`, `src/db`). The content layer and
+the database queries run against real SQLite and the MSW fixtures. The content layer has no
+React Native imports: it reaches storage through the injected `KeyValueStore` and the `Db`
+interface (expo-sqlite in the app, better-sqlite3 in tests).
+
+### D-034 · The ContentSource shape
+
+The architecture sketches `items(kind, categoryId, page)` on every source. Xtream and M3U only
+ever download whole lists, so they expose `catalogue(kind)` instead, which `sync.ts` writes to
+SQLite; screens then read pages from SQLite. Stalker, which is paged, exposes `page(...)`;
+`CatalogueSession.loadPages` caches each page in SQLite. Every provider item is one
+`CatalogueItem` type (kind-specific extras in `data`), which keeps rows, search, favourites and
+the player source-agnostic.
+
+### D-035 · Offline with an expired licence (kit contradiction)
+
+R-005 says that when starting from the cache (backend unreachable), an expired-looking licence
+"is treated as valid (the app never locks the user out because the server is down)".
+device-and-auth.md §5 describes the TV differently: offline, only the displayed date changes
+(to 2438-01-02) and an expired device stays blocked. AGENTS.md says business rules are
+requirements, so **R-005 is implemented**: offline, an expired-looking licence routes to the
+trial/active state and shows 2438-01-02. **The owner should confirm this** (Q-offline-expired).
+
+### D-036 · Playlist key renames match the id exactly
+
+R-030: when a `non_saved_…` playlist gets a server id, the TV renames keys by substring
+replacement, which can touch unrelated keys (data-models.md Notes). The phone renames only keys
+where the old id sits right after the prefix and is followed by `live`, `vod`, `series` or `_`.
+
+### D-037 · A full favourites list refuses new items
+
+R-070 gives the limits (500 live, 200 movies, 200 series) but not what happens at the limit. The
+phone refuses the add (`"full"`) rather than silently dropping an older favourite
+(Q-favourites-full).
+
+### D-038 · Watch progress storage
+
+- Seconds, as on every TV platform except Samsung.
+- Q-behaviour-fixes #3: series progress is keyed by episode id, so the stored shape differs from
+  the TV's: `{ stream_id: seriesId, episodes: { [episodeId]: { time, duration, season, episode,
+updated_at } }, recent: { id, s, ep }, updated_at }`. M3U episode ids are made unique per series
+  (`"Season 01:01"`); Stalker's are already `"<seasonId>:<n>"`.
+- Movie entries get an extra `updated_at`, so Continue Watching is newest first. It is capped
+  at 15 for both movies and series (the business-rules Notes recommendation), instead of the TV's
+  two inconsistent behaviours.
+
+### D-039 · Toast duration
+
+R-131 says toasts last 2 s on TV; design-system.md §5 specifies 4 s for the phone's toast. The
+phone follows the mobile design system (4 s, `TOAST_MS`); the TV value is kept as `TV_TOAST_MS`.
+
+### D-040 · Search and sorting details
+
+- Search uses FTS5 (architecture.md) with each word as a prefix term, so "spo" finds "Sports", but
+  a word is not matched from its middle (the TV's substring test finds "ports" inside "Sports").
+  Diacritics are ignored. The minimum length is 2 everywhere (Q-behaviour-fixes #1). User input
+  is always quoted, so it can never be FTS syntax.
+- Search excludes adult categories (R-064) and hidden categories (R-098), and only returns items
+  in a known category (data-models.md §10).
+- A-Z / Z-A pages sorted in SQLite use `COLLATE NOCASE` (ASCII case folding). The in-memory
+  `sortItems` uses `localeCompare`, as on TV.
+- Stalker pages are cached in arrival order; a sort re-orders everything loaded so far, instead of
+  the TV's per-batch client sort.
+
+### D-041 · Catalogues are cached across sessions
+
+The TV re-downloads every list each session. The phone keeps the last copy in SQLite (N-01: Home
+renders from the cache in under 1 s). R-050 is unchanged: a section is still re-synced the first
+time it is opened in a session, and pull to refresh (N-09, R-052) re-syncs the loaded sections.
+
+### D-042 · Portal MAC on the phone
+
+R-038 builds the virtual Stalker MAC from the device's hardware MAC when there is one.
+stalker.md §1 says a phone has none and must use the random persisted `00:1A:79:XX:XX:XX` path.
+`virtualStalkerMac` supports both; the app passes no hardware MAC.
+
+### D-043 · Live Initialization "Default" row
+
+settings.md §2.13 says Default opens "the 3rd category (index 2, usually the first real category
+after Search All and Recently Viewed)", but data-models.md puts Favourites at index 2. The rule
+is implemented literally: the row at index 2 of the visible rows if it has channels, otherwise
+the first non-empty row.
+
+### D-044 · Small robustness choices
+
+- An Xtream movie or episode without `container_extension` plays as `.mp4` (the TV builds
+  `.undefined`, which never plays).
+- `StalkerSource` checks the profile on connect (R-026) and throws `AuthError` with
+  `portal_expired` or `portal_unavailable`, so screens can show the matching TV message.
