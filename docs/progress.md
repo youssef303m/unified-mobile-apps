@@ -4,17 +4,17 @@ A new session must be able to continue from this file alone. Read `AGENTS.md` fi
 
 ## Current milestone: M0 · Project skeleton. Code complete; one acceptance check blocked
 
-| M0 item (04-build/roadmap.md)                                                        | Status                                                                |
-| ------------------------------------------------------------------------------------ | --------------------------------------------------------------------- |
-| Expo app, TypeScript strict, expo-router, dev client                                 | done (SDK 57)                                                         |
-| ESLint + Prettier, Jest (jest-expo + RNTL), CI workflow                              | done                                                                  |
-| Folder layout from architecture.md, with empty modules                               | done (`src/*/index.ts` placeholders)                                  |
-| Theme tokens and typography (design-system.md §1-3)                                  | done (`src/theme/`)                                                   |
-| Fonts loaded (Inter, Noto Sans Arabic, Noto Sans Devanagari)                         | done (runtime, during splash)                                         |
-| Icon and splash configured (assets/README.md)                                        | done (`app.config.ts`; verified in a trial prebuild)                  |
-| i18n with the 18 locales and RTL switching                                           | done (`src/i18n/`)                                                    |
-| **Accept:** `npx expo run:android` shows splash → placeholder tab bar, EN + AR (RTL) | **blocked**: no JDK 17, Android SDK or emulator on this machine       |
-| **Accept:** CI passes on a clean checkout                                            | verified locally with `npm ci` in a fresh clone; no GitHub remote yet |
+| M0 item (04-build/roadmap.md)                                        | Status                                                                |
+| -------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| Expo app, TypeScript strict, expo-router, dev client                 | done (SDK 57)                                                         |
+| ESLint + Prettier, Jest (jest-expo + RNTL), CI workflow              | done                                                                  |
+| Folder layout from architecture.md, with empty modules               | done (`src/*/index.ts` placeholders)                                  |
+| Theme tokens and typography (design-system.md §1-3)                  | done (`src/theme/`)                                                   |
+| Fonts loaded (Inter, Noto Sans Arabic, Noto Sans Devanagari)         | done (runtime, during splash)                                         |
+| Icon and splash configured (assets/README.md)                        | done (`app.config.ts`; verified in a trial prebuild)                  |
+| i18n with the 18 locales and RTL switching                           | done (`src/i18n/`)                                                    |
+| **Accept:** splash → placeholder tab bar, EN + AR (RTL), on a device | **waiting**: EAS development build on the owner's phone (D-019)       |
+| **Accept:** CI passes on a clean checkout                            | verified locally with `npm ci` in a fresh clone; no GitHub remote yet |
 
 ## What exists
 
@@ -34,21 +34,23 @@ A new session must be able to continue from this file alone. Read `AGENTS.md` fi
 
 ## Blockers (need the owner)
 
-1. **Install JDK 17 and the Android SDK, and set up an emulator or a USB-debugging device.**
-   Without them, `npx expo run:android` can't build. Instructions are in the M0 report; in short:
-   - JDK 17: `winget install Microsoft.OpenJDK.17`, then set `JAVA_HOME` to its folder
-     (e.g. `C:\Program Files\Microsoft\jdk-17…`) and put `%JAVA_HOME%\bin` before the Java 8
-     entry in `Path`.
-   - Android Studio (`winget install Google.AndroidStudio`) → SDK Manager: Android SDK Platform
-     36, Build-Tools 36, Platform-Tools, Emulator, and a system image. Set `ANDROID_HOME` to
-     `%LOCALAPPDATA%\Android\Sdk` and add `%ANDROID_HOME%\platform-tools` and
-     `%ANDROID_HOME%\emulator` to `Path`. Create an AVD (e.g. Pixel, API 34/35).
-2. A GitHub remote, so CI runs, and the `EXPO_TOKEN` secret for tag builds (later).
+The owner chose cloud builds (decisions D-019): no Android Studio, SDK or emulator.
+
+1. The owner creates a free account at expo.dev and runs `npx eas-cli@latest login` in the
+   project terminal.
+2. Then: `npx eas-cli@latest init` (links the project; add the printed `extra.eas.projectId` to
+   `app.config.ts`), then the owner runs the first
+   `npx eas-cli@latest build --profile development --platform android` interactively, because
+   generating the Android keystore needs a prompt.
+3. The owner installs the resulting APK on their phone (from the build page link or QR).
+4. Before M3: JDK 17 and Android SDK Platform-Tools, for Maestro over USB.
+5. Later: a GitHub remote so CI runs, and the `EXPO_TOKEN` secret for tag builds.
 
 ## Next
 
-1. When the tools are installed: `npm run android`, then check the splash, the tab bar, and the
-   dev switch to Arabic (RTL, mirrored tab order) and back. Then mark M0 accepted.
+1. After the phone has the development build: `npm start` (expo start --dev-client), open the
+   project on the phone, and check the splash, the tab bar, and the dev switch to Arabic (RTL,
+   mirrored tab order) and back. Then mark M0 accepted.
 2. M1 · Fixtures and API clients: read 02-backend/* fully and 04-build/testing.md §1 first.
    Wait for the owner's go-ahead before starting.
 
@@ -60,5 +62,6 @@ npm run typecheck
 npm run lint
 npm test
 npx expo-doctor
-npm run android   # needs JDK 17 + Android SDK + emulator/device
+npx eas-cli@latest build --profile development --platform android   # cloud dev build (D-019)
+npm start         # then open the dev build on the phone
 ```

@@ -137,3 +137,17 @@ GitHub Actions runs `npm ci`, type check, lint and tests on every push and pull 
 it starts an EAS preview build, which needs an `EXPO_TOKEN` repository secret from the owner's
 Expo account. `eas.json` has the three profiles from release.md; production uses
 `autoIncrement` with the remote version source.
+
+### D-019 · Development builds with EAS Build (cloud) and a real phone
+
+The owner chose not to install Android Studio, the Android SDK or an emulator (about 20 GB).
+The development-client APK is built on EAS Build (`eas build --profile development --platform
+android`) and installed on the owner's Android phone; JavaScript changes then load from
+`npx expo start --dev-client` with hot reload. A rebuild is needed only when a native library or
+native config changes. `android/` stays generated on the build server, never committed.
+Consequences:
+
+- M0's acceptance check "`npx expo run:android` shows…" is verified with the EAS development
+  build on the phone instead.
+- The Maestro E2E flows (from M3) still need JDK 17 and the Android SDK Platform-Tools (`adb`),
+  about 0.3 GB, installed before M3. They run against the phone over USB, not an emulator.
