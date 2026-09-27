@@ -18,6 +18,20 @@ export const STALKER_MAC = "00:1A:79:12:34:56";
 
 // Public test streams, so the player can be exercised end to end (04-build/testing.md §1).
 export const TEST_STREAMS = {
+  /** HLS VOD, about 10 minutes (Big Buck Bunny). */
   hls: "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
-  mp4: "https://storage.googleapis.com/exoplayer-test-media-1/mp4/android-screens-10s.mp4",
+  /** MP4, about 10 minutes. */
+  mp4: "https://storage.googleapis.com/exoplayer-test-media-0/BigBuckBunny_320x180.mp4",
+  /** MKV (H.264 + AAC). */
+  mkv: "https://storage.googleapis.com/exoplayer-test-media-1/mkv/android-screens-lavf-56.36.100-aac-avc-main-1280x720.mkv",
+  /** A real live HLS stream. */
+  live: "https://cph-p2p-msl.akamaized.net/hls/live/2000341/test/master.m3u8",
+  /** Raw MPEG-TS over HTTP (a 10 s segment, played as progressive TS). */
+  ts: "https://devstreaming-cdn.apple.com/videos/streaming/examples/bipbop_4x3/gear1/fileSequence0.ts",
+  /** Answers 403: the error states. */
+  broken: "https://storage.googleapis.com/exoplayer-test-media-1/mp4/does-not-exist.mp4",
 };
+
+/** Fixture live channels that play the MPEG-TS file and the broken URL. */
+export const FIXTURE_TS_CHANNEL = "10001";
+export const FIXTURE_BROKEN_CHANNEL = "10002";

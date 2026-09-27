@@ -162,9 +162,9 @@ interface GuideSlot {
 }
 
 /** EPG guide normalisation (§4): sort, clamp overlaps, drop empty slots, merge repeats. */
-export function normalizeGuide(slots: GuideSlot[]): GuideSlot[] {
+export function normalizeGuide<T extends GuideSlot>(slots: readonly T[]): T[] {
   const sorted = [...slots].sort((a, b) => a.start.getTime() - b.start.getTime());
-  const out: GuideSlot[] = [];
+  const out: T[] = [];
   let prevEnd = 0;
   for (const slot of sorted) {
     const p = { ...slot };
@@ -184,4 +184,71 @@ export function normalizeGuide(slots: GuideSlot[]): GuideSlot[] {
     out.push(p);
   }
   return out;
+}
+
+/** The TV's "No Title" placeholder: empty here, the screen shows its localized form. */
+export const GUIDE_NO_TITLE = "";
+
+/** A programme in the EPG guide grid. */
+export interface GuideProgramme extends GuideSlot {
+  /** Xtream `has_archive` (catch-up can play it once it has ended). */
+  archive: boolean;
+}
+
+interface XtreamGuideListing {
+  start: string;
+  end: string;
+  title: string;
+  description: string;
+  start_timestamp?: string;
+  stop_timestamp?: string;
+  has_archive?: number;
+}
+
+/** §4 XC parse: start/end (or the timestamps) through getLocalChannelTime, base64 titles. */
+export function xtreamGuide(
+  listings: readonly XtreamGuideListing[],
+  offsetMin: number,
+): GuideProgramme[] {
+  return normalizeGuide(
+    listings.flatMap((l) => {
+      const start = getLocalChannelTime(l.start || l.start_timestamp || "", offsetMin);
+      const stop = getLocalChannelTime(l.end || l.stop_timestamp || "", offsetMin);
+      if (!start || !stop || stop.getTime() <= start.getTime()) return [];
+      return [
+        {
+          start,
+          stop,
+          title: decodeBase64Title(l.title) || GUIDE_NO_TITLE,
+          description: decodeBase64Title(l.description),
+          archive: (l.has_archive ?? 0) !== 0,
+        },
+      ];
+    }),
+  );
+}
+
+const text = (v: unknown) => (typeof v === "string" ? v : typeof v === "number" ? String(v) : "");
+
+/**
+ * §4 Stalker parse: time (or start_timestamp), time_to (or stop_timestamp); plain titles. The
+ * Xtream offset is never applied to a portal (Notes: the TV's global leaked into Stalker).
+ */
+export function stalkerGuide(items: readonly Record<string, unknown>[]): GuideProgramme[] {
+  return normalizeGuide(
+    items.flatMap((item) => {
+      const start = getLocalChannelTime(text(item.time) || text(item.start_timestamp), 0);
+      const stop = getLocalChannelTime(text(item.time_to) || text(item.stop_timestamp), 0);
+      if (!start || !stop || stop.getTime() <= start.getTime()) return [];
+      return [
+        {
+          start,
+          stop,
+          title: text(item.name) || text(item.title) || GUIDE_NO_TITLE,
+          description: text(item.descr) || text(item.description),
+          archive: false,
+        },
+      ];
+    }),
+  );
 }

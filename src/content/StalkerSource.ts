@@ -11,6 +11,7 @@ import {
 import { StalkerLinks } from "@/api/stalker/links";
 import { profileKey, type StbProfileKey } from "@/api/stalker/portal";
 import type { KeyValueStore } from "@/api/store";
+import { stalkerGuide, type GuideProgramme } from "@/utils/epgTime";
 
 import type { ContentSource } from "./ContentSource";
 import { stalkerLoginOutcome } from "./rules/playlists";
@@ -240,6 +241,11 @@ export class StalkerSource implements ContentSource {
   async epg(channel: CatalogueItem): Promise<EpgProgramme[]> {
     await this.connect();
     return this.content.shortEpg(channel.item_id);
+  }
+
+  async guide(channel: CatalogueItem): Promise<GuideProgramme[]> {
+    await this.connect();
+    return stalkerGuide(await this.content.simpleDataTable(channel.item_id, 400));
   }
 
   /** create_link at play time; Q-stream-headers: the MAG User-Agent and Cookie go with it. */

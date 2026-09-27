@@ -1,7 +1,7 @@
 // Two projects (docs/decisions.md D-022, D-033):
 // - app: React Native code, on the jest-expo preset.
 // - core: the platform-free layers (src/api, src/browse, src/content, src/db, and the flows in
-//   src/session) in plain Node, where MSW intercepts fetch and better-sqlite3 stands in for
+//   src/player and src/session) in plain Node, where MSW intercepts fetch and better-sqlite3 stands in for
 //   expo-sqlite.
 const ignored = ["/node_modules/", "/iboplayer-mobile-kit/", "/android/", "/ios/"];
 const alias = { "^@/(.*)$": "<rootDir>/src/$1" };
@@ -10,6 +10,7 @@ const coreRoots = [
   "<rootDir>/src/browse",
   "<rootDir>/src/content",
   "<rootDir>/src/db",
+  "<rootDir>/src/player",
   "<rootDir>/src/session",
 ];
 

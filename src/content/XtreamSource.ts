@@ -4,6 +4,7 @@ import type { Playlist } from "@/api/ibo/types";
 import { XtreamClient } from "@/api/xtream/client";
 import type { XtreamAccount, XtreamPlaylist } from "@/api/xtream/types";
 import { episodeUrl, liveUrl, movieUrl, timeshiftUrl, type StreamFormat } from "@/api/xtream/urls";
+import { xtreamGuide, type GuideProgramme } from "@/utils/epgTime";
 
 import type { Catalogue, CatalogueOptions, ContentSource } from "./ContentSource";
 import type {
@@ -165,6 +166,15 @@ export class XtreamSource implements ContentSource {
 
   epg(channel: CatalogueItem, signal?: AbortSignal): Promise<EpgProgramme[]> {
     return this.client.shortEpg(channel.item_id, this.serverOffsetMinutes, signal);
+  }
+
+  async guide(channel: CatalogueItem, signal?: AbortSignal): Promise<GuideProgramme[]> {
+    const listings = await this.client.simpleDataTable(channel.item_id, signal);
+    return xtreamGuide(listings ?? [], this.serverOffsetMinutes);
+  }
+
+  catchup(channel: CatalogueItem, signal?: AbortSignal): Promise<EpgProgramme[]> {
+    return this.client.catchupProgrammes(channel.item_id, this.serverOffsetMinutes, signal);
   }
 
   async streamUrl(request: PlayRequest): Promise<StreamTarget> {

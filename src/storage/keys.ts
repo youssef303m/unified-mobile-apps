@@ -34,6 +34,12 @@ export const globalKeys = {
   savedMovieInfo: `${P}saved-movie-info`,
   allPlaylistsInfo: `${P}all_playlists_info`,
   autoPlay: `${P}auto_play`,
+  subtitleSize: `${P}subtitle_size`,
+  subtitleTextColor: `${P}subtitle_text_color`,
+  subtitleBgColor: `${P}subtitle_bg_color`,
+  subtitlePosition: `${P}subtitle_position`,
+  /** N-06 (phone only): keep playing with the screen off or the app in the background. */
+  backgroundAudio: `${P}mobile_background_audio`,
   keepConnection: `${P}keep_connection`,
   isRefresh: `${P}isRefresh`,
   smartProxyConnectionState: `${P}smart_proxy_connection_state`,

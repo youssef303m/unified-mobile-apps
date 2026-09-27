@@ -29,6 +29,8 @@ export interface TmdbSearchResult {
   title: string;
   release_date?: string;
   overview?: string;
+  /** `original_title` (movies) or `original_name` (series). */
+  original?: string;
 }
 
 /** The key from `device_info.tmdb_api_key` replaces the built-in one for the session. */
@@ -111,6 +113,7 @@ export async function tmdbSearch(
       title: str(o.title) || str(o.name),
       release_date: optStr(o.release_date) ?? optStr(o.first_air_date),
       overview: optStr(o.overview),
+      original: optStr(o.original_title) ?? optStr(o.original_name),
     };
   });
 }

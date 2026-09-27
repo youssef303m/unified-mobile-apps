@@ -55,3 +55,10 @@ export const gradients = {
   /** The Live Now card and the details backdrop fade. */
   fadeBottom: "linear-gradient(0deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0) 100%)",
 } as const;
+
+// The TV's subtitle palettes (01-product/player.md §5.2). These exact strings are also the saved
+// values of `subtitle_text_color` and `subtitle_bg_color`, so they must not change.
+export const subtitlePalettes = {
+  text: ["#ffffff", "#000000", "#ffe000", "#26d367", "#39d5e0", "#e02323"],
+  background: ["transparent", "#000000", "rgba(0,0,0,0.6)", "#ffffff", "#950606", "#1d528f"],
+} as const;
