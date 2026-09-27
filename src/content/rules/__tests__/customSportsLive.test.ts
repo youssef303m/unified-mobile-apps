@@ -32,12 +32,18 @@ import {
   guideGivesUp,
   guideTapAction,
   hasArchive,
+  hasChannelOrder,
   hiddenCategories,
   liveInitialization,
   liveSearchAvailable,
+  moveStep,
+  orderChannels,
+  orderRows,
   readArrangement,
   replayAvailability,
   saveArrangement,
+  saveChannelOrder,
+  saveRowOrder,
   sortItems,
   sortOptions,
   toggleHiddenCategory,
@@ -245,6 +251,46 @@ describe("I. Live TV rules", () => {
     expect(canMoveCategory(rows, 0, 1)).toBe(false);
     expect(canMoveCategory(rows, 2, 0)).toBe(false);
     expect(canMoveCategory(rows, 2, 1)).toBe(true);
+  });
+
+  it("R-093: phone moves step by step and save the whole order, which replays exactly", () => {
+    const store = memoryStore();
+    const rows = ["all", "recent", "favourite", "a", "b", "c"].map((id) => ({ id }));
+    // Search All stays first and nothing moves above it; the ends stop.
+    expect(moveStep(rows, 0, 1, "category")).toBeUndefined();
+    expect(moveStep(rows, 1, -1, "category")).toBeUndefined();
+    expect(moveStep(rows, 5, 1, "category")).toBeUndefined();
+    const moved = defined(moveStep(rows, 5, -1, "category"));
+    expect(moved.map((r) => r.id)).toEqual(["all", "recent", "favourite", "a", "c", "b"]);
+    saveRowOrder(store, PID, moved);
+    expect(orderRows(store, PID, rows).map((r) => r.id)).toEqual(moved.map((r) => r.id));
+    // A category the provider added later keeps its place after the ordered ones.
+    expect(orderRows(store, PID, [...rows, { id: "d" }]).map((r) => r.id)).toEqual([
+      "all",
+      "recent",
+      "favourite",
+      "a",
+      "c",
+      "b",
+      "d",
+    ]);
+
+    const channels = [ch("1"), ch("2"), ch("3")];
+    expect(hasChannelOrder(store, PID, "10")).toBe(false);
+    const withIds = channels.map((c) => ({ ...c, id: c.item_id }));
+    const down = defined(moveStep(withIds, 0, 1, "channel"));
+    expect(moveStep(withIds, 0, -1, "channel")).toBeUndefined();
+    saveChannelOrder(store, PID, "10", down);
+    expect(hasChannelOrder(store, PID, "10")).toBe(true);
+    expect(orderChannels(store, PID, "10", channels).map((c) => c.item_id)).toEqual([
+      "2",
+      "1",
+      "3",
+    ]);
+    // The TV matches a channel by id and name: a renamed channel is not moved, the others are.
+    const renamed = [ch("2", "New name"), ch("3"), ch("1")];
+    expect(orderChannels(store, PID, "10", renamed).map((c) => c.item_id)).toEqual(["2", "1", "3"]);
+    expect(orderChannels(store, PID, "10", renamed)[0]?.name).toBe("New name");
   });
 
   it("R-094: arrangement keeps pinned rows, then chosen ids, then the rest; empty removes the key", () => {

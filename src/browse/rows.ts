@@ -4,7 +4,7 @@
 import { readJson } from "@/api/store";
 import { customMembers, customRows } from "@/content/rules/customCategories";
 import { buildRows, NEW_WINDOW_SECONDS, pickTopRated, type Row } from "@/content/rules/content";
-import { hiddenCategories } from "@/content/rules/live";
+import { hasChannelOrder, hiddenCategories, orderChannels, orderRows } from "@/content/rules/live";
 import type { CatalogueItem, ContentKind } from "@/content/types";
 import {
   categories,
@@ -32,6 +32,11 @@ export const FEED_PAGE = 60;
  * user-flows.md §7 Mobile). Custom rows appear only when the feature is on (R-080).
  */
 export async function tabRows(ctx: BrowseContext, kind: ContentKind): Promise<Row[]> {
+  return (await fullRows(ctx, kind)).filter((r) => !(r.type === "virtual" && r.id === "all"));
+}
+
+/** The rows with Search All where the TV has it; live rows in the user's order (R-093). */
+export async function fullRows(ctx: BrowseContext, kind: ContentKind): Promise<Row[]> {
   const pid = playlistIdOf(ctx);
   const rows = buildRows({
     kind,
@@ -40,7 +45,7 @@ export async function tabRows(ctx: BrowseContext, kind: ContentKind): Promise<Ro
     customRows: customRows(ctx.store),
     hidden: hiddenCategories(ctx.store, pid, kind),
   });
-  return rows.filter((r) => !(r.type === "virtual" && r.id === "all"));
+  return kind === "live" ? orderRows(ctx.store, pid, rows) : rows;
 }
 
 /** A virtual or custom row's whole list (they are short: at most a few hundred items). */
@@ -110,6 +115,7 @@ export class CategoryFeed {
   /** Stalker: the next portal page, or undefined once the category is complete. */
   private nextPortalPage: number | undefined = 1;
   private virtual?: CatalogueItem[];
+  private ordered?: CatalogueItem[];
 
   constructor(
     private readonly ctx: BrowseContext,
@@ -160,6 +166,20 @@ export class CategoryFeed {
           this.sort,
         );
       }
+    }
+    // R-093: a live category the user reordered is read whole, then ordered.
+    if (this.kind === "live" && !this.paged && hasChannelOrder(this.ctx.store, pid, categoryId)) {
+      if (offset === 0 || !this.ordered) {
+        const count = await categoryCount(this.ctx.db, pid, this.kind, categoryId);
+        const all = await itemsPage(this.ctx.db, pid, this.kind, categoryId, {
+          offset: 0,
+          limit: Math.max(count, 1),
+          sort: this.sort,
+        });
+        this.ordered = orderChannels(this.ctx.store, pid, categoryId, all);
+      }
+      const items = this.ordered.slice(offset, offset + limit);
+      return { items, done: offset + items.length >= this.ordered.length };
     }
     const items = await itemsPage(this.ctx.db, pid, this.kind, categoryId, {
       offset,

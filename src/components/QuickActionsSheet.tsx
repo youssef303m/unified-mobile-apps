@@ -1,5 +1,5 @@
 import { StyleSheet, View } from "react-native";
-import { Heart, HeartOff, Info, X } from "lucide-react-native";
+import { ArrowUpDown, Heart, HeartOff, Info, X } from "lucide-react-native";
 import { useTranslation } from "react-i18next";
 import { create } from "zustand";
 
@@ -13,13 +13,15 @@ import { ListRow } from "./ListRow";
 import { Sheet } from "./Sheet";
 
 // QuickActionsSheet (design-system.md §5 PosterCard, user-flows.md "Gestures"): a long press on a
-// card or channel opens Add to / Remove from Favourites, Remove from Continue Watching (where it
-// applies) and Info.
+// card or channel opens Add to / Remove from Favourites, Remove from Continue Watching and Move
+// (where they apply) and Info.
 export interface QuickActionsRequest {
   item: CatalogueItem;
   isAdult: boolean;
   onInfo?: () => void;
   onRemoveFromRow?: () => void;
+  /** Live channels in a movable category (R-093). */
+  onMove?: () => void;
 }
 
 const useQuickActions = create<{ request?: QuickActionsRequest }>()(() => ({}));
@@ -66,6 +68,14 @@ export function QuickActionsSheet() {
               leading={icon(X)}
               onPress={run(request.onRemoveFromRow)}
               testID="quick-remove"
+            />
+          ) : null}
+          {request.onMove ? (
+            <ListRow
+              title={t("mobile_move_channel")}
+              leading={icon(ArrowUpDown)}
+              onPress={run(request.onMove)}
+              testID="quick-move"
             />
           ) : null}
           {request.onInfo ? (

@@ -31,6 +31,7 @@ export function AppStack() {
         <Stack.Screen name="channel/[id]" options={{ animation: "fade", gestureEnabled: false }} />
         <Stack.Screen name="guide" />
         <Stack.Screen name="replay" />
+        <Stack.Screen name="live-order" />
       </Stack.Protected>
       <Stack.Protected guard={canUseAccount}>
         <Stack.Screen name="account" />

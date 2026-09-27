@@ -2,11 +2,12 @@ import { useMemo, useState } from "react";
 import { RefreshControl, StyleSheet, View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { FlashList } from "@shopify/flash-list";
-import { CalendarDays, Lock, Rewind, Tv } from "lucide-react-native";
+import { ArrowUpDown, CalendarDays, Lock, Rewind, Tv } from "lucide-react-native";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 
 import { initialLiveSelection } from "@/browse/live";
+import { channelMoveAvailable } from "@/browse/order";
 import type { Row } from "@/browse/rows";
 import { CategoryChips, type Chip } from "@/components/CategoryChips";
 import { ChannelRow } from "@/components/ChannelRow";
@@ -41,11 +42,13 @@ function Channel({
   isAdult,
   playing,
   onPress,
+  onMove,
 }: {
   item: CatalogueItem;
   isAdult: boolean;
   playing: boolean;
   onPress: () => void;
+  onMove?: () => void;
 }) {
   const now = useEpgNow(item);
   const favourite = useIsFavourite(item);
@@ -68,7 +71,7 @@ function Channel({
       favourite={favourite}
       onToggleFavourite={() => toggle(item, isAdult)}
       onPress={onPress}
-      onLongPress={() => openQuickActions({ item, isAdult })}
+      onLongPress={() => openQuickActions({ item, isAdult, onMove })}
       playing={playing}
       testID={`channel-${item.item_id}`}
     />
@@ -135,6 +138,16 @@ export default function LiveScreen() {
     if (channelTapAction(selectedId, item.item_id) === "fullscreen") return fullscreen(item);
     setSelected({ id: item.item_id, key: linkKey });
   };
+
+  // R-093: Move opens the order screen for this category's channels.
+  const moveChannels =
+    ctx && row && channelMoveAvailable(ctx, row)
+      ? () =>
+          router.push({
+            pathname: "/live-order",
+            params: { category: row.id, name: rowTitle(t, "live", row) },
+          })
+      : undefined;
 
   const chips: Chip[] = [
     { key: "recent", label: t("mobile_row_recently_viewed"), selected: rowId === "recent" },
@@ -220,6 +233,7 @@ export default function LiveScreen() {
                 isAdult={isAdultCategory(item.category_id)}
                 playing={item.item_id === selectedId}
                 onPress={() => tapChannel(item)}
+                onMove={moveChannels}
               />
             )}
             onEndReached={() => {
@@ -283,6 +297,18 @@ export default function LiveScreen() {
         data={list}
         keyExtractor={(r) => `${r.type}:${r.id}`}
         testID="live-categories-sheet"
+        header={
+          <ListRow
+            title={t("mobile_move_categories")}
+            leading={<ArrowUpDown size={layout.iconSize} color={colors.text.secondary} />}
+            chevron
+            onPress={() => {
+              setPicker(false);
+              router.push("/live-order");
+            }}
+            testID="live-move-categories"
+          />
+        }
         renderItem={(r) => (
           <ListRow
             title={rowTitle(t, "live", r)}

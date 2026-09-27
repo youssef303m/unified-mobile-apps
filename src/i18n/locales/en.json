@@ -639,5 +639,10 @@
   "mobile_settings_general": "General",
   "mobile_settings_storage": "Storage",
   "mobile_about": "About",
-  "mobile_hidden_count": "Hidden: {{count}}"
+  "mobile_hidden_count": "Hidden: {{count}}",
+  "mobile_move_up": "Move up",
+  "mobile_move_down": "Move down",
+  "mobile_move_hint": "Use the arrows to move an item up or down. Each change is saved at once.",
+  "mobile_move_categories": "Move categories",
+  "mobile_move_channel": "Move channel"
 }

@@ -37,6 +37,13 @@ import {
   toggleFavourite,
 } from "../library";
 import { ParentalControl } from "../parental";
+import {
+  categoryChannels,
+  channelMoveAvailable,
+  liveRowOrder,
+  moveChannel,
+  moveLiveRow,
+} from "../order";
 import { CategoryFeed, rowPreview, tabRows } from "../rows";
 import { isSearchable, searchContent } from "../search";
 import {
@@ -470,5 +477,49 @@ describe("Settings", () => {
     expect(expirySheetDue(shown, "p1")).toBe(true);
     expect(expirySheetDue(shown, "p1")).toBe(false);
     expect(expirySheetDue(shown, "p2")).toBe(true);
+  });
+});
+
+describe("R-093 Move", () => {
+  it("moving a live category changes the Live tab's order", async () => {
+    const ctx = await context();
+    const rows = await liveRowOrder(ctx);
+    expect(rows[0]?.id).toBe("all");
+    const last = rows.length - 1;
+    const lastId = defined(rows[last]).id;
+    const moved = defined(moveLiveRow(ctx, rows, last, -1));
+    expect(moved[last - 1]?.id).toBe(lastId);
+    const tab = (await tabRows(ctx, "live")).map((r) => r.id);
+    expect(tab.indexOf(lastId)).toBe(last - 2); // Search All is not in the tab
+    expect(moveLiveRow(ctx, moved, 1, -1)).toBeUndefined();
+  });
+
+  it("moving a channel reorders the category's list, page after page", async () => {
+    const ctx = await context();
+    const row = defined((await tabRows(ctx, "live")).find((r) => r.type === "category"));
+    expect(channelMoveAvailable(ctx, row)).toBe(true);
+    const channels = await categoryChannels(ctx, row.id);
+    expect(channels.length).toBeGreaterThan(2);
+    const moved = defined(moveChannel(ctx, row.id, channels, 0, 1));
+    expect(moved.slice(0, 2).map((c) => c.item_id)).toEqual(
+      [channels[1], channels[0]].map((c) => defined(c).item_id),
+    );
+    const feed = new CategoryFeed(ctx, "live", row, "default");
+    const first = await feed.next(1);
+    const second = await feed.next(1);
+    expect([...first.items, ...second.items].map((c) => c.item_id)).toEqual(
+      moved.slice(0, 2).map((c) => c.item_id),
+    );
+    expect((await categoryChannels(ctx, row.id)).map((c) => c.item_id)).toEqual(
+      moved.map((c) => c.item_id),
+    );
+  });
+
+  it("channels of a Stalker category and virtual rows cannot move", async () => {
+    const stalker = await context(portal);
+    const row = defined((await tabRows(stalker, "live")).find((r) => r.type === "category"));
+    expect(channelMoveAvailable(stalker, row)).toBe(false);
+    const xtreamCtx = await context();
+    expect(channelMoveAvailable(xtreamCtx, { type: "virtual", id: "favourite" })).toBe(false);
   });
 });

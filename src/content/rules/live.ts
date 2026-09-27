@@ -174,6 +174,83 @@ export function canMoveCategory(
   return rows[from]?.id !== "all" && to >= 1 && from >= 1;
 }
 
+/**
+ * R-093 on the phone: the saved category order replayed on the rows of the Live list (the TV's
+ * format, one `{id, position}` per row, replayed by position).
+ */
+export function orderRows<T extends { id: string }>(
+  store: KeyValueStore,
+  pid: string,
+  rows: readonly T[],
+): T[] {
+  let out = [...rows];
+  const orders = [...(readJson<CategoryOrder[]>(store, playlistKeys(pid).categoryOrders) ?? [])];
+  for (const order of orders.sort((a, b) => a.position - b.position)) {
+    const from = out.findIndex((r) => r.id === String(order.id));
+    if (from >= 0) out = moveTo(out, from, order.position);
+  }
+  return out;
+}
+
+/**
+ * R-093: saves the whole order after a move, so replaying it by position rebuilds exactly this
+ * list. `rows` includes "Search All Channels" at position 0 where the TV has it.
+ */
+export function saveRowOrder(store: KeyValueStore, pid: string, rows: readonly { id: string }[]) {
+  const orders: CategoryOrder[] = rows.map((r, position) => ({ id: r.id, position }));
+  store.set(playlistKeys(pid).categoryOrders, JSON.stringify(orders));
+}
+
+/** R-093: a category's saved channel order, replayed on its channels (matched by id and name). */
+export function orderChannels<T extends { item_id: string; name: string }>(
+  store: KeyValueStore,
+  pid: string,
+  categoryId: string,
+  channels: readonly T[],
+): T[] {
+  const orders = readJson<Record<string, ChannelOrder[]>>(store, playlistKeys(pid).channelOrders);
+  let out = [...channels];
+  for (const o of [...(orders?.[categoryId] ?? [])].sort((a, b) => a.position - b.position)) {
+    const from = out.findIndex((ch) => ch.item_id === String(o.id) && ch.name === o.name);
+    if (from >= 0) out = moveTo(out, from, o.position);
+  }
+  return out;
+}
+
+export function hasChannelOrder(store: KeyValueStore, pid: string, categoryId: string): boolean {
+  const orders = readJson<Record<string, ChannelOrder[]>>(store, playlistKeys(pid).channelOrders);
+  return (orders?.[categoryId]?.length ?? 0) > 0;
+}
+
+/** R-093: saves a category's whole channel order after a move. */
+export function saveChannelOrder(
+  store: KeyValueStore,
+  pid: string,
+  categoryId: string,
+  channels: readonly { item_id: string; name: string }[],
+): void {
+  const all =
+    readJson<Record<string, ChannelOrder[]>>(store, playlistKeys(pid).channelOrders) ?? {};
+  all[categoryId] = channels.map((c, position) => ({ id: c.item_id, name: c.name, position }));
+  store.set(playlistKeys(pid).channelOrders, JSON.stringify(all));
+}
+
+/**
+ * R-093 on the phone: one step up (-1) or down (+1). Returns the new list, or undefined when the
+ * move is not allowed (the ends, "Search All Channels", above the first row for categories).
+ */
+export function moveStep<T extends { id: string }>(
+  list: readonly T[],
+  index: number,
+  delta: -1 | 1,
+  kind: "category" | "channel",
+): T[] | undefined {
+  const to = index + delta;
+  if (to < 0 || to >= list.length) return undefined;
+  if (kind === "category" && !canMoveCategory(list, index, to)) return undefined;
+  return moveTo([...list], index, to);
+}
+
 // ---------- R-094 ----------
 
 const PINNED = new Set(["all", "recent", "favourite"]);
