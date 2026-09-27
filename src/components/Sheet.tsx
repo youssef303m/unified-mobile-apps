@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, type ReactElement, type ReactNode } from "react";
-import { StyleSheet, View, useWindowDimensions } from "react-native";
+import { BackHandler, StyleSheet, View, useWindowDimensions } from "react-native";
 import {
   BottomSheetBackdrop,
   BottomSheetFlatList,
@@ -19,6 +19,8 @@ import { AppText } from "./AppText";
 // on the backdrop calls `onClose`.
 interface BaseProps {
   visible: boolean;
+  /** A new value presents the sheet again while it stays visible (a new PIN request). */
+  presentKey?: string | number;
   onClose: () => void;
   title?: string;
   testID?: string;
@@ -26,11 +28,28 @@ interface BaseProps {
 
 const MAX_HEIGHT = 0.9;
 
-function useModal(visible: boolean) {
+function useModal(visible: boolean, presentKey?: string | number) {
   const ref = useRef<BottomSheetModal>(null);
+  const presented = useRef(false);
   useEffect(() => {
-    if (visible) ref.current?.present();
-    else ref.current?.dismiss();
+    if (visible) {
+      presented.current = true;
+      ref.current?.present();
+    } else if (presented.current) {
+      // Only a presented sheet is dismissed: dismissing one that never opened leaves it in the
+      // library's queue, and the next sheet then fails to open.
+      presented.current = false;
+      ref.current?.dismiss();
+    }
+  }, [visible, presentKey]);
+  // Android Back closes an open sheet first (its onDismiss then calls onClose).
+  useEffect(() => {
+    if (!visible) return;
+    const sub = BackHandler.addEventListener("hardwareBackPress", () => {
+      ref.current?.dismiss();
+      return true;
+    });
+    return () => sub.remove();
   }, [visible]);
   return ref;
 }
@@ -50,12 +69,13 @@ function Title({ title }: { title?: string }) {
 
 export function Sheet({
   visible,
+  presentKey,
   onClose,
   title,
   testID,
   children,
 }: BaseProps & { children: ReactNode }) {
-  const ref = useModal(visible);
+  const ref = useModal(visible, presentKey);
   const { height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   return (
@@ -69,12 +89,12 @@ export function Sheet({
       handleIndicatorStyle={styles.handle}
       style={styles.shadow}
     >
-      <BottomSheetView
-        style={[styles.body, { paddingBottom: insets.bottom + spacing.lg }]}
-        testID={testID}
-      >
-        <Title title={title} />
-        {children}
+      {/* Dynamic sizing measures BottomSheetView: padding on it keeps the sheet from showing. */}
+      <BottomSheetView testID={testID}>
+        <View style={[styles.body, { paddingBottom: insets.bottom + spacing.lg }]}>
+          <Title title={title} />
+          {children}
+        </View>
       </BottomSheetView>
     </BottomSheetModal>
   );

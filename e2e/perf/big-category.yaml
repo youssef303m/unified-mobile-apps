@@ -6,7 +6,7 @@ appId: com.iboplayer.mobile
 name: "Perf - 5,000-item category"
 ---
 - runFlow: ../common/open-app.yaml
-- openLink: "iboplayer://dev?network=fixtures&reset=1&account=active&big=1"
+- openLink: "iboplayer://dev?network=fixtures&reset=1&account=active&big=1&lang=en"
 - runFlow: ../common/accept-and-verify.yaml
 - extendedWaitUntil:
     visible:

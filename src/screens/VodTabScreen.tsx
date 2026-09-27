@@ -51,6 +51,7 @@ function PreviewRow({ kind, row, sort }: { kind: "movie" | "series"; row: Row; s
       keyExtractor={(i) => i.item_id}
       itemSize={posterSize}
       onSeeAll={() => void openRow(kind, row, title)}
+      style={styles.row}
       testID={`row-${row.id}`}
       renderItem={(item: CatalogueItem) => (
         <PosterCard
@@ -134,7 +135,6 @@ export function VodTabScreen({ kind }: { kind: "movie" | "series" }) {
         data={list}
         keyExtractor={(r) => `${r.type}:${r.id}`}
         renderItem={({ item }) => <PreviewRow kind={kind} row={item} sort={sort} />}
-        ItemSeparatorComponent={RowGap}
         contentContainerStyle={styles.rows}
         refreshControl={
           <RefreshControl
@@ -213,12 +213,8 @@ export function VodTabScreen({ kind }: { kind: "movie" | "series" }) {
   );
 }
 
-function RowGap() {
-  return <View style={styles.gap} />;
-}
-
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.bg.base },
   rows: { paddingVertical: spacing.md },
-  gap: { height: layout.rowGap },
+  row: { marginBottom: layout.rowGap },
 });

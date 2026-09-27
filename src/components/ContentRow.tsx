@@ -1,5 +1,12 @@
 import type { ReactElement } from "react";
-import { I18nManager, Pressable, StyleSheet, View } from "react-native";
+import {
+  I18nManager,
+  Pressable,
+  StyleSheet,
+  View,
+  type StyleProp,
+  type ViewStyle,
+} from "react-native";
 import { FlashList } from "@shopify/flash-list";
 import { ChevronRight, Lock } from "lucide-react-native";
 import { useTranslation } from "react-i18next";
@@ -23,6 +30,8 @@ export interface ContentRowProps<T> {
   loading?: boolean;
   locked?: boolean;
   onSeeAll?: () => void;
+  /** Spacing around the row (a hidden row takes none). */
+  style?: StyleProp<ViewStyle>;
   testID?: string;
 }
 
@@ -37,12 +46,13 @@ export function ContentRow<T>({
   loading = false,
   locked = false,
   onSeeAll,
+  style,
   testID,
 }: ContentRowProps<T>) {
   const { t } = useTranslation();
   if (!loading && !locked && data.length === 0) return null;
   return (
-    <View style={styles.root} testID={testID}>
+    <View style={[styles.root, style]} testID={testID}>
       <Pressable
         accessibilityRole={onSeeAll ? "button" : "header"}
         accessibilityLabel={onSeeAll ? `${title}, ${t("mobile_see_all")}` : title}

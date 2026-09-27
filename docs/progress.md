@@ -2,19 +2,20 @@
 
 A new session must be able to continue from this file alone. Read `AGENTS.md` first.
 
-## Current milestone: M4 · Browse. Built and tested on the PC; the phone run is next
+## Current milestone: M4 · Browse. Done; waiting for the owner's review
 
-| M4 item (04-build/roadmap.md)                                                  | Status                                                                                                                  |
-| ------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------- |
-| The design-system components (§5) with their states                            | done (`src/components/`, dev gallery `app/gallery.tsx`); `EpgTimeline` comes with the EPG guide in M5                   |
-| Home (N-01), Movies, Series, Live (the list), Movie and Series details, Search | done (`app/(tabs)/`, `app/movie/[id].tsx`, `app/series/[id].tsx`, `app/category.tsx`, `app/search.tsx`)                 |
-| My List (favourites and continue watching)                                     | done (`app/(tabs)/my-list.tsx`; Downloads is M7)                                                                        |
-| Parental control: the PIN pad, locked categories, changing the PIN             | done (`src/components/PinPrompt.tsx`, `app/settings/parental.tsx`)                                                      |
-| **Accept:** Maestro flows 5 and 6; a 5,000-item category scrolls smoothly      | flows written and syntax-checked (`e2e/flow-05-parental.yaml`, `flow-06-search.yaml`, `perf/`); **to run on the phone** |
+| M4 item (04-build/roadmap.md)                                                  | Status                                                                                                                                            |
+| ------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| The design-system components (§5) with their states                            | done (`src/components/`, dev gallery `app/gallery.tsx`); `EpgTimeline` comes with the EPG guide in M5                                             |
+| Home (N-01), Movies, Series, Live (the list), Movie and Series details, Search | done (`app/(tabs)/`, `app/movie/[id].tsx`, `app/series/[id].tsx`, `app/category.tsx`, `app/search.tsx`)                                           |
+| My List (favourites and continue watching)                                     | done (`app/(tabs)/my-list.tsx`; Downloads is M7)                                                                                                  |
+| Parental control: the PIN pad, locked categories, changing the PIN             | done (`src/components/PinPrompt.tsx`, `app/settings/parental.tsx`)                                                                                |
+| **Accept:** Maestro flows 5 and 6; a 5,000-item category scrolls smoothly      | **passing on the phone** (2026-09-27, `maestro test e2e/`: flows 1, 5, 6, 7, 10 in 9 min); scrolling: 7.35% janky frames in a debug build (D-064) |
 
 The browse services are in `src/browse/` (platform-free, tested in the core Jest project), the
 React Query hooks in `src/hooks/`. Owner rule applied in M4: development builds cannot reach the
-production backend (D-061). Decisions D-057 to D-063.
+production backend (D-061). The phone run found and fixed five bugs (D-064). Decisions D-057 to
+D-064.
 
 ## Dev IBO backend (from the owner)
 
@@ -73,7 +74,7 @@ production backend (D-061). Decisions D-057 to D-063.
   selection, parental control. `src/hooks/` (React Query), `src/screens/` (shared screens).
 - Tests: 357 in 31 suites (`npm test`); Jest projects "app" and "core" (D-022, D-033; core also
   covers `src/session` and `src/browse`).
-- `docs/decisions.md` (D-001 to D-063), `docs/open-questions.md`, `docs/new-strings.md`.
+- `docs/decisions.md` (D-001 to D-064), `docs/open-questions.md`, `docs/new-strings.md`.
 
 ## Running the app on the phone
 
@@ -98,8 +99,7 @@ production backend (D-061). Decisions D-057 to D-063.
 
 ## Next
 
-- Run the M4 flows on the phone (`maestro test e2e/`, then the scrolling check in
-  e2e/README.md), fix what they find, then the M4 report and the owner's go-ahead.
+- The owner's review of M4 and the go-ahead for M5.
 - Then M5 · Playback: react-native-video (a new development build), the VOD and live players,
   the EPG guide, PiP and background audio. Read 01-product/player.md.
 

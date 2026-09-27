@@ -26,6 +26,7 @@ name: "Flow 5 - parental PIN"
       id: "row-44-see-all"
     direction: DOWN
     timeout: 30000
+    centerElement: true
 - assertNotVisible: 'EN - Fixture Movie 5 \(2004\)'
 - tapOn:
     id: "row-44-see-all"
@@ -52,8 +53,8 @@ name: "Flow 5 - parental PIN"
 - back
 
 # Settings → Parental Control asks the current PIN (R-065), then Change PIN (new + confirm).
-- tapOn:
-    id: "topbar-account"
+# Account opens by its link: in development builds Expo's floating Tools button covers the avatar.
+- openLink: "iboplayer://account"
 - extendedWaitUntil:
     visible:
       id: "account-screen"
@@ -103,6 +104,7 @@ name: "Flow 5 - parental PIN"
       id: "row-44-see-all"
     direction: DOWN
     timeout: 30000
+    centerElement: true
 - tapOn:
     id: "row-44-see-all"
 - extendedWaitUntil:

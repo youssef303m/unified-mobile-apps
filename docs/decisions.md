@@ -599,3 +599,46 @@ Test setup notes:
   note says the results may be incomplete while they run.
 - **Fixture "Fixture Big":** a playlist with 20,000 channels and a 5,000-movie category, turned
   on by the dev link `big=1`. It exists for the M4 scrolling check.
+
+### D-064 · Bugs the phone run found, and the fixes
+
+Maestro flows 5 and 6 on the owner's phone found five bugs the Node and component tests could
+not see:
+
+- **Bottom sheets never opened when they sized to their content** (PIN, sort, quick actions),
+  for two reasons:
+  - `@gorhom/bottom-sheet` measures `BottomSheetView`, and padding on that view kept the sheet
+    at height zero. The padding now sits on an inner view.
+  - `dismiss()` on a sheet that was never presented left it in the library's queue. The next
+    sheet presented was then "restored" instead of opened.
+
+  `Sheet` now dismisses only a sheet it presented. It presents again for a new PIN request
+  (`presentKey`), and Android Back closes an open sheet first, so a PIN request can't be left
+  pending.
+
+- **The category chips grew to fill the screen height.** A horizontal `ScrollView` in a column
+  needs `flexGrow: 0`.
+- **Chip taps with the keyboard open only closed the keyboard** (the Search segments). The chips
+  now keep taps (`keyboardShouldPersistTaps`).
+- **Search messages were hidden under the keyboard.** They now sit at the top of the screen.
+- **New recent searches did not show until Search was opened again.** They are now read again
+  whenever the field is empty.
+
+Two smaller fixes:
+
+- Hidden empty rows (Recently Viewed, Favourites) no longer leave a gap at the top of Movies and
+  Series.
+- The dev link takes `lang=en|ar`. The flows set English, because they check English text; the
+  phone had been left in Arabic.
+
+In development builds, Expo's floating Tools button covers the Account avatar. Flow 5 opens
+Account through its link (`iboplayer://account`); release builds have no such button.
+
+**The scrolling check** (a 5,000-movie category, a development build on the owner's DNP NX9):
+flinging 25 times down and 10 times up reached movie 4,090, with pages loading as it went.
+Android's frame statistics for the scrolling alone were 1,021 frames, 7.35% janky, and frame
+times of 8 ms at the median, 18 ms at the 90th percentile and 29 ms at the 99th.
+
+A development build runs JavaScript in debug mode, so a release (preview) build will be
+smoother. That build is the real check of "no dropped frames visible", and it belongs with the
+preview build.

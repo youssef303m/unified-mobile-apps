@@ -27,7 +27,12 @@ export function PinPrompt() {
         : t("parent_pass_mismatch")
       : undefined;
   return (
-    <Sheet visible={request !== undefined} onClose={() => finishPin(false)} testID="pin-sheet">
+    <Sheet
+      visible={request !== undefined}
+      presentKey={request?.id}
+      onClose={() => finishPin(false)}
+      testID="pin-sheet"
+    >
       {request ? (
         <PinPad
           key={`${request.id}:${attempts}`}

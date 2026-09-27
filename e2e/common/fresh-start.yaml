@@ -4,4 +4,4 @@
 appId: com.iboplayer.mobile
 ---
 - runFlow: open-app.yaml
-- openLink: "iboplayer://dev?network=fixtures&reset=1&account=${ACCOUNT}&big=0"
+- openLink: "iboplayer://dev?network=fixtures&reset=1&account=${ACCOUNT}&big=0&lang=en"

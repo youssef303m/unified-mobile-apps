@@ -30,7 +30,10 @@ export function CategoryChips({ chips, onPress, testID }: CategoryChipsProps) {
     <ScrollView
       horizontal
       showsHorizontalScrollIndicator={false}
+      style={styles.scroll}
       contentContainerStyle={styles.row}
+      // A tap on a chip works while the keyboard is open (Search segments).
+      keyboardShouldPersistTaps="handled"
       testID={testID}
     >
       {chips.map((chip) => {
@@ -67,6 +70,8 @@ export function CategoryChips({ chips, onPress, testID }: CategoryChipsProps) {
 }
 
 const styles = StyleSheet.create({
+  // A horizontal ScrollView in a column otherwise grows to fill the height.
+  scroll: { flexGrow: 0 },
   row: { gap: spacing.sm, paddingHorizontal: layout.gutter, paddingVertical: spacing.xs },
   chip: {
     flexDirection: "row",

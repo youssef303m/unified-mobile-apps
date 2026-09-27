@@ -90,7 +90,9 @@ export default function SearchScreen() {
   const kinds = ctx ? kindsFor(ctx, segment) : [];
   const syncing = useSectionsFor(kinds);
   const pid = ctx?.catalogue.playlistId ?? "none";
-  const [recent, setRecent] = useState(() => (ctx ? recentSearches(ctx.store, pid) : []));
+  // Read again whenever the field is empty (a search made on this screen shows at once).
+  const [clearedAt, setClearedAt] = useState(0);
+  const recent = ctx && !text.trim() && clearedAt >= 0 ? recentSearches(ctx.store, pid) : [];
 
   // Q-search-lod: the sections this segment searches download in the background.
   useEffect(() => {
@@ -140,7 +142,7 @@ export default function SearchScreen() {
             accessibilityRole="button"
             onPress={() => {
               if (ctx) clearRecentSearches(ctx.store, pid);
-              setRecent([]);
+              setClearedAt(Date.now());
             }}
             testID="recent-clear"
           >
@@ -160,15 +162,16 @@ export default function SearchScreen() {
         ))}
       </ScrollView>
     ) : (
-      <EmptyState icon={SearchIcon} title={t("msg_type_to_start_searching")} />
+      <EmptyState top icon={SearchIcon} title={t("msg_type_to_start_searching")} />
     );
   } else if (!search.searchable) {
-    body = <EmptyState icon={SearchIcon} title={t("mobile_search_min_chars", { count: 2 })} />;
+    body = <EmptyState top icon={SearchIcon} title={t("mobile_search_min_chars", { count: 2 })} />;
   } else if (search.isPending || search.pending) {
     body = <ActivityIndicator style={styles.flex} color={colors.brand.primary} size="large" />;
   } else if (search.isError) {
     body = (
       <EmptyState
+        top
         icon={SearchIcon}
         title={t("msg_data_loading_failed")}
         action={{ label: t("try_again"), onPress: () => void search.refetch() }}
@@ -187,7 +190,12 @@ export default function SearchScreen() {
         <ScrollView contentContainerStyle={styles.rows} keyboardShouldPersistTaps="handled">
           {liveNote}
           {total === 0 ? (
-            <EmptyState icon={SearchIcon} title={t("msg_no_results_found")} testID="search-empty" />
+            <EmptyState
+              top
+              icon={SearchIcon}
+              title={t("msg_no_results_found")}
+              testID="search-empty"
+            />
           ) : null}
           <ContentRow
             title={t("live_tv")}
@@ -223,6 +231,7 @@ export default function SearchScreen() {
             {liveNote}
             {results.liveUnavailable && segment === "live" ? null : (
               <EmptyState
+                top
                 icon={SearchIcon}
                 title={t("msg_no_results_found")}
                 testID="search-empty"

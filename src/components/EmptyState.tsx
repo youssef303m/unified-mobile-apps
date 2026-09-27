@@ -13,12 +13,21 @@ export interface EmptyStateProps {
   title: string;
   body?: string;
   action?: { label: string; onPress: () => void };
+  /** At the top instead of centred (screens with the keyboard open, such as Search). */
+  top?: boolean;
   testID?: string;
 }
 
-export function EmptyState({ icon: Icon, title, body, action, testID }: EmptyStateProps) {
+export function EmptyState({
+  icon: Icon,
+  title,
+  body,
+  action,
+  top = false,
+  testID,
+}: EmptyStateProps) {
   return (
-    <View style={styles.root} testID={testID}>
+    <View style={[styles.root, top && styles.top]} testID={testID}>
       <Icon
         size={layout.iconSize * 2}
         color={colors.text.tertiary}
@@ -45,5 +54,6 @@ const styles = StyleSheet.create({
     gap: spacing.md,
     padding: spacing.xxxl,
   },
+  top: { justifyContent: "flex-start", paddingTop: spacing.xxl },
   center: { textAlign: "center" },
 });
