@@ -2,20 +2,19 @@
 
 A new session must be able to continue from this file alone. Read `AGENTS.md` first.
 
-## Current milestone: M5 · Playback. Done; waiting for the owner's review
+## Current milestone: M6 · Settings and the rest of parity. Built; phone checks next
 
-| M5 item (04-build/roadmap.md)                                                                  | Status                                                                                                                           |
-| ---------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| VOD player: controls, gestures (N-04), tracks, external subtitles, resume, next episode (N-07) | done (`src/player/PlayerScreen.tsx`, `src/player/controls/`, `app/player.tsx`); trailers open YouTube (D-063)                    |
-| Live player: zapping, the channels panel, EPG info, catch-up; the EPG guide screen             | done (`src/player/LivePlayerScreen.tsx`, `app/channel/[id].tsx`, `app/guide.tsx`, `app/replay.tsx`, Live tab mini player)        |
-| PiP (N-05) and background audio (N-06)                                                         | done (react-native-video config plugin; the player settings sheet); to check on the phone                                        |
-| **Accept:** Maestro flows 2, 3 and 4; the HLS, MPEG-TS and MP4 checks on a device              | **passing on the phone** (2026-09-27, M5 development build): flows 1–7 and 10; HLS, TS, MP4, live, PiP, background audio (D-073) |
+| M6 item (04-build/roadmap.md)                                        | Status                                                                                                                               |
+| -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| Every kept setting (settings.md minus TV-only and the owner's drops) | done (`app/settings/`: Settings, Hide Categories, Subtitle Settings, Parental Control; `OptionSheet`, `LanguageSheet`); D-074, D-076 |
+| Clear Cache, Clear Watch Lists, Language, About                      | done (`clearAppCache` in `src/session/boot.ts`; `app/about.tsx`)                                                                     |
+| Expiry notices (R-114)                                               | done (Home banner and once-per-launch sheet; fixture link `expiresIn=`)                                                              |
+| Stararcs proxy                                                       | dropped by the owner (D-074)                                                                                                         |
+| Move (R-093), from the parity check                                  | done (`app/live-order.tsx`, `src/browse/order.ts`; D-075). Sports mode and Arrange Categories dropped by the owner                   |
+| Unsupported audio notice (Q-ffmpeg-audio)                            | done (`audioUnplayable` in `src/player/tracks.ts`)                                                                                   |
+| **Accept:** Maestro flow 8; `docs/parity.md`                         | flow 8 written (`e2e/flow-08-language.yaml`), to run on the phone; `docs/parity.md` done (3 small gaps listed for the owner)         |
 
-The services are platform-free in `src/player/` (stream plan, supervisor, seek, progress, SRT,
-ibosub lookup, tracks, queue, errors, aspect, live) and `src/browse/guide.ts` (guide loader,
-catch-up, Replay), all tested in the core Jest project. Decisions D-065 to D-072; new question
-Q-ffmpeg-audio. The phone run found and fixed six bugs (D-073). The M4 development build cannot
-run this JavaScript (no video module): the M5 build is installed on the owner's phone.
+Flow 5 now reaches Parental Control through Account → Settings.
 
 ## Dev IBO backend (from the owner)
 
@@ -45,6 +44,9 @@ run this JavaScript (no video module): the M5 build is installed on the owner's 
 - **M4 · Browse** (2026-09-27): Maestro flows 5 and 6 (and 1, 7, 10) passed on the owner's phone;
   the 5,000-movie scrolling check in a debug build (D-064). Development builds cannot reach the
   production backend (D-061).
+- **M5 · Playback** (2026-09-27): Maestro flows 2, 3 and 4 passed on the owner's phone, with the
+  HLS, MPEG-TS and MP4 checks, PiP and background audio (D-073). Owner answer: Q-ffmpeg-audio (not
+  in v1).
 
 ## What exists
 
@@ -72,7 +74,7 @@ run this JavaScript (no video module): the M5 build is installed on the owner's 
   (`login`, `CatalogueSession`), `rules/` (all 88 R-xxx).
 - `src/storage/`: `keys.ts` (every TV key), `settings.ts` (TV defaults), `kv.ts` (MMKV).
 - `src/platform/`: polyfills, device identity, clipboard (D-046), links, device model.
-- `e2e/`: Maestro flows 1 to 7 and 10, the scrolling check (`perf/`) and shared steps.
+- `e2e/`: Maestro flows 1 to 8 and 10, the scrolling check (`perf/`) and shared steps.
 - `src/browse/` (M4): Home rows, tab rows and category feeds, details, search, My List, Live
   selection, parental control; `guide.ts` (M5: the guide loader, catch-up, Replay). `src/hooks/`
   (React Query), `src/screens/` (shared screens, the guide and Replay).
@@ -80,9 +82,9 @@ run this JavaScript (no video module): the M5 build is installed on the owner's 
   (`session.ts`), `usePlayback` (URL resolution + supervisor), the VOD, live and mini players and
   `controls/`. `src/navigation/useRouteOrientation.ts`: orientation per route.
   `plugins/withTsExtractorFlags.js`: the Media3 TS flags patch (D-066).
-- Tests: 412 in 34 suites (`npm test`); Jest projects "app" and "core" (D-022, D-033; core also
+- Tests: 428 in 35 suites (`npm test`); Jest projects "app" and "core" (D-022, D-033; core also
   covers `src/session`, `src/browse` and `src/player`).
-- `docs/decisions.md` (D-001 to D-072), `docs/open-questions.md`, `docs/new-strings.md`.
+- `docs/decisions.md` (D-001 to D-076), `docs/parity.md` (TV → phone check), `docs/open-questions.md`, `docs/new-strings.md`.
 
 ## Running the app on the phone
 
@@ -108,7 +110,8 @@ run this JavaScript (no video module): the M5 build is installed on the owner's 
 
 ## Next
 
-- The owner's review of M5 and the go-ahead for M6 · Settings and the rest of parity.
+- Run flows 8 and 5 and the M6 screens on the phone, then the M6 report.
+- Then M7 · Downloads (after the owner's go-ahead).
 
 ## How to verify
 

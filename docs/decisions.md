@@ -842,3 +842,50 @@ the TV app does with the setting untouched:
   is moot.
 
 `docs/parity.md` lists each as dropped with this reason.
+
+### D-075 · Move on the phone; Sports mode and Arrange Categories dropped
+
+The owner chose on 2026-09-27 (after the M6 list missed these three): **Move** is in v1, **Sports
+mode** (R-100, R-101) and **Arrange Categories** (R-094) are not. Their rules stay in
+`src/content/rules` (tested) but no screen uses them; `docs/parity.md` lists them as dropped.
+
+How Move works on the phone (R-093):
+
+- An order screen (`app/live-order.tsx`) with up and down buttons on each row, instead of the TV's
+  Move mode or drag handles. It needs no new library, and a button press is exact where a drag
+  in a long list is not.
+- Entry points: the Live category sheet ("Move categories") and a channel's long-press menu
+  ("Move channel", for that channel's category).
+- Every step is saved at once under the TV keys (`_category_orders`, `_channel_orders`), in the
+  TV's format. The phone saves the whole order (one position per row), so replaying the entries
+  by position rebuilds exactly that list. Categories the provider adds later keep their place
+  after the ordered ones.
+- Search All stays first and nothing moves above the first row (R-093).
+- Channels move only in provider categories of Xtream and M3U playlists. A Stalker category comes
+  page by page from the portal, so the phone never holds its full list to order.
+- A reordered category is read whole from SQLite and then ordered; other categories stay paged.
+
+### D-076 · M6 choices
+
+- **Settings** (Account → Settings) has the groups Playback, Content, Startup, General and
+  Storage, then About (user-flows.md §14 Mobile, without the dropped items). Parental Control
+  moved there from Account, and Account gained Settings, Change Language and About.
+- **Choices** open a radio bottom sheet (`OptionSheet`) with the TV description. The
+  development-only language switch (D-015) is gone: `LanguageSheet` replaces it.
+- **Clear Cache** (R-120) also empties the saved catalogue (SQLite) and the image disk cache,
+  since the phone keeps both across sessions (D-041). The device id (secure storage) stays, so the
+  device verifies again with the same MAC. A development build keeps its network mode and
+  fixture scenario, so it cannot fall back to production (D-061).
+- **Hide Categories** lists every row but Search All (virtual rows too, as on TV). A section never
+  opened shows "Categories will show here". Changes apply to the tabs and Search at once.
+- **Expiry notice** (R-114): a warning banner at the top of Home ("Playlist will expire in 3
+  days", with Dismiss) and the TV notice as a bottom sheet, once per launch and playlist. A
+  dismissed banner stays hidden until the next launch. Only Xtream accounts expiring within 5
+  days show it. Fixture link `expiresIn=<days>` sets the fixture account's expiry.
+- **Unsupported audio** (Q-ffmpeg-audio): when a video has audio but the player selected none of
+  its tracks and every track is Dolby (AC-3, E-AC-3, AC-4, TrueHD) or DTS, a toast says the phone
+  cannot play its sound. Once per video, and once per channel on live (not on each reconnect).
+  React-native-video does not report the decoder failure itself: Media3 simply plays without
+  audio.
+- **About** shows the app name, version and build, and the website.
+- **Back on Home** (R-130) already exited on a double press since M4.
