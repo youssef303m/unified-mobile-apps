@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { I18nManager, StyleSheet, View, useWindowDimensions } from "react-native";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import Video, { SelectedTrackType, type VideoRef } from "react-native-video";
 import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
@@ -109,6 +109,17 @@ function LivePlayer({ request }: { request: LiveRequest }) {
   useEffect(() => () => zapPlay.cancel(), [zapPlay]);
 
   const videoRef = useRef<VideoRef>(null);
+  // One stream at a time: with the guide or a catch-up player on top, the live video is unmounted
+  // (IPTV accounts often allow a single connection); back on top, it reloads at the live edge.
+  const [focused, setFocused] = useState(true);
+  const retryOnFocus = useRef<(() => void) | undefined>(undefined);
+  useFocusEffect(
+    useCallback(() => {
+      setFocused(true);
+      retryOnFocus.current?.();
+      return () => setFocused(false);
+    }, []),
+  );
   const playback = usePlayback({
     playKey: `live:${playing.item_id}`,
     resolve: async () => {
@@ -119,6 +130,9 @@ function LivePlayer({ request }: { request: LiveRequest }) {
     metadata: { title: playing.name, imageUri: playing.icon || undefined },
   });
 
+  useEffect(() => {
+    retryOnFocus.current = playback.retry;
+  });
   const [bar, setBar] = useState(true);
   const [tick, setTick] = useState(0);
   const [sheet, setSheet] = useState<"channels" | "tracks" | "more" | "catchup" | undefined>();
@@ -143,7 +157,7 @@ function LivePlayer({ request }: { request: LiveRequest }) {
   const toggleFavourite = useToggleFavourite();
   const clock = useClock();
 
-  useKeepAwakeWhile(playback.started);
+  useKeepAwakeWhile(playback.started && focused);
 
   // Aspect, tracks and the EPG position reset on every channel change (parity: aspect resets).
   const mode = aspect.channel === playing.item_id ? aspect.mode : "fit";
@@ -220,7 +234,7 @@ function LivePlayer({ request }: { request: LiveRequest }) {
     <View style={styles.root} testID="live-player">
       {!inPip ? <PlayerChrome /> : null}
       <View style={styles.videoBox}>
-        {playback.source ? (
+        {playback.source && focused ? (
           <Video
             key={playback.videoKey}
             ref={videoRef}

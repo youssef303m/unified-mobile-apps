@@ -1,0 +1,94 @@
+# Flow 2 (04-build/testing.md §4): Home → movie details → Play → seek → back → Continue Watching
+# shows the movie at that position. The fixture movie 55000 is an .m3u8 URL, which fixture mode
+# plays as the public Big Buck Bunny HLS stream (10:34), so the phone needs internet.
+appId: com.iboplayer.mobile
+name: "Flow 2 - movie resume"
+---
+- runFlow:
+    file: common/fresh-start.yaml
+    env:
+      ACCOUNT: active
+- runFlow: common/accept-and-verify.yaml
+- extendedWaitUntil:
+    visible:
+      id: "home-screen"
+    timeout: 60000
+- extendedWaitUntil:
+    visible:
+      id: "hero-info"
+    timeout: 60000
+
+# The hero is the newest movie: its details, then Play (from the start).
+- tapOn:
+    id: "hero-info"
+- extendedWaitUntil:
+    visible:
+      id: "movie-details"
+    timeout: 15000
+- tapOn:
+    id: "details-play"
+- extendedWaitUntil:
+    visible:
+      id: "player-screen"
+    timeout: 15000
+- extendedWaitUntil:
+    notVisible:
+      id: "player-loading"
+    timeout: 60000
+
+# Seek: three +30 s presses add up to +90 s (player.md §3.1), then Back leaves the player.
+- runFlow:
+    file: common/show-controls.yaml
+    env:
+      CONTROL: "player-forward"
+      SCREEN: "player-screen"
+- tapOn:
+    id: "player-forward"
+- tapOn:
+    id: "player-forward"
+- tapOn:
+    id: "player-forward"
+- extendedWaitUntil:
+    notVisible:
+      id: "player-loading"
+    timeout: 30000
+- back
+- extendedWaitUntil:
+    visible:
+      id: "movie-details"
+    timeout: 15000
+- back
+
+# R-073 / R-074: Home shows the movie in Continue Watching; its details resume near 1:30.
+- extendedWaitUntil:
+    visible:
+      id: "continue-55000"
+    timeout: 15000
+- tapOn:
+    id: "continue-55000"
+- extendedWaitUntil:
+    visible:
+      id: "movie-details"
+    timeout: 15000
+- assertVisible: '.*Resume at 0?1:[3-5][0-9].*'
+
+# Resume starts there.
+- tapOn:
+    id: "details-play"
+- extendedWaitUntil:
+    visible:
+      id: "player-screen"
+    timeout: 15000
+- extendedWaitUntil:
+    notVisible:
+      id: "player-loading"
+    timeout: 60000
+- runFlow:
+    file: common/show-controls.yaml
+    env:
+      CONTROL: "seek-elapsed"
+      SCREEN: "player-screen"
+- assertVisible:
+    id: "seek-elapsed"
+    text: '0?1:[3-5][0-9]'
+- back

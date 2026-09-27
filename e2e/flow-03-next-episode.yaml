@@ -1,0 +1,101 @@
+# Flow 3 (04-build/testing.md §4): Series → season 2 → episode 3 → play → next-episode card.
+# Fixture episodes play as the public Big Buck Bunny HLS stream (10:34); Quick Seek to minute 10
+# puts playback in the last 30 s window a few seconds later (N-07). Autoplay is off (TV default),
+# so the card is a plain "Next episode" button.
+appId: com.iboplayer.mobile
+name: "Flow 3 - next episode"
+---
+- runFlow:
+    file: common/fresh-start.yaml
+    env:
+      ACCOUNT: active
+- runFlow: common/accept-and-verify.yaml
+- extendedWaitUntil:
+    visible:
+      id: "home-screen"
+    timeout: 60000
+- tapOn:
+    id: "tab-series"
+- extendedWaitUntil:
+    visible:
+      id: "poster-3300"
+    timeout: 60000
+- tapOn:
+    id: "poster-3300"
+- extendedWaitUntil:
+    visible:
+      id: "series-details"
+    timeout: 15000
+
+# Season 2, episode 3.
+- scrollUntilVisible:
+    element:
+      id: "season-picker"
+    direction: DOWN
+- tapOn:
+    id: "season-picker"
+- tapOn:
+    id: "season-2"
+- scrollUntilVisible:
+    element:
+      id: "episode-880203"
+    direction: DOWN
+- tapOn:
+    id: "episode-880203"
+- extendedWaitUntil:
+    visible:
+      id: "player-screen"
+    timeout: 15000
+- extendedWaitUntil:
+    notVisible:
+      id: "player-loading"
+    timeout: 60000
+- runFlow:
+    file: common/show-controls.yaml
+    env:
+      CONTROL: "player-title"
+      SCREEN: "player-screen"
+- assertVisible:
+    id: "player-title"
+    text: "S2:E3.*"
+
+# Quick Seek to minute 10 (player.md §3.1).
+- runFlow:
+    file: common/show-controls.yaml
+    env:
+      CONTROL: "player-more"
+      SCREEN: "player-screen"
+- tapOn:
+    id: "player-more"
+- scrollUntilVisible:
+    element:
+      id: "quick-seek-minute"
+    direction: DOWN
+- tapOn:
+    id: "quick-seek-minute"
+- inputText: "10"
+- hideKeyboard
+- tapOn:
+    id: "quick-seek-go"
+
+# N-07: the card appears in the last 30 s; it plays episode 4.
+- extendedWaitUntil:
+    visible:
+      id: "next-episode-card"
+    timeout: 60000
+- assertVisible: "Next episode"
+- tapOn:
+    id: "next-episode-play"
+- extendedWaitUntil:
+    notVisible:
+      id: "player-loading"
+    timeout: 60000
+- runFlow:
+    file: common/show-controls.yaml
+    env:
+      CONTROL: "player-title"
+      SCREEN: "player-screen"
+- assertVisible:
+    id: "player-title"
+    text: "S2:E4.*"
+- back

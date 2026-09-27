@@ -2,20 +2,20 @@
 
 A new session must be able to continue from this file alone. Read `AGENTS.md` first.
 
-## Current milestone: M4 · Browse. Done; waiting for the owner's review
+## Current milestone: M5 · Playback. Built; waiting for the M5 development build
 
-| M4 item (04-build/roadmap.md)                                                  | Status                                                                                                                                            |
-| ------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| The design-system components (§5) with their states                            | done (`src/components/`, dev gallery `app/gallery.tsx`); `EpgTimeline` comes with the EPG guide in M5                                             |
-| Home (N-01), Movies, Series, Live (the list), Movie and Series details, Search | done (`app/(tabs)/`, `app/movie/[id].tsx`, `app/series/[id].tsx`, `app/category.tsx`, `app/search.tsx`)                                           |
-| My List (favourites and continue watching)                                     | done (`app/(tabs)/my-list.tsx`; Downloads is M7)                                                                                                  |
-| Parental control: the PIN pad, locked categories, changing the PIN             | done (`src/components/PinPrompt.tsx`, `app/settings/parental.tsx`)                                                                                |
-| **Accept:** Maestro flows 5 and 6; a 5,000-item category scrolls smoothly      | **passing on the phone** (2026-09-27, `maestro test e2e/`: flows 1, 5, 6, 7, 10 in 9 min); scrolling: 7.35% janky frames in a debug build (D-064) |
+| M5 item (04-build/roadmap.md)                                                                  | Status                                                                                                                    |
+| ---------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| VOD player: controls, gestures (N-04), tracks, external subtitles, resume, next episode (N-07) | done (`src/player/PlayerScreen.tsx`, `src/player/controls/`, `app/player.tsx`); trailers open YouTube (D-063)             |
+| Live player: zapping, the channels panel, EPG info, catch-up; the EPG guide screen             | done (`src/player/LivePlayerScreen.tsx`, `app/channel/[id].tsx`, `app/guide.tsx`, `app/replay.tsx`, Live tab mini player) |
+| PiP (N-05) and background audio (N-06)                                                         | done (react-native-video config plugin; the player settings sheet); to check on the phone                                 |
+| **Accept:** Maestro flows 2, 3 and 4; the HLS, MPEG-TS and MP4 checks on a device              | flows written (`e2e/flow-02…04`); **waiting for the M5 development build** to run them                                    |
 
-The browse services are in `src/browse/` (platform-free, tested in the core Jest project), the
-React Query hooks in `src/hooks/`. Owner rule applied in M4: development builds cannot reach the
-production backend (D-061). The phone run found and fixed five bugs (D-064). Decisions D-057 to
-D-064.
+The services are platform-free in `src/player/` (stream plan, supervisor, seek, progress, SRT,
+ibosub lookup, tracks, queue, errors, aspect, live) and `src/browse/guide.ts` (guide loader,
+catch-up, Replay), all tested in the core Jest project. Decisions D-065 to D-072; new question
+Q-ffmpeg-audio. **The M4 development build cannot run this JavaScript** (no video module): the
+phone needs the M5 build first.
 
 ## Dev IBO backend (from the owner)
 
@@ -42,6 +42,9 @@ D-064.
 - **M3 · Boot, activation and playlists** (2026-09-26): Maestro flows 1, 7 and 10 passed on the
   owner's phone; the native SQLite crash they found is fixed (D-055). Owner answers:
   Q-offline-expired, Q-favourites-full, Q-mac-registered (D-035, D-037, D-056).
+- **M4 · Browse** (2026-09-27): Maestro flows 5 and 6 (and 1, 7, 10) passed on the owner's phone;
+  the 5,000-movie scrolling check in a debug build (D-064). Development builds cannot reach the
+  production backend (D-061).
 
 ## What exists
 
@@ -69,12 +72,17 @@ D-064.
   (`login`, `CatalogueSession`), `rules/` (all 88 R-xxx).
 - `src/storage/`: `keys.ts` (every TV key), `settings.ts` (TV defaults), `kv.ts` (MMKV).
 - `src/platform/`: polyfills, device identity, clipboard (D-046), links, device model.
-- `e2e/`: Maestro flows 1, 5, 6, 7, 10, the scrolling check (`perf/`) and shared steps.
+- `e2e/`: Maestro flows 1 to 7 and 10, the scrolling check (`perf/`) and shared steps.
 - `src/browse/` (M4): Home rows, tab rows and category feeds, details, search, My List, Live
-  selection, parental control. `src/hooks/` (React Query), `src/screens/` (shared screens).
-- Tests: 357 in 31 suites (`npm test`); Jest projects "app" and "core" (D-022, D-033; core also
-  covers `src/session` and `src/browse`).
-- `docs/decisions.md` (D-001 to D-064), `docs/open-questions.md`, `docs/new-strings.md`.
+  selection, parental control; `guide.ts` (M5: the guide loader, catch-up, Replay). `src/hooks/`
+  (React Query), `src/screens/` (shared screens, the guide and Replay).
+- `src/player/` (M5): the platform-free playback services and their tests, the player store
+  (`session.ts`), `usePlayback` (URL resolution + supervisor), the VOD, live and mini players and
+  `controls/`. `src/navigation/useRouteOrientation.ts`: orientation per route.
+  `plugins/withTsExtractorFlags.js`: the Media3 TS flags patch (D-066).
+- Tests: 412 in 34 suites (`npm test`); Jest projects "app" and "core" (D-022, D-033; core also
+  covers `src/session`, `src/browse` and `src/player`).
+- `docs/decisions.md` (D-001 to D-072), `docs/open-questions.md`, `docs/new-strings.md`.
 
 ## Running the app on the phone
 
@@ -86,9 +94,10 @@ D-064.
   delete the file and restart Metro if `tsc` reports impossible `Href` errors.
 - Over USB (Maestro): `adb reverse tcp:8081 tcp:8081`, then the flows open the app on
   `localhost:8081` themselves.
-- The development build made at the start of M3 has `expo-application` and `expo-sqlite`.
-  Rebuild (`npx eas-cli@latest build --profile development --platform android`) only after adding
-  a native library or changing native config; the next one is expected in M5.
+- The development build made at the start of M3 has `expo-application` and `expo-sqlite`. M5
+  needs a new one (react-native-video and the player modules, D-065):
+  `npx eas-cli@latest build --profile development --platform android`. Rebuild only after adding
+  a native library or changing native config.
 - Tools on this PC: JDK 17 (Temurin, JAVA_HOME), Platform-Tools at `C:\Android\platform-tools`,
   Maestro 2.10.0 at `%LOCALAPPDATA%\maestro\bin`; the phone (DNP NX9) is authorised for USB
   debugging.
@@ -99,9 +108,12 @@ D-064.
 
 ## Next
 
-- The owner's review of M4 and the go-ahead for M5.
-- Then M5 · Playback: react-native-video (a new development build), the VOD and live players,
-  the EPG guide, PiP and background audio. Read 01-product/player.md.
+- The owner builds and installs the M5 development build.
+- Then, on the phone: `maestro test e2e/` (flows 1 to 7 and 10), and the manual checks: HLS (a
+  movie), MPEG-TS (fixture channel 2, 10001), MP4 (a movie with an .mp4 extension), PiP from the
+  player and on Home, background audio with the screen off, rotation, and the error state
+  (fixture channel 3, 10002).
+- Then the M5 report and the owner's go-ahead for M6.
 
 ## How to verify
 

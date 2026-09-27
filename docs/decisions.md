@@ -642,3 +642,137 @@ times of 8 ms at the median, 18 ms at the 90th percentile and 29 ms at the 99th.
 A development build runs JavaScript in debug mode, so a release (preview) build will be
 smoother. That build is the real check of "no dropped frames visible", and it belongs with the
 preview build.
+
+## M5 · Playback
+
+### D-065 · Libraries added in M5 (a new development build)
+
+These have native code, so M5 needs a new EAS development build. The M4 build cannot run the M5
+JavaScript: it has no video module.
+
+- `react-native-video` 6.19.3 (Media3/ExoPlayer 1.8.0), with its config plugin:
+  - Picture-in-Picture on the main activity;
+  - notification controls: the media playback service and its permissions;
+  - HLS and DASH only (no Smooth Streaming or RTSP).
+- `expo-screen-orientation`, `expo-keep-awake`, `expo-brightness` and `expo-navigation-bar`
+  57.0.2: the versions Expo SDK 57 lists.
+- `react-native-volume-manager` 2.2.0, for the volume swipe. It is a legacy native module, which
+  runs through React Native's interop layer. expo-doctor passes (21/21).
+
+None of them needs an install script (D-045). A local prebuild showed:
+
+- the activity keeps `smallestScreenSize` in its `configChanges`, so entering PiP does not
+  recreate it;
+- the service and the permissions are in the manifest;
+- the ExoPlayer module properties are set.
+
+### D-066 · The Media3 TS extractor flags are set by a prebuild patch
+
+player.md §2.6 asks for `FLAG_ALLOW_NON_IDR_KEYFRAMES | FLAG_DETECT_ACCESS_UNITS`, so raw MPEG-TS
+live streams (the default for live) start quickly. react-native-video 6.19.3 builds its
+progressive sources with the default extractors and has no option for this.
+
+`plugins/withTsExtractorFlags.js` therefore patches `ReactExoplayerView.java` at prebuild:
+
+- it passes a `DefaultExtractorsFactory` with the flags to the two network
+  `ProgressiveMediaSource.Factory` calls;
+- the extractor classes are already on the library's classpath;
+- it fails the build with a clear message if the code it expects has changed.
+
+### D-067 · Player controls follow the TV where the design system differs
+
+- **Auto-hide:** the controls hide after 10 s (VOD) and the live bar after 7.5 s. These are the
+  TV's timeouts, which player.md §3.3 keeps. design-system.md §7 says 4 s.
+- **Skip buttons:** the centre buttons skip ±30 s (parity, and N-04: "the ±30s skip buttons
+  remain in the control bar"). Double-tap skips ±10 s. screens.md drew −10/+10 in the centre.
+- **Aspect ratio after a channel change:** the live player resets it to Fit, not the TV's
+  Stretch. Stretch distorts 16:9 video on a 19.5:9 phone screen.
+- **Not included:** the exit confirmation and live channel-number entry (player.md §3.3 drops
+  both), and "Other in category" (optional there).
+- **Subtitle colours** are swatches to tap instead of the TV's arrows that cycle through them.
+  The saved values are unchanged.
+
+### D-068 · The EPG guide follows the mobile design
+
+- **Past programmes:** R-096 says past programmes never play from the guide.
+  - screens.md and testing.md flow 4 say a past programme with an archive plays its catch-up.
+    The phone does this on Xtream (R-097); Stalker Replay stays blocked.
+  - A past programme without an archive shows "No archive video available for this programme".
+  - `guideTapAction` keeps the TV rule, and it stays tested.
+- **Days:** the guide offers today and every day in the loaded data, since screens.md has a day
+  picker. The TV shows today only.
+- **Time axis:** runs left to right in Arabic too.
+- **Loading:** the R-096 limits hold:
+  - rows load 4 at a time, 15 s each, visible rows first, then ±10 rows around them;
+  - rows are cached per playlist for the session, and failed rows retry on the next visit;
+  - the guide gives up after 8 empty rows.
+- **Replay:** the Live tab header has a Replay button on Xtream playlists. It opens categories
+  with archive channels, then the channels (`live_sort`), then days and programmes. The catch-up
+  list is oldest first (parity), with the latest day selected.
+
+### D-069 · Resume, next episode and the play queue
+
+- **Where Play starts:**
+  - Resume on a details page starts at the saved position, since the button already says where.
+  - Episode rows, Previous/Next and the next episode ask with the R-075 prompt.
+  - The prompt pauses the video, closes by itself after 15 s, and is offered only when the stream
+    can seek.
+- **Previous and Next** move within the season's episodes (parity) or that day's catch-up
+  programmes.
+  - A movie opened from its details page has no Previous/Next: the phone opens movies from rows,
+    search and Continue Watching, not only from a category list. This is a known difference.
+- **N-07 next-episode card:** it shows in the last 30 s of an episode that has a next one.
+  - Autoplay stays off by default (TV parity).
+  - With autoplay off, the card is a plain "Next episode" button.
+  - With autoplay on, the card counts down 10 s on playback time. When an episode ends, the next
+    one plays at once; if the list has run out, the player closes.
+  - Cancel turns autoplay off for that episode only.
+- **Recently Viewed (R-072):** a channel is recorded when it actually plays, in the mini player or
+  the live player, not when it is tapped.
+- **Seeking unavailable:** a player error within 3 s of a seek counts as the seek having killed
+  the stream (player.md §3.1 point 5). Seeking is then turned off for that video.
+
+### D-070 · No FFmpeg audio decoder in v1
+
+react-native-video 6.19.3 hard-codes Media3's extension renderers off, so the FFmpeg audio
+extension (player.md §2.6) cannot be added without forking the library.
+
+- AC3, E-AC3, DTS and TrueHD audio plays only on phones with a decoder for it; many Samsung
+  phones have one.
+- A decoder failure shows "This format isn't supported on your device".
+- No VLC fallback either. See Q-ffmpeg-audio.
+
+### D-071 · What the player plays in fixture mode
+
+The native player cannot reach the `.fixture.test` hosts. In fixture mode, fixture stream URLs
+therefore become public test streams:
+
+| Fixture item                | Test stream                                     |
+| --------------------------- | ----------------------------------------------- |
+| `.m3u8` movies and episodes | Mux's Big Buck Bunny HLS (10:34)                |
+| Catch-up and Stalker series | Mux's Big Buck Bunny HLS (10:34)                |
+| `.mp4` movies               | Google's Big Buck Bunny MP4                     |
+| `.mkv` movies               | Google's Media3 MKV sample                      |
+| Live channels               | Akamai's live HLS test stream                   |
+| Channel 10001               | Apple's bipbop MPEG-TS segment (progressive TS) |
+| Channel 10002               | A URL that answers 403, to show the error state |
+
+The mapping lives in `src/api/__fixtures__/playback.ts`, which is loaded only in fixture mode.
+Other URLs are untouched. Playback in fixture mode needs internet.
+
+### D-072 · ibosub, orientation and one stream at a time
+
+- **ibosub:** ibosub.com is an IBO server, so it is skipped in the dev-backend mode ("No
+  subtitles found"), as the image cache is (D-059). The fixtures answer it in fixture mode. The
+  TMDB search for a subtitle's TMDB id follows R-122 (TMDB off: no search).
+- **Orientation:** it follows the focused route in one place (`useRouteOrientation`):
+  - the players are landscape;
+  - the guide turns with the phone;
+  - everything else is portrait.
+
+  Returning from the guide can therefore never leave the wrong orientation lock behind.
+
+- **One stream at a time:** IPTV accounts often allow a single connection.
+  - The Live tab's mini player stops when the tab loses focus.
+  - The live player unmounts its video while the guide or a catch-up player is on top, and
+    reloads at the live edge when it comes back.

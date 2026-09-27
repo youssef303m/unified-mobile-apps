@@ -1,0 +1,160 @@
+# Flow 4 (04-build/testing.md §4): Live → category → channel → zap next/previous → EPG guide →
+# catch-up programme (Xtream) / no Replay entry (Stalker). Fixture live channels play a public
+# live HLS stream; catch-up plays the HLS VOD test stream (the phone needs internet).
+appId: com.iboplayer.mobile
+name: "Flow 4 - live, guide and catch-up"
+---
+- runFlow:
+    file: common/fresh-start.yaml
+    env:
+      ACCOUNT: active
+- runFlow: common/accept-and-verify.yaml
+- extendedWaitUntil:
+    visible:
+      id: "home-screen"
+    timeout: 60000
+- tapOn:
+    id: "tab-live"
+- extendedWaitUntil:
+    visible:
+      id: "live-chips"
+    timeout: 60000
+
+# The category "UK | SPORTS" (channels 1, 6, 11…; channel 1 has an archive).
+- tapOn:
+    id: "chip-picker"
+- tapOn:
+    id: "live-category-10"
+- extendedWaitUntil:
+    visible:
+      id: "channel-10000"
+    timeout: 15000
+
+# R-091: the first tap previews in the mini player, the second goes full screen.
+- tapOn:
+    id: "channel-10000"
+- extendedWaitUntil:
+    visible:
+      id: "live-preview"
+    timeout: 15000
+- tapOn:
+    id: "channel-10000"
+- extendedWaitUntil:
+    visible:
+      id: "live-player"
+    timeout: 15000
+- extendedWaitUntil:
+    notVisible:
+      id: "player-loading"
+    timeout: 60000
+
+# Zap next, then previous, inside the category (player.md §3.2).
+- runFlow:
+    file: common/show-controls.yaml
+    env:
+      CONTROL: "live-next"
+      SCREEN: "live-player"
+- assertVisible:
+    id: "live-channel-name"
+    text: "1  Fixture Channel 1"
+- tapOn:
+    id: "live-next"
+- assertVisible:
+    id: "live-channel-name"
+    text: "6  Fixture Channel 6"
+- tapOn:
+    id: "live-previous"
+- assertVisible:
+    id: "live-channel-name"
+    text: "1  Fixture Channel 1"
+- extendedWaitUntil:
+    notVisible:
+      id: "player-loading"
+    timeout: 60000
+
+# The EPG guide for the category (R-096): base64 titles decoded.
+- runFlow:
+    file: common/show-controls.yaml
+    env:
+      CONTROL: "live-guide"
+      SCREEN: "live-player"
+- tapOn:
+    id: "live-guide"
+- extendedWaitUntil:
+    visible:
+      id: "guide-screen"
+    timeout: 15000
+- extendedWaitUntil:
+    visible: 'Programme 25 – Café'
+    timeout: 30000
+- back
+- extendedWaitUntil:
+    visible:
+      id: "live-player"
+    timeout: 15000
+
+# Catch-up (R-097): the channel's archive, the latest day, a programme plays in the VOD player.
+- runFlow:
+    file: common/show-controls.yaml
+    env:
+      CONTROL: "live-catchup"
+      SCREEN: "live-player"
+- tapOn:
+    id: "live-catchup"
+- extendedWaitUntil:
+    visible:
+      id: "catchup-sheet"
+    timeout: 15000
+- extendedWaitUntil:
+    visible: '.*Programme 1 – Café|.*Programme \d+ – Café'
+    timeout: 30000
+# The list is oldest first (parity): the newest finished programme is at the bottom.
+- scrollUntilVisible:
+    element: '.*Programme 24 – Café'
+    direction: DOWN
+- tapOn: '.*Programme 24 – Café'
+- extendedWaitUntil:
+    visible:
+      id: "player-screen"
+    timeout: 15000
+- extendedWaitUntil:
+    notVisible:
+      id: "player-loading"
+    timeout: 60000
+- runFlow:
+    file: common/show-controls.yaml
+    env:
+      CONTROL: "player-title"
+      SCREEN: "player-screen"
+- assertVisible:
+    id: "player-title"
+    text: "Programme 24 – Café.*"
+- back
+- back
+
+# Stalker: no Replay entry (R-097, Q-replay-stalker).
+- tapOn:
+    id: "tab-home"
+- tapOn:
+    id: "home-playlist-chip"
+- extendedWaitUntil:
+    visible:
+      id: "playlists-screen"
+    timeout: 15000
+- tapOn: "Fixture Portal"
+- assertVisible: 'Switch playlist\?'
+- tapOn: "OK"
+- extendedWaitUntil:
+    visible:
+      id: "home-screen"
+    timeout: 60000
+- tapOn:
+    id: "tab-live"
+- extendedWaitUntil:
+    visible:
+      id: "live-chips"
+    timeout: 60000
+- assertVisible:
+    id: "live-guide-button"
+- assertNotVisible:
+    id: "live-replay-button"
