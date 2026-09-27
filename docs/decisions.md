@@ -889,3 +889,20 @@ How Move works on the phone (R-093):
   audio.
 - **About** shows the app name, version and build, and the website.
 - **Back on Home** (R-130) already exited on a double press since M4.
+
+### D-077 · Arabic for the phone strings (owner's decision)
+
+The kit says not to machine-translate new keys (05-reference/translations.md). On 2026-09-27 the
+owner chose to have the phone fully in Arabic now, so everything missing from the TV's `ar.json`
+has a draft translation: the 177 `mobile_*` keys and the 60 TV keys the TV's Arabic file never
+had.
+
+- They live in `src/i18n/phone/ar.json`, laid over the TV file at load. The TV locale files stay
+  a plain copy of the kit's, so a later sync from the TV is still a copy.
+- Count strings have all six Arabic plural forms (zero, one, two, few, many, other).
+- `src/i18n/__tests__/phone.test.ts` fails when an English key has no Arabic, when a placeholder
+  differs, or when the phone file repeats a TV key. Every new `mobile_*` string now needs its
+  Arabic in the same change.
+- The drafts need a native speaker's review before release (M8 checklist).
+- The one hard-coded placeholder ("My Portal", hard-coded on TV too) became
+  `mobile_portal_name_placeholder`. Example URLs in placeholders stay as they are.

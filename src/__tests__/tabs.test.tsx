@@ -38,11 +38,11 @@ describe("tab bar", () => {
     }
   });
 
-  it("shows the TV translations in Arabic, with English for new phone keys", async () => {
+  it("shows the tab bar in Arabic, TV and phone keys alike (D-077)", async () => {
     await i18n.changeLanguage("ar");
     await renderRouter(routes, { initialUrl: "/home", wrapper: TestProviders });
     expect(screen.getAllByText(i18n.t("movies")).length).toBeGreaterThan(0);
     expect(i18n.t("movies")).not.toBe("Movies");
-    expect(screen.getAllByText("My List").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("قائمتي").length).toBeGreaterThan(0);
   });
 });

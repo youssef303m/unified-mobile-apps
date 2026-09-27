@@ -83,7 +83,7 @@ export default function AddPortalScreen() {
       <AppText color="secondary">{t("portal_subtitle")}</AppText>
       <TextField
         label={t("portal_name")}
-        placeholder="My Portal"
+        placeholder={t("mobile_portal_name_placeholder")}
         testID="portal-name"
         {...field("name")}
       />

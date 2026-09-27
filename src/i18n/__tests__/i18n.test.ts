@@ -54,8 +54,11 @@ describe("i18n", () => {
   it("R-121: a language change applies immediately; missing keys fall back to English", async () => {
     initI18n();
     await i18n.changeLanguage("ar");
-    expect(i18n.t("mobile_tab_home")).toBe("Home");
+    expect(i18n.t("mobile_tab_home")).toBe("الرئيسية");
     expect(i18n.t("movies")).not.toBe("Movies");
+    // A key only English has (a new string before its translation) shows in English.
+    i18n.addResource("en", "translation", "mobile_test_only_english", "English only");
+    expect(i18n.t("mobile_test_only_english" as "movies")).toBe("English only");
   });
 
   it("asks for one reload when the layout direction must change, and not again", () => {
