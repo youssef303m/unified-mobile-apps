@@ -12,6 +12,7 @@ server). They run against the development build on a phone connected over USB.
 | `flow-05-parental.yaml`        | 5: locked category → wrong PIN → right PIN → change PIN → new PIN opens  |
 | `flow-06-search.yaml`          | 6: search finds a channel, a movie and a series; empty query → recents   |
 | `flow-07-switch-playlist.yaml` | 7: switch playlist → the catalogue re-syncs → Home shows the new content |
+| `flow-08-language.yaml`        | 8: Settings → Arabic → the layout turns right to left → back to English  |
 | `flow-10-expired.yaml`         | 10: expired account → Expired screen → no content reachable              |
 | `perf/big-category.yaml`       | M4: fling through a 5,000-movie category (run on its own, see below)     |
 

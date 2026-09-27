@@ -1,0 +1,96 @@
+# Flow 8 (04-build/testing.md §4): Settings → change language to Arabic → RTL layout → back to
+# English. Switching direction reloads the app, which boots back to Home (R-121).
+appId: com.iboplayer.mobile
+name: "Flow 8 - language and RTL"
+---
+- runFlow:
+    file: common/fresh-start.yaml
+    env:
+      ACCOUNT: active
+- runFlow: common/accept-and-verify.yaml
+- extendedWaitUntil:
+    visible:
+      id: "home-screen"
+    timeout: 60000
+# English, left to right: the Home chips run Live TV → Movies from the left.
+- assertVisible:
+    text: "Movies"
+    rightOf:
+      text: "Live TV"
+
+# Account → Settings → Change Language → العربية.
+# Account opens by its link: in development builds Expo's floating Tools button covers the avatar.
+- openLink: "iboplayer://account"
+- extendedWaitUntil:
+    visible:
+      id: "account-screen"
+    timeout: 10000
+- scrollUntilVisible:
+    element:
+      id: "account-settings"
+- tapOn:
+    id: "account-settings"
+- extendedWaitUntil:
+    visible:
+      id: "settings-screen"
+    timeout: 10000
+- scrollUntilVisible:
+    element:
+      id: "settings-language"
+- tapOn:
+    id: "settings-language"
+- extendedWaitUntil:
+    visible:
+      id: "language-sheet-ar"
+    timeout: 10000
+- tapOn:
+    id: "language-sheet-ar"
+
+# The app reloads right to left in Arabic: the same chips now run from the right.
+- extendedWaitUntil:
+    visible:
+      id: "home-screen"
+    timeout: 60000
+- extendedWaitUntil:
+    visible: "الأفلام"
+    timeout: 30000
+- assertVisible:
+    text: "الأفلام"
+    leftOf:
+      text: "البث المباشر"
+- takeScreenshot: flow-08-arabic
+
+# Back to English from Settings (its title is now الإعدادات).
+- openLink: "iboplayer://account"
+- extendedWaitUntil:
+    visible:
+      id: "account-screen"
+    timeout: 10000
+- scrollUntilVisible:
+    element:
+      id: "account-settings"
+- tapOn:
+    id: "account-settings"
+- assertVisible: "الإعدادات"
+- scrollUntilVisible:
+    element:
+      id: "settings-language"
+- tapOn:
+    id: "settings-language"
+- extendedWaitUntil:
+    visible:
+      id: "language-sheet-en"
+    timeout: 10000
+- tapOn:
+    id: "language-sheet-en"
+- extendedWaitUntil:
+    visible:
+      id: "home-screen"
+    timeout: 60000
+- extendedWaitUntil:
+    visible: "Movies"
+    timeout: 30000
+- assertVisible:
+    text: "Movies"
+    rightOf:
+      text: "Live TV"

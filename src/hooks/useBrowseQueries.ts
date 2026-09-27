@@ -4,6 +4,7 @@ import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 
 import { loadHome } from "@/browse/home";
+import { hideableRows } from "@/browse/settings";
 import { CategoryFeed, FEED_PAGE, rowPreview, tabRows, type Row } from "@/browse/rows";
 import type { ContentKind } from "@/content/types";
 import { categoryFlags, type CategoryFlags } from "@/db/queries/catalogue";
@@ -81,4 +82,15 @@ export function useCategoryFlags(kind: ContentKind) {
     queryFn: () => categoryFlags(need(ctx).db, pid, kind),
   });
   return query.data ?? new Map<string, CategoryFlags>();
+}
+
+/** Settings → Hide Categories: the rows of a section with their hidden flag. */
+export function useHideableRows(kind: ContentKind) {
+  const ctx = useBrowse();
+  const pid = ctx?.catalogue.playlistId ?? NONE;
+  return useQuery({
+    queryKey: [...browseKey(pid), "hideable", kind],
+    enabled: ctx !== undefined,
+    queryFn: () => hideableRows(need(ctx), kind),
+  });
 }

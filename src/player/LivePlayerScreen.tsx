@@ -30,6 +30,7 @@ import { IconButton } from "@/components/IconButton";
 import { ListRow } from "@/components/ListRow";
 import { ProgressBar } from "@/components/ProgressBar";
 import { ListSheet } from "@/components/Sheet";
+import { showToast } from "@/components/Toast";
 import { hasArchive } from "@/content/rules/live";
 import type { CatalogueItem } from "@/content/types";
 import { refreshBrowse } from "@/hooks/queryClient";
@@ -56,7 +57,7 @@ import {
 } from "./playerSettings";
 import { resolveLive } from "./resolve";
 import { usePlayerStore, type LiveRequest } from "./session";
-import { trackOptions } from "./tracks";
+import { audioUnplayable, trackOptions } from "./tracks";
 import { usePlayback } from "./usePlayback";
 
 // The full-screen live player (03-design/screens.md "Live player", player.md §3.2/§3.3): the
@@ -133,6 +134,15 @@ function LivePlayer({ request }: { request: LiveRequest }) {
   useEffect(() => {
     retryOnFocus.current = playback.retry;
   });
+
+  // Q-ffmpeg-audio: once per channel, not on every reconnect.
+  const audioWarned = useRef<string | undefined>(undefined);
+  const onLoad: typeof playback.handlers.onLoad = (e) => {
+    playback.handlers.onLoad(e);
+    if (audioWarned.current === playing.item_id || !audioUnplayable(e.audioTracks)) return;
+    audioWarned.current = playing.item_id;
+    showToast({ text: t("mobile_audio_unsupported") });
+  };
   const [bar, setBar] = useState(true);
   const [tick, setTick] = useState(0);
   const [sheet, setSheet] = useState<"channels" | "tracks" | "more" | "catchup" | undefined>();
@@ -258,7 +268,7 @@ function LivePlayer({ request }: { request: LiveRequest }) {
             showNotificationControls={backgroundAudio}
             enterPictureInPictureOnLeave={playback.started}
             onPictureInPictureStatusChanged={(e) => setInPip(e.isActive)}
-            onLoad={playback.handlers.onLoad}
+            onLoad={onLoad}
             onReadyForDisplay={playback.handlers.onReadyForDisplay}
             onPlaybackStateChanged={playback.handlers.onPlaybackStateChanged}
             onProgress={playback.handlers.onProgress}

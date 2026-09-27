@@ -3,19 +3,25 @@ import { RefreshControl, StyleSheet, View } from "react-native";
 import Animated, { useAnimatedScrollHandler, useSharedValue } from "react-native-reanimated";
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import type { TFunction } from "i18next";
 import { useTranslation } from "react-i18next";
 
 import type { HomeRow } from "@/browse/home";
 import { removeFromContinueWatching } from "@/browse/library";
+import { expirySheetDue, providerExpiryNotice } from "@/browse/settings";
+import { AppText } from "@/components/AppText";
 import { Banner } from "@/components/Banner";
+import { Button } from "@/components/Button";
 import { CategoryChips } from "@/components/CategoryChips";
 import { ContentRow } from "@/components/ContentRow";
 import { ContinueCard } from "@/components/ContinueCard";
 import { HeroBanner } from "@/components/HeroBanner";
 import { LiveNowCard } from "@/components/LiveNowCard";
 import { PosterCard } from "@/components/PosterCard";
+import { Sheet } from "@/components/Sheet";
 import { openQuickActions } from "@/components/QuickActionsSheet";
 import { TopBar } from "@/components/TopBar";
+import type { ExpiryNotice } from "@/content/rules/app";
 import { isNewlyAdded } from "@/content/rules/content";
 import { favouriteIds } from "@/content/rules/library";
 import type { CatalogueItem } from "@/content/types";
@@ -39,6 +45,41 @@ const continueSize = { width: artwork.continueCard.width, height: artwork.contin
 const liveSize = { width: artwork.liveNowCard.width, height: artwork.liveNowCard.height };
 
 const nowSeconds = () => Math.floor(Date.now() / 1000);
+
+// This launch's memory of the expiry notice (user-flows.md §17 Mobile): the sheet opens once per
+// playlist, and a dismissed banner stays away until the next launch.
+const expirySheetShown = new Set<string>();
+const expiryBannerDismissed = new Set<string>();
+
+function expiryLabel(t: TFunction, notice: ExpiryNotice): string {
+  if (notice.kind === "hours") return t("msg_a_few_hours");
+  if (notice.kind === "unknown") return t("unknown");
+  return `${notice.days} ${t(notice.days === 1 ? "day" : "days")}`;
+}
+
+function ExpirySheet({
+  label,
+  visible,
+  onClose,
+}: {
+  label: string;
+  visible: boolean;
+  onClose: () => void;
+}) {
+  const { t } = useTranslation();
+  return (
+    <Sheet visible={visible} onClose={onClose} title={t("notification")} testID="expiry-sheet">
+      <AppText>
+        {t("expiry_notice_a")} <AppText variant="bodyStrong">{label}</AppText>
+        {t("expiry_notice_b")}
+      </AppText>
+      <AppText variant="meta" color="secondary">
+        {t("expiry_notice_footer")}
+      </AppText>
+      <Button label={t("dismiss")} onPress={onClose} testID="expiry-dismiss" />
+    </Sheet>
+  );
+}
 
 function quickActions(item: CatalogueItem, onRemoveFromRow?: () => void) {
   // Home rows never hold adult items (N-01).
@@ -214,6 +255,19 @@ export default function HomeScreen() {
   });
 
   const pid = active?.catalogue.playlistId;
+  // R-114: an Xtream playlist expiring within 5 days.
+  const notice = providerExpiryNotice(active?.provider);
+  const [expirySheet, setExpirySheet] = useState(
+    () => notice !== undefined && pid !== undefined && expirySheetDue(expirySheetShown, pid),
+  );
+  const [bannerDismissed, setBannerDismissed] = useState(
+    () => pid !== undefined && expiryBannerDismissed.has(pid),
+  );
+  const expiry = notice ? expiryLabel(t, notice) : undefined;
+  const dismissBanner = () => {
+    if (pid) expiryBannerDismissed.add(pid);
+    setBannerDismissed(true);
+  };
   useEffect(() => {
     if (!pid) return;
     void prefetchForHome(favouriteIds(kvStore, pid, "live").length > 0);
@@ -274,6 +328,16 @@ export default function HomeScreen() {
             else router.navigate(`/${key as "live" | "movies" | "series"}`);
           }}
         />
+        {expiry && !bannerDismissed ? (
+          <View style={styles.banners}>
+            <Banner
+              tone="warning"
+              lines={[`${t("playlist_will_expire_in")} ${expiry}`]}
+              action={{ label: t("dismiss"), onPress: dismissBanner }}
+              testID="home-expiry-banner"
+            />
+          </View>
+        ) : null}
         {offline || failed ? (
           <View style={styles.banners}>
             {offline ? <Banner tone="warning" lines={[t("mobile_offline_notice")]} /> : null}
@@ -296,6 +360,9 @@ export default function HomeScreen() {
           </>
         ) : null}
       </Animated.ScrollView>
+      {expiry ? (
+        <ExpirySheet label={expiry} visible={expirySheet} onClose={() => setExpirySheet(false)} />
+      ) : null}
     </View>
   );
 }

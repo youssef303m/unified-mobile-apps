@@ -38,7 +38,11 @@ export function AppStack() {
         <Stack.Screen name="playlists/add" />
         <Stack.Screen name="portals/index" />
         <Stack.Screen name="portals/add" />
+        <Stack.Screen name="settings/index" />
         <Stack.Screen name="settings/parental" />
+        <Stack.Screen name="settings/hide-categories" />
+        <Stack.Screen name="settings/subtitles" />
+        <Stack.Screen name="about" />
       </Stack.Protected>
     </Stack>
   );

@@ -61,9 +61,18 @@ name: "Flow 5 - parental PIN"
     timeout: 10000
 - scrollUntilVisible:
     element:
-      id: "account-parental"
+      id: "account-settings"
 - tapOn:
-    id: "account-parental"
+    id: "account-settings"
+- extendedWaitUntil:
+    visible:
+      id: "settings-screen"
+    timeout: 10000
+- scrollUntilVisible:
+    element:
+      id: "settings-parental"
+- tapOn:
+    id: "settings-parental"
 - extendedWaitUntil:
     visible:
       id: "pin-sheet"

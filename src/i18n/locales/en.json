@@ -471,7 +471,6 @@
   "loading_almost_ready": "Almost ready...",
   "mobile_tab_home": "Home",
   "mobile_tab_my_list": "My List",
-  "mobile_dev_language": "Language (dev)",
   "mobile_dev_network": "Network (dev)",
   "mobile_dev_network_fixtures": "Fixtures",
   "mobile_dev_network_dev_backend": "Dev backend",
@@ -632,5 +631,13 @@
   "mobile_color_red": "Red",
   "mobile_color_none": "None",
   "mobile_color_semi_black": "Semi Black",
-  "mobile_color_blue": "Blue"
+  "mobile_color_blue": "Blue",
+  "mobile_audio_unsupported": "This phone can't play this video's sound (Dolby or DTS audio). The picture plays without sound.",
+  "mobile_settings_playback": "Playback",
+  "mobile_settings_content": "Content",
+  "mobile_settings_startup": "Startup",
+  "mobile_settings_general": "General",
+  "mobile_settings_storage": "Storage",
+  "mobile_about": "About",
+  "mobile_hidden_count": "Hidden: {{count}}"
 }

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { router } from "expo-router";
 import { useTranslation } from "react-i18next";
 
@@ -5,8 +6,8 @@ import { qrPlaylistUrl } from "@/api/ibo/links";
 import { AppText } from "@/components/AppText";
 import { Card } from "@/components/Card";
 import { CopyRow } from "@/components/CopyRow";
-import { DevLanguageSwitch } from "@/components/DevLanguageSwitch";
 import { DevNetworkSwitch } from "@/components/DevNetworkSwitch";
+import { LanguageSheet, useCurrentLanguage } from "@/components/LanguageSheet";
 import { ListRow } from "@/components/ListRow";
 import { Screen } from "@/components/Screen";
 import { config } from "@/config";
@@ -54,6 +55,8 @@ export default function AccountScreen() {
   const { deviceKey } = deviceCredentials(macAddress, info, kvStore.get(globalKeys.apiData));
   const status = licenseStatusLabel(info?.is_trial) === "active" ? t("msg_active") : t("msg_trial");
   const provider = providerRows(active?.provider, t("msg_unlimited"), t("msg_active"));
+  const language = useCurrentLanguage();
+  const [languageSheet, setLanguageSheet] = useState(false);
   return (
     <Screen title={t("account")} onBack={() => router.back()} testID="account-screen">
       {offline ? (
@@ -95,10 +98,17 @@ export default function AccountScreen() {
         testID="account-portals"
       />
       <ListRow
-        title={t("parent_control")}
+        title={t("settings")}
         chevron
-        onPress={() => router.push("/settings/parental")}
-        testID="account-parental"
+        onPress={() => router.push("/settings")}
+        testID="account-settings"
+      />
+      <ListRow
+        title={t("change_language")}
+        subtitle={language.name}
+        chevron
+        onPress={() => setLanguageSheet(true)}
+        testID="account-language"
       />
       <ListRow
         title={t("mobile_manage_playlists_website")}
@@ -110,7 +120,12 @@ export default function AccountScreen() {
         chevron
         onPress={() => void openUrl(config.app.websiteUrl)}
       />
-      <DevLanguageSwitch />
+      <ListRow
+        title={t("mobile_about")}
+        chevron
+        onPress={() => router.push("/about")}
+        testID="account-about"
+      />
       <DevNetworkSwitch />
       {__DEV__ ? (
         <ListRow
@@ -120,6 +135,7 @@ export default function AccountScreen() {
           testID="account-gallery"
         />
       ) : null}
+      <LanguageSheet visible={languageSheet} onClose={() => setLanguageSheet(false)} />
     </Screen>
   );
 }

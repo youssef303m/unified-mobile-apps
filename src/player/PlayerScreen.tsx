@@ -52,7 +52,7 @@ import {
 import { resolveVod } from "./resolve";
 import { SeekAccumulator, SeekController } from "./seek";
 import { usePlayerStore, vodKey, type StartAt, type VodItem, type VodRequest } from "./session";
-import { trackOptions } from "./tracks";
+import { audioUnplayable, trackOptions } from "./tracks";
 import { usePlayback, type Playback } from "./usePlayback";
 import { useExternalSubtitles } from "./useSubtitles";
 
@@ -312,6 +312,8 @@ function VodPlayer({ request }: { request: VodRequest }) {
     playback.handlers.onLoad(e);
     loadWaiters.current.splice(0).forEach((resolve) => resolve());
     if (ui.prompt !== "pending") return;
+    // Once per video (Q-ffmpeg-audio): the phone has no decoder for any of its audio tracks.
+    if (audioUnplayable(e.audioTracks)) showToast({ text: t("mobile_audio_unsupported") });
     // The prompt appears when the media is ready, and only if the stream can seek.
     if (shouldOfferResume(saved, e.duration > 0)) {
       setSheet(undefined);
