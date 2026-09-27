@@ -1,6 +1,8 @@
+import { useEffect } from "react";
 import { StyleSheet } from "react-native";
 import { Stack } from "expo-router";
 
+import { startDownloads } from "@/downloads";
 import { accountOk, contentReady, useSession } from "@/session/store";
 import { colors } from "@/theme/tokens";
 
@@ -14,6 +16,8 @@ export function AppStack() {
   const canUseAccount = useSession(accountOk);
   const canBrowse = useSession(contentReady);
   useRouteOrientation();
+  // N-03: running downloads get their events back; waiting ones start when a playlist loads.
+  useEffect(() => startDownloads(), []);
   return (
     <Stack screenOptions={{ headerShown: false, contentStyle: styles.root }}>
       <Stack.Screen name="index" />

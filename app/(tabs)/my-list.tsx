@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
-import { Bookmark, Download, History } from "lucide-react-native";
+import { Bookmark, History } from "lucide-react-native";
 import { useTranslation } from "react-i18next";
 
 import {
@@ -23,6 +23,7 @@ import type { CatalogueItem } from "@/content/types";
 import { browseKey, need, refreshBrowse } from "@/hooks/queryClient";
 import { browseContext, useBrowse } from "@/hooks/useBrowse";
 import { useTabBack } from "@/hooks/useTabBack";
+import { DownloadsList } from "@/screens/DownloadsList";
 import { artwork, colors, layout, spacing } from "@/theme/tokens";
 import { openItem } from "@/utils/content";
 
@@ -117,22 +118,18 @@ function ContinueRow({
 }
 
 // My List (N-02, screens.md): Favourites (channels, movies and series: the same favourites as the
-// Live, Movies and Series pages), Continue Watching, and Downloads (M7).
+// Live, Movies and Series pages), Continue Watching, and Downloads (N-03).
 export default function MyListScreen() {
   const { t } = useTranslation();
   useTabBack(false);
-  const [segment, setSegment] = useState<Segment>("favourites");
+  const params = useLocalSearchParams<{ segment?: Segment }>();
+  const [chosen, setSegment] = useState<Segment | undefined>();
+  // A link (the download notification flow, e2e) can open a segment; a tap wins.
+  const segment = chosen ?? params.segment ?? "favourites";
   const data = useMyList().data;
 
   let body;
-  if (segment === "downloads")
-    body = (
-      <EmptyState
-        icon={Download}
-        title={t("mobile_downloads_empty_title")}
-        body={t("mobile_downloads_soon")}
-      />
-    );
+  if (segment === "downloads") body = <DownloadsList />;
   else if (segment === "continue") {
     const none = data && data.continueMovies.length + data.continueSeries.length === 0;
     body = none ? (
@@ -204,7 +201,12 @@ export default function MyListScreen() {
         chips={[
           { key: "favourites", label: t("favorites"), selected: segment === "favourites" },
           { key: "continue", label: t("continue_watching"), selected: segment === "continue" },
-          { key: "downloads", label: t("mobile_downloads"), selected: segment === "downloads" },
+          {
+            key: "downloads",
+            label: t("mobile_downloads"),
+            selected: segment === "downloads",
+            testID: "my-list-downloads",
+          },
         ]}
         onPress={(key) => setSegment(key as Segment)}
       />

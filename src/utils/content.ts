@@ -4,6 +4,7 @@ import { router } from "expo-router";
 import { isAdultItem, seriesDetails, seriesPlayTarget } from "@/browse/details";
 import { showToast } from "@/components/Toast";
 import type { CatalogueItem, Episode } from "@/content/types";
+import { downloads } from "@/downloads";
 import { browseContext } from "@/hooks/useBrowse";
 import { i18n } from "@/i18n";
 import {
@@ -27,7 +28,26 @@ export function openItem(item: CatalogueItem): void {
     });
 }
 
+/**
+ * player.md §8.2: a running download takes one of the account's connections, which can stop
+ * playback. Playing a downloaded file needs no connection, so it gets no warning.
+ */
+function warnIfDownloading(item?: VodItem): void {
+  const manager = downloads();
+  if (!manager.isDownloading()) return;
+  const pid = browseContext()?.catalogue.playlistId;
+  if (pid && item && item.kind !== "catchup") {
+    const target =
+      item.kind === "movie"
+        ? ({ kind: "movie", item: item.item } as const)
+        : ({ kind: "episode", series: item.series, episode: item.episode } as const);
+    if (manager.playableFile(pid, target)) return;
+  }
+  showToast({ text: i18n.t("mobile_download_while_playing") });
+}
+
 function openVod(items: VodItem[], index: number, start: StartAt): void {
+  warnIfDownloading(items[index]);
   setVodRequest({ items, index }, start);
   router.push("/player");
 }
@@ -75,6 +95,7 @@ export function playChannel(
 ): void {
   const channel = channels[index];
   if (!channel) return;
+  warnIfDownloading();
   setLiveRequest(channels, index, adultCategories);
   router.push({ pathname: "/channel/[id]", params: { id: channel.item_id } });
 }

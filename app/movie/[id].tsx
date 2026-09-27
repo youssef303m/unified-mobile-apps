@@ -9,6 +9,7 @@ import { PosterCard } from "@/components/PosterCard";
 import type { CatalogueItem } from "@/content/types";
 import { useRowPreview } from "@/hooks/useBrowseQueries";
 import { useArtwork, useMovieDetails } from "@/hooks/useDetails";
+import { useDownloadAction } from "@/hooks/useDownloadAction";
 import { useIsFavourite, useToggleFavourite } from "@/hooks/useFavourite";
 import { DetailsLayout } from "@/screens/DetailsLayout";
 import { artwork, colors, spacing } from "@/theme/tokens";
@@ -36,7 +37,7 @@ function MoreLikeThis({ item, isAdult }: { item: CatalogueItem; isAdult: boolean
 
 // Movie details (03-design/screens.md, user-flows.md §7 Mobile): the list fields at once, the
 // provider info when it arrives (R-057), TMDB artwork and cast when TMDB is on (R-122), and
-// Resume with the saved position (R-075).
+// Resume with the saved position (R-075), and Download (N-03).
 export default function MovieDetailsScreen() {
   const { t } = useTranslation();
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -45,6 +46,11 @@ export default function MovieDetailsScreen() {
   const art = useArtwork("movie", info.data?.tmdbId);
   const favourite = useIsFavourite(found);
   const toggle = useToggleFavourite();
+  const download = useDownloadAction(found ? { kind: "movie", item: found } : undefined, {
+    title: found?.name ?? "",
+    poster: found?.icon,
+    isAdult: item.data?.isAdult ?? false,
+  });
 
   if (item.isPending)
     return <ActivityIndicator style={styles.center} color={colors.brand.primary} size="large" />;
@@ -80,6 +86,7 @@ export default function MovieDetailsScreen() {
           : { label: t("mobile_play"), onPress: () => playMovie(found, isAdult, 0) }
       }
       favourite={{ value: favourite, onToggle: () => toggle(found, isAdult) }}
+      download={download}
     >
       {info.isPending ? (
         <ActivityIndicator style={styles.loading} color={colors.brand.primary} />

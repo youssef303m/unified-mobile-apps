@@ -10,6 +10,7 @@ import { EpisodeRow } from "@/components/EpisodeRow";
 import { IconButton } from "@/components/IconButton";
 import { ListSheet } from "@/components/Sheet";
 import { showToast } from "@/components/Toast";
+import { downloads } from "@/downloads";
 import {
   episodeResumePosition,
   movieResumePosition,
@@ -49,7 +50,7 @@ import {
   previousInQueue,
   type PlayQueue,
 } from "./queue";
-import { resolveVod } from "./resolve";
+import { localStream, resolveVod } from "./resolve";
 import { SeekAccumulator, SeekController } from "./seek";
 import { usePlayerStore, vodKey, type StartAt, type VodItem, type VodRequest } from "./session";
 import { audioUnplayable, trackOptions } from "./tracks";
@@ -165,7 +166,17 @@ function VodPlayer({ request }: { request: VodRequest }) {
     playKey: key,
     resolve: async () => {
       if (!ctx) throw new Error("No playlist");
-      return resolveVod(ctx.catalogue.source, item);
+      // N-03: a finished download plays from the phone, with the same resume keys.
+      const local =
+        item.kind === "catchup"
+          ? undefined
+          : downloads().playableFile(
+              ctx.catalogue.playlistId,
+              item.kind === "movie"
+                ? { kind: "movie", item: item.item }
+                : { kind: "episode", series: item.series, episode: item.episode },
+            );
+      return local ? localStream(local) : resolveVod(ctx.catalogue.source, item);
     },
     startAt: typeof startAt === "number" ? startAt : 0,
     restoreOnReconnect: true,

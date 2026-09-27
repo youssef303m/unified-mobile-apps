@@ -53,6 +53,8 @@ export interface ManagerDeps {
     record: DownloadRecord,
   ) => Promise<{ url: string; headers?: Record<string, string> } | undefined>;
   probe: (url: string, headers?: Record<string, string>) => Promise<Probe>;
+  /** A download finished (the app saves a subtitle next to it, player.md §8.2). */
+  onFinished?: (record: DownloadRecord) => void;
   now?: () => number;
 }
 
@@ -92,6 +94,27 @@ export class DownloadManager {
     return this.deps.files.path(record.fileName);
   }
 
+  /** player.md §8.2: the subtitles saved next to a finished download, by language. */
+  savedSubtitles(playlistId: string, target: DownloadTarget): { lang: string; text: string }[] {
+    const record = this.recordFor(playlistId, target);
+    if (record?.status !== "done") return [];
+    return (record.subtitles ?? []).flatMap((s) => {
+      const text = this.deps.files.read(s.fileName);
+      return text === undefined ? [] : [{ lang: s.lang, text }];
+    });
+  }
+
+  /** Saves a subtitle (SRT text) next to a download; one file per language. */
+  saveSubtitle(id: string, lang: string, text: string): void {
+    const record = this.get(id);
+    if (!record) return;
+    const safe = lang.replace(/[^a-zA-Z0-9-]/g, "") || "und";
+    const fileName = record.fileName.replace(/\.[^.]+$/, "") + `.${safe}.srt`;
+    this.deps.files.write(fileName, text);
+    const others = (record.subtitles ?? []).filter((s) => s.lang !== safe);
+    this.update(id, { subtitles: [...others, { lang: safe, fileName }] }, true);
+  }
+
   /** player.md §8.2: playback warns while a download holds a connection. */
   isDownloading(): boolean {
     return this.records.some((r) => r.status === "downloading");
@@ -100,6 +123,10 @@ export class DownloadManager {
   subscribe(listener: () => void): () => void {
     this.listeners.add(listener);
     return () => this.listeners.delete(listener);
+  }
+
+  freeBytes(): number {
+    return this.deps.files.freeBytes();
   }
 
   wifiOnly(): boolean {
@@ -308,7 +335,10 @@ export class DownloadManager {
     if (!record) return;
     const size = this.deps.files.size(record.fileName) ?? bytesTotal;
     this.live.delete(id);
+    const wasDone = record.status === "done";
     this.update(id, { status: "done", bytesDone: size, bytesTotal: size, error: undefined }, true);
+    const done = this.get(id);
+    if (!wasDone && done) this.deps.onFinished?.(done);
   }
 
   private fail(id: string, error: DownloadError): void {

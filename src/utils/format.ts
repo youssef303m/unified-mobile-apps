@@ -46,3 +46,10 @@ export function genreList(genre: string | undefined): string[] {
     .map((g) => g.trim())
     .filter(Boolean);
 }
+
+/** A file size for people: "850 MB", "1.4 GB". */
+export function formatBytes(bytes: number): string {
+  const mb = bytes / 1024 ** 2;
+  if (mb < 1000) return `${Math.max(0, Math.round(mb))} MB`;
+  return `${(mb / 1024).toFixed(1)} GB`;
+}

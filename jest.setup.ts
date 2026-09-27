@@ -86,3 +86,49 @@ jest.mock("react-native-volume-manager", () => ({
     setVolume: jest.fn(async () => undefined),
   },
 }));
+// N-03 downloads (M7): the background downloader and expo-file-system are native. The manager's
+// logic is tested with fakes (src/downloads/__tests__); screens get an empty downloads folder.
+jest.mock("@kesha-antonov/react-native-background-downloader", () => ({
+  setConfig: jest.fn(),
+  getExistingDownloadTasks: jest.fn(async () => []),
+  createDownloadTask: jest.fn(() => {
+    const task = {
+      id: "",
+      state: "PENDING",
+      begin: () => task,
+      progress: () => task,
+      done: () => task,
+      error: () => task,
+      start: jest.fn(),
+      pause: jest.fn(async () => undefined),
+      resume: jest.fn(async () => undefined),
+      stop: jest.fn(async () => undefined),
+    };
+    return task;
+  }),
+}));
+jest.mock("expo-file-system", () => {
+  class Directory {
+    exists = true;
+    uri: string;
+    constructor(...parts: unknown[]) {
+      this.uri = `file:///data/${parts.map((p) => (typeof p === "string" ? p : "docs")).join("/")}`;
+    }
+    create() {}
+  }
+  class File {
+    exists = false;
+    size = 0;
+    uri: string;
+    constructor(dir: { uri: string }, name: string) {
+      this.uri = `${dir.uri}/${name}`;
+    }
+    create() {}
+    write() {}
+    delete() {}
+    textSync() {
+      return "";
+    }
+  }
+  return { Directory, File, Paths: { document: {}, availableDiskSpace: 8 * 1024 ** 3 } };
+});

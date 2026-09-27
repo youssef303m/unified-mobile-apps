@@ -86,6 +86,8 @@ export interface DownloadFiles {
   /** Size on disk, or undefined when the file does not exist. */
   size(fileName: string): number | undefined;
   remove(fileName: string): void;
+  write(fileName: string, text: string): void;
+  read(fileName: string): string | undefined;
   freeBytes(): number;
 }
 

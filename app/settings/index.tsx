@@ -11,6 +11,7 @@ import { ListRow } from "@/components/ListRow";
 import { OptionSheet } from "@/components/OptionSheet";
 import { Screen } from "@/components/Screen";
 import { showToast } from "@/components/Toast";
+import { downloads, storageUsed, useDownloads } from "@/downloads";
 import { refreshBrowse } from "@/hooks/queryClient";
 import { browseContext } from "@/hooks/useBrowse";
 import {
@@ -25,6 +26,7 @@ import { globalKeys } from "@/storage/keys";
 import { kvStore } from "@/storage/kv";
 import { readSettings, type Settings } from "@/storage/settings";
 import { spacing } from "@/theme/tokens";
+import { formatBytes } from "@/utils/format";
 
 type Picker = "language" | "live_initialization" | "app_initialization";
 
@@ -55,6 +57,8 @@ export default function SettingsScreen() {
   const [autoPlay, setAutoPlayState] = useState(() => autoPlayOn(kvStore));
   const [background, setBackground] = useState(() => backgroundAudioOn(kvStore));
   const [picker, setPicker] = useState<Picker | undefined>();
+  const [wifiOnly, setWifiOnly] = useState(() => downloads().wifiOnly());
+  const records = useDownloads();
   const language = useCurrentLanguage();
 
   const save = (key: string, value: string) => {
@@ -127,6 +131,31 @@ export default function SettingsScreen() {
             },
           }}
           testID="settings-background-audio"
+        />
+      </Group>
+
+      <Group title={t("mobile_downloads")}>
+        <ListRow
+          title={t("mobile_download_wifi_only")}
+          subtitle={t("mobile_download_wifi_only_hint")}
+          toggle={{
+            value: wifiOnly,
+            onChange: (on) => {
+              downloads().setWifiOnly(on);
+              setWifiOnly(on);
+            },
+          }}
+          testID="settings-wifi-only"
+        />
+        <ListRow
+          title={t("mobile_downloads")}
+          subtitle={t("mobile_downloads_storage", {
+            used: formatBytes(storageUsed(records)),
+            free: formatBytes(downloads().freeBytes()),
+          })}
+          chevron
+          onPress={() => router.push({ pathname: "/my-list", params: { segment: "downloads" } })}
+          testID="settings-downloads"
         />
       </Group>
 

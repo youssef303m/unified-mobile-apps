@@ -25,6 +25,8 @@ const config: ExpoConfig = {
     // The encrypted MMKV file must not be restored without its key (secure-store is excluded
     // from backups), and it holds playlist credentials. See docs/decisions.md.
     allowBackup: false,
+    // Download progress notifications on Android 13+ (N-03; asked at the first download).
+    permissions: ["android.permission.POST_NOTIFICATIONS"],
   },
   plugins: [
     "expo-router",
@@ -60,6 +62,10 @@ const config: ExpoConfig = {
     ],
     // Quick start on raw MPEG-TS live streams (player.md §2.6; docs/decisions.md D-066).
     "./plugins/withTsExtractorFlags",
+    // N-03 downloads: background transfers with progress notifications. react-native-mmkv already
+    // provides MMKV. The patch keeps every download off Android's DownloadManager (D-078).
+    ["@kesha-antonov/react-native-background-downloader", { skipMmkvDependency: true }],
+    "./plugins/withInAppDownloader",
     [
       "expo-build-properties",
       {

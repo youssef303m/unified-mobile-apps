@@ -11,7 +11,8 @@ import { ProgressBar } from "./ProgressBar";
 
 // EpisodeRow (design-system.md §5): the still (128×72) with a progress bar, "1. Title", the
 // duration, a 2-line synopsis, and a download button (idle ↓, queued, downloading, done ✓,
-// error !). The button appears only when downloads are possible (N-03, from M7).
+// error !). The button appears only when the episode can be downloaded (N-03). A tap on a running
+// download pauses it.
 export type DownloadState = "idle" | "queued" | "downloading" | "done" | "error";
 
 export interface EpisodeRowProps {
@@ -22,7 +23,8 @@ export interface EpisodeRowProps {
   image?: string;
   /** 0…1 */
   progress?: number;
-  download?: { state: DownloadState; onPress: () => void };
+  /** `label` says the state to screen readers (e.g. "Downloading 40%"). */
+  download?: { state: DownloadState; onPress: () => void; label?: string };
   onPress: () => void;
   testID?: string;
 }
@@ -64,7 +66,14 @@ export function EpisodeRow({
             </AppText>
           ) : null}
         </View>
-        {download ? <DownloadButton {...download} label={t("mobile_download")} /> : null}
+        {download ? (
+          <DownloadButton
+            state={download.state}
+            onPress={download.onPress}
+            label={download.label ?? t("mobile_download")}
+            testID={testID ? `${testID}-download` : undefined}
+          />
+        ) : null}
       </View>
       {synopsis ? (
         <AppText variant="meta" color="secondary" numberOfLines={2}>
@@ -79,20 +88,25 @@ function DownloadButton({
   state,
   onPress,
   label,
+  testID,
 }: {
   state: DownloadState;
   onPress: () => void;
   label: string;
+  testID?: string;
 }) {
   if (state === "downloading")
     return (
-      <View
+      <Pressable
         style={styles.downloading}
+        accessibilityRole="button"
         accessibilityLabel={label}
         accessibilityState={{ busy: true }}
+        onPress={onPress}
+        testID={testID}
       >
         <ActivityIndicator color={colors.brand.primary} />
-      </View>
+      </Pressable>
     );
   const icon =
     state === "done"
@@ -108,7 +122,7 @@ function DownloadButton({
       : state === "error"
         ? colors.status.danger
         : colors.text.primary;
-  return <IconButton icon={icon} label={label} onPress={onPress} color={color} />;
+  return <IconButton icon={icon} label={label} onPress={onPress} color={color} testID={testID} />;
 }
 
 const styles = StyleSheet.create({

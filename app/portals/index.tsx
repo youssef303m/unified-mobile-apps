@@ -26,6 +26,7 @@ import { kvStore } from "@/storage/kv";
 import { readSettings } from "@/storage/settings";
 import { colors, layout, radius, spacing } from "@/theme/tokens";
 import { playlistTitle, switchPlaylist } from "@/utils/playlists";
+import { offerToDeleteDownloads } from "@/utils/playlistDownloads";
 
 // Product names of the set-top boxes a portal is told the phone is (stalker.md §2.4).
 const STB_LABELS: Record<StbProfileKey, string> = {
@@ -62,6 +63,7 @@ export default function PortalsScreen() {
               showToast({ title: t("error"), text: t("msg_failed_to_delete_portal") });
             else {
               setPlaylists(result.playlists);
+              offerToDeleteDownloads(p.id);
               if (result.clearedSelection) session.set({ active: undefined });
               if (result.toPlaylists) router.replace("/playlists");
             }

@@ -90,6 +90,7 @@ class FakeTransfer implements Transfer {
 
 class FakeFiles implements DownloadFiles {
   sizes = new Map<string, number>();
+  texts = new Map<string, string>();
   removed: string[] = [];
   free = 10 * GB;
   path(name: string) {
@@ -101,13 +102,26 @@ class FakeFiles implements DownloadFiles {
   remove(name: string) {
     this.removed.push(name);
     this.sizes.delete(name);
+    this.texts.delete(name);
+  }
+  write(name: string, text: string) {
+    this.texts.set(name, text);
+  }
+  read(name: string) {
+    return this.texts.get(name);
   }
   freeBytes() {
     return this.free;
   }
 }
 
-function setup(options: { probe?: Probe; resolveUndefined?: boolean } = {}) {
+function setup(
+  options: {
+    probe?: Probe;
+    resolveUndefined?: boolean;
+    onFinished?: (r: DownloadRecord) => void;
+  } = {},
+) {
   const store = memoryStore();
   const transfer = new FakeTransfer();
   const files = new FakeFiles();
@@ -123,6 +137,7 @@ function setup(options: { probe?: Probe; resolveUndefined?: boolean } = {}) {
       return { url: `http://host/movie/user/pass/${record.id}.mp4` };
     },
     probe: async () => options.probe ?? { bytes: GB, ranges: true },
+    onFinished: options.onFinished,
     now: () => 1_000,
   });
   return { store, transfer, files, manager, resolved, load: () => (loaded = true) };
@@ -342,6 +357,22 @@ describe("N-03 download manager", () => {
     );
     expect(store.get(DOWNLOADS_KEY)).not.toMatch(/secret/);
     expect(manager.get("p1:movie:9")?.fileName).toBe("p1_movie_9.mkv");
+  });
+
+  it("saves subtitles next to a finished download and deletes them with it", async () => {
+    const finished: string[] = [];
+    const { manager, transfer, files } = setup({ onFinished: (r) => finished.push(r.id) });
+    manager.add(newMovie("1"));
+    await flush();
+    files.sizes.set("p1_movie_1.mp4", GB);
+    transfer.emit("p1:movie:1").onDone(GB);
+    expect(finished).toEqual(["p1:movie:1"]);
+    manager.saveSubtitle("p1:movie:1", "ar", "first");
+    manager.saveSubtitle("p1:movie:1", "ar", "second");
+    const target = { kind: "movie" as const, item: movie("1") };
+    expect(manager.savedSubtitles("p1", target)).toEqual([{ lang: "ar", text: "second" }]);
+    await manager.remove("p1:movie:1");
+    expect(files.removed).toEqual(expect.arrayContaining(["p1_movie_1.mp4", "p1_movie_1.ar.srt"]));
   });
 
   it("counts storage: finished files by size, running ones by what arrived", () => {

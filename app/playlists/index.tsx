@@ -28,6 +28,7 @@ import { readSettings } from "@/storage/settings";
 import { colors, layout, radius, spacing } from "@/theme/tokens";
 import { resetTo } from "@/utils/navigation";
 import { playlistTitle, switchPlaylist } from "@/utils/playlists";
+import { offerToDeleteDownloads } from "@/utils/playlistDownloads";
 
 // Playlists ("Choose Your Playlist", current-app-inventory.md §6, user-flows.md §2 Mobile).
 export default function PlaylistsScreen() {
@@ -80,6 +81,7 @@ export default function PlaylistsScreen() {
               showToast({ title: t("error"), text: t("msg_failed_to_delete_playlist") });
             else {
               setPlaylists(result.playlists);
+              offerToDeleteDownloads(p.id);
               if (result.clearedSelection) session.set({ active: undefined });
             }
           });

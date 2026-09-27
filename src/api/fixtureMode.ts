@@ -40,3 +40,11 @@ export function playbackUrl(url: string): string {
   const lazy = require("./__fixtures__/playback") as typeof import("./__fixtures__/playback");
   return lazy.fixtureStreamFor(url) ?? url;
 }
+
+/** The file a download fetches: in fixture mode a public test file (fixtureDownloadFor). */
+export function downloadUrl(url: string): string {
+  if (!FIXTURES_ALLOWED || !active) return url;
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const lazy = require("./__fixtures__/playback") as typeof import("./__fixtures__/playback");
+  return lazy.fixtureDownloadFor(url) ?? url;
+}

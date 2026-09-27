@@ -16,9 +16,11 @@ import { useTranslation } from "react-i18next";
 
 import { AppText } from "@/components/AppText";
 import { Artwork, BACKDROP_FALLBACK } from "@/components/Artwork";
+import { Button } from "@/components/Button";
 import { IconButton } from "@/components/IconButton";
 import { PressableScale } from "@/components/PressableScale";
 import { ProgressBar } from "@/components/ProgressBar";
+import type { DownloadAction } from "@/hooks/useDownloadAction";
 import type { MovieInfo } from "@/content/types";
 import { openUrl } from "@/platform/links";
 import { artwork, colors, gradients, layout, radius, spacing } from "@/theme/tokens";
@@ -37,6 +39,8 @@ export interface DetailsLayoutProps {
   cast: string[];
   play: { label: string; onPress: () => void; progress?: number; caption?: string };
   favourite: { value: boolean; onToggle: () => void };
+  /** N-03: the Download button under Play, hidden when the item cannot be downloaded. */
+  download?: DownloadAction;
   children?: ReactNode;
   testID?: string;
 }
@@ -51,6 +55,7 @@ export function DetailsLayout({
   cast,
   play,
   favourite,
+  download,
   children,
   testID,
 }: DetailsLayoutProps) {
@@ -142,6 +147,19 @@ export function DetailsLayout({
               <AppText variant="caption" color="secondary">
                 {play.caption}
               </AppText>
+            ) : null}
+          </View>
+        ) : null}
+        {download ? (
+          <View style={styles.download}>
+            <Button
+              label={download.label}
+              onPress={download.onPress}
+              variant="secondary"
+              testID="details-download"
+            />
+            {download.state === "downloading" && download.fraction !== undefined ? (
+              <ProgressBar fraction={download.fraction} style={styles.progress} />
             ) : null}
           </View>
         ) : null}
@@ -239,6 +257,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   progressRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
+  download: { gap: spacing.xs },
   progress: { flex: 1, borderRadius: radius.chip },
   actions: { flexDirection: "row", justifyContent: "space-around", paddingVertical: spacing.sm },
 });

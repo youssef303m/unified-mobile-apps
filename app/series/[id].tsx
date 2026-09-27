@@ -6,16 +6,54 @@ import { useTranslation } from "react-i18next";
 
 import { CategoryChips } from "@/components/CategoryChips";
 import { EmptyState } from "@/components/EmptyState";
-import { EpisodeRow } from "@/components/EpisodeRow";
+import { EpisodeRow, type DownloadState, type EpisodeRowProps } from "@/components/EpisodeRow";
 import { ListRow } from "@/components/ListRow";
 import { Sheet } from "@/components/Sheet";
 import { showToast } from "@/components/Toast";
 import { useArtwork, useSeriesDetails } from "@/hooks/useDetails";
+import { useDownloadAction, type DownloadUiState } from "@/hooks/useDownloadAction";
 import { useIsFavourite, useToggleFavourite } from "@/hooks/useFavourite";
 import { DetailsLayout } from "@/screens/DetailsLayout";
 import { colors, layout, spacing } from "@/theme/tokens";
 import { playEpisode } from "@/utils/content";
 import { durationParts } from "@/utils/format";
+import type { CatalogueItem, Episode } from "@/content/types";
+
+const ROW_STATE: Record<DownloadUiState, DownloadState> = {
+  idle: "idle",
+  queued: "queued",
+  paused: "queued",
+  downloading: "downloading",
+  done: "done",
+  failed: "error",
+};
+
+/** An episode row with its download button (N-03). */
+function SeriesEpisode({
+  series,
+  episode,
+  isAdult,
+  ...row
+}: Omit<EpisodeRowProps, "download"> & {
+  series: CatalogueItem;
+  episode: Episode;
+  isAdult: boolean;
+}) {
+  const download = useDownloadAction(
+    { kind: "episode", series, episode },
+    { title: episode.title, seriesName: series.name, poster: series.icon, isAdult },
+  );
+  return (
+    <EpisodeRow
+      {...row}
+      download={
+        download
+          ? { state: ROW_STATE[download.state], onPress: download.onPress, label: download.label }
+          : undefined
+      }
+    />
+  );
+}
 
 // Series details (03-design/screens.md, user-flows.md §8 Mobile): the details header, Play or
 // Continue on the last watched episode (R-076), the season picker (seasons sorted, empty ones
@@ -114,8 +152,11 @@ export default function SeriesDetailsScreen() {
             season.episodes.map((episode, index) => {
               const d = durationParts(episode.durationSecs);
               return (
-                <EpisodeRow
+                <SeriesEpisode
                   key={episode.id}
+                  series={found}
+                  episode={episode}
+                  isAdult={isAdult}
                   number={episode.episodeNumber}
                   title={episode.title}
                   duration={d ? t("mobile_duration", { h: d.h, m: d.m }) : undefined}

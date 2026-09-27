@@ -1,20 +1,18 @@
 // External subtitles for one video (player.md §5.2–5.4): the ibosub lookup runs once, the first
 // time the subtitle sheet opens; the chosen language's SRT drives a cursor from the playback
-// position; the delay is per video. ibosub is an IBO server, so it is skipped in the dev-backend
-// mode (docs/decisions.md D-059: never call the real IBO servers during development).
+// position; the delay is per video. The lookup itself is in subtitleLookup.ts; a downloaded
+// video falls back to the subtitles saved next to it (offline), and keeps the one chosen.
 import { useCallback, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { tmdbSearch } from "@/api/tmdb";
-import { movieInfo } from "@/browse/details";
 import { showToast } from "@/components/Toast";
-import { tmdbAllowed } from "@/content/rules/app";
+import { downloads } from "@/downloads";
 import { useBrowse } from "@/hooks/useBrowse";
-import { networkMode } from "@/session/network";
 
 import type { ExternalState } from "./controls/TrackSheet";
 import type { VodItem } from "./session";
-import { findSubtitles, type SubtitleLanguage, type SubtitleSource } from "./subtitles/lookup";
+import { downloadTargetOf, lookupSubtitles, savedSubtitleSource } from "./subtitleLookup";
+import type { SubtitleLanguage, SubtitleSource } from "./subtitles/lookup";
 import { parseSrt, SubtitleCursor, type Cue } from "./subtitles/srt";
 
 export interface ExternalSubtitles {
@@ -63,50 +61,37 @@ export function useExternalSubtitles(item: VodItem, itemKey: string): ExternalSu
   const lookUp = useCallback(() => {
     if (state.lookup.kind !== "idle" || !ctx || item.kind === "catchup") return;
     const key = itemKey;
-    if (networkMode() === "dev_backend") {
-      update(key, { lookup: { kind: "none" } });
-      return;
-    }
-    update(key, { lookup: { kind: "loading" } });
     const uiLanguage = i18n.language;
-    const search = tmdbAllowed(ctx.store) ? tmdbSearch : undefined;
+    // player.md §8.2: a downloaded video also has the subtitles saved next to it (offline).
+    const saved = savedSubtitleSource(
+      downloads().savedSubtitles(ctx.catalogue.playlistId, downloadTargetOf(item)),
+      uiLanguage,
+    );
+    update(key, { lookup: { kind: "loading" } });
     void (async () => {
+      let found: SubtitleSource | undefined;
       try {
-        let found: SubtitleSource | undefined;
-        if (item.kind === "movie") {
-          const info = await movieInfo(ctx, item.item);
-          found = await findSubtitles(
-            {
-              tmdb: {
-                kind: "movie",
-                tmdbId: info.tmdbId,
-                name: info.name || item.item.name,
-                releaseDate: info.releaseDate,
-              },
-            },
-            { search, uiLanguage },
-          );
-        } else {
-          found = await findSubtitles(
-            {
-              tmdb: { kind: "tv", tmdbId: item.tmdbId, name: item.series.name },
-              episode: {
-                seasonNumber: item.episode.seasonNumber,
-                episodeNumber: item.episode.episodeNumber,
-              },
-            },
-            { search, uiLanguage },
-          );
-        }
-        source.current = found ? { key, found } : undefined;
-        update(key, {
-          lookup: found ? { kind: "ok", languages: found.languages } : { kind: "none" },
-        });
+        found = await lookupSubtitles(ctx, item, uiLanguage);
       } catch {
-        update(key, { lookup: { kind: "none" } });
+        found = undefined;
       }
+      found ??= saved;
+      source.current = found ? { key, found } : undefined;
+      update(key, {
+        lookup: found ? { kind: "ok", languages: found.languages } : { kind: "none" },
+      });
     })();
   }, [ctx, i18n.language, item, itemKey, state.lookup.kind, update]);
+
+  // player.md §8.2: a subtitle chosen for a downloaded video is kept next to the file.
+  const saveForOffline = useCallback(
+    (lang: string, srt: string) => {
+      if (!ctx || item.kind === "catchup" || !srt) return;
+      const record = downloads().recordFor(ctx.catalogue.playlistId, downloadTargetOf(item));
+      if (record?.status === "done") downloads().saveSubtitle(record.id, lang, srt);
+    },
+    [ctx, item],
+  );
 
   const delay = state.delay;
   const select = useCallback(
@@ -119,6 +104,7 @@ export function useExternalSubtitles(item: VodItem, itemKey: string): ExternalSu
       void found
         .load(language)
         .then((srt) => {
+          saveForOffline(language.code, srt);
           const next = new SubtitleCursor(parseSrt(srt));
           // Loading a new file resets the offset; the chosen delay applies again.
           next.setDelay(delay);
@@ -129,7 +115,7 @@ export function useExternalSubtitles(item: VodItem, itemKey: string): ExternalSu
           showToast({ text: t("msg_something_error_caused_while_downloading_subtitles_for") });
         });
     },
-    [delay, itemKey, t, update],
+    [delay, itemKey, saveForOffline, t, update],
   );
 
   const cursor = state.cursor;

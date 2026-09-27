@@ -20,6 +20,11 @@ function resolved(target: StreamTarget): ResolvedStream {
   return { url, headers: target.headers, plan: playbackPlan(url) };
 }
 
+/** A downloaded file (N-03): played as it is, offline too. */
+export function localStream(path: string): ResolvedStream {
+  return { url: path.startsWith("file://") ? path : `file://${path}`, plan: ["progressive"] };
+}
+
 export async function resolveVod(source: ContentSource, item: VodItem): Promise<ResolvedStream> {
   if (item.kind === "movie")
     return resolved(await source.streamUrl({ kind: "movie", item: item.item }));

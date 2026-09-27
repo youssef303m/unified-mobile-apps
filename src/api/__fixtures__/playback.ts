@@ -31,3 +31,12 @@ export function fixtureStreamFor(url: string): string | undefined {
   if (path.endsWith(".mkv")) return TEST_STREAMS.mkv;
   return TEST_STREAMS.mp4;
 }
+
+/**
+ * Downloads (N-03) need a file, never HLS: fixture movies and episodes become the MP4 or MKV test
+ * file by their container. Undefined for any other URL.
+ */
+export function fixtureDownloadFor(url: string): string | undefined {
+  if (!fixtureStreamFor(url)) return undefined;
+  return url.toLowerCase().split("?")[0]?.endsWith(".mkv") ? TEST_STREAMS.mkv : TEST_STREAMS.mp4;
+}
