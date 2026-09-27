@@ -7,7 +7,7 @@ import type { BufferConfig } from "react-native-video";
 export type StreamKind = "hls" | "dash" | "progressive";
 
 /** Complete-file containers: no fallback (§2.2 rule 1). */
-const COMPLETE_FILES = [
+export const COMPLETE_FILES = [
   ".mkv",
   ".mp4",
   ".m4v",

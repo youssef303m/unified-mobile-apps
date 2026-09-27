@@ -10,6 +10,7 @@ const coreRoots = [
   "<rootDir>/src/browse",
   "<rootDir>/src/content",
   "<rootDir>/src/db",
+  "<rootDir>/src/downloads",
   "<rootDir>/src/player",
   "<rootDir>/src/session",
 ];
