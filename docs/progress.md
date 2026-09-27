@@ -12,6 +12,7 @@ A new session must be able to continue from this file alone. Read `AGENTS.md` fi
 | Stararcs proxy                                                       | dropped by the owner (D-074)                                                                                                         |
 | Move (R-093), from the parity check                                  | done (`app/live-order.tsx`, `src/browse/order.ts`; D-075). Sports mode and Arrange Categories dropped by the owner                   |
 | Unsupported audio notice (Q-ffmpeg-audio)                            | done (`audioUnplayable` in `src/player/tracks.ts`)                                                                                   |
+| Arabic for every phone string (owner, from the M6 review)            | done (`src/i18n/phone/ar.json`, D-077); drafts to be reviewed by a native speaker before release                                     |
 | **Accept:** Maestro flow 8; `docs/parity.md`                         | flow 8 written (`e2e/flow-08-language.yaml`), to run on the phone; `docs/parity.md` done (3 small gaps listed for the owner)         |
 
 Flow 5 now reaches Parental Control through Account → Settings.
