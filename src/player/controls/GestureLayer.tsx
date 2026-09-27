@@ -1,5 +1,11 @@
-import { useEffect, useState, type ReactNode } from "react";
-import { StyleSheet, View, useWindowDimensions } from "react-native";
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import {
+  Pressable,
+  StyleSheet,
+  View,
+  useWindowDimensions,
+  type GestureResponderEvent,
+} from "react-native";
 import * as Brightness from "expo-brightness";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import { useSharedValue } from "react-native-reanimated";
@@ -30,6 +36,7 @@ type Level = { kind: "brightness" | "volume"; value: number };
 /** How much of the screen height a swipe needs for the full 0 → 1 range. */
 const SWIPE_RANGE = 0.7;
 const SEEK_LABEL_MS = 700;
+const DOUBLE_TAP_MS = 300;
 
 export function GestureLayer({
   onTap,
@@ -60,14 +67,38 @@ export function GestureLayer({
     onDoubleTapSeek?.(delta);
   };
 
-  const single = Gesture.Tap()
-    .runOnJS(true)
-    .onEnd((_, ok) => ok && onTap());
-  const double = Gesture.Tap()
-    .runOnJS(true)
-    .numberOfTaps(2)
-    .enabled(!locked && onDoubleTapSeek !== undefined)
-    .onEnd((e, ok) => ok && showSeek(e.x < width / 2 ? "left" : "right"));
+  // Taps are a plain Pressable, not a native tap gesture: the controls drawn above it then
+  // keep their touches (a native tap on this layer also fired under the buttons). A second tap
+  // within 300 ms seeks; while the seek label shows, each further tap on that side adds up.
+  const pendingTap = useRef<{ side: "left" | "right"; timer: ReturnType<typeof setTimeout> }>(
+    undefined,
+  );
+  const lastSeek = useRef<{ side: "left" | "right"; at: number } | undefined>(undefined);
+  useEffect(() => () => clearTimeout(pendingTap.current?.timer), []);
+  const press = (e: GestureResponderEvent) => {
+    const side = e.nativeEvent.pageX < width / 2 ? "left" : "right";
+    if (locked || !onDoubleTapSeek) return onTap();
+    const now = Date.now();
+    const recent = lastSeek.current;
+    if (recent && recent.side === side && now - recent.at < SEEK_LABEL_MS) {
+      lastSeek.current = { side, at: now };
+      return showSeek(side);
+    }
+    const pending = pendingTap.current;
+    if (pending) {
+      clearTimeout(pending.timer);
+      pendingTap.current = undefined;
+      lastSeek.current = { side, at: now };
+      return showSeek(side);
+    }
+    pendingTap.current = {
+      side,
+      timer: setTimeout(() => {
+        pendingTap.current = undefined;
+        onTap();
+      }, DOUBLE_TAP_MS),
+    };
+  };
 
   const pan = Gesture.Pan()
     .runOnJS(true)
@@ -107,12 +138,18 @@ export function GestureLayer({
     .enabled(!locked && onPinch !== undefined)
     .onEnd((e) => onPinch?.(e.scale > 1));
 
-  const gesture = Gesture.Simultaneous(Gesture.Exclusive(double, single), pan, pinch);
+  const gesture = Gesture.Simultaneous(pan, pinch);
   const LevelIcon = level?.kind === "brightness" ? Sun : Volume2;
 
   return (
     <GestureDetector gesture={gesture}>
-      <View style={StyleSheet.absoluteFill} testID="player-gestures" collapsable={false}>
+      <View style={StyleSheet.absoluteFill} collapsable={false}>
+        <Pressable
+          style={StyleSheet.absoluteFill}
+          onPress={press}
+          accessible={false}
+          testID="player-gestures"
+        />
         {children}
         {level ? (
           <View style={styles.level} pointerEvents="none" accessibilityLiveRegion="polite">

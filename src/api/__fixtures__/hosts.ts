@@ -24,8 +24,8 @@ export const TEST_STREAMS = {
   mp4: "https://storage.googleapis.com/exoplayer-test-media-0/BigBuckBunny_320x180.mp4",
   /** MKV (H.264 + AAC). */
   mkv: "https://storage.googleapis.com/exoplayer-test-media-1/mkv/android-screens-lavf-56.36.100-aac-avc-main-1280x720.mkv",
-  /** A real live HLS stream. */
-  live: "https://cph-p2p-msl.akamaized.net/hls/live/2000341/test/master.m3u8",
+  /** A real live HLS stream (Unified Streaming demo). */
+  live: "https://demo.unified-streaming.com/k8s/live/stable/live.isml/.m3u8",
   /** Raw MPEG-TS over HTTP (a 10 s segment, played as progressive TS). */
   ts: "https://devstreaming-cdn.apple.com/videos/streaming/examples/bipbop_4x3/gear1/fileSequence0.ts",
   /** Answers 403: the error states. */

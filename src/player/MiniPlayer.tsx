@@ -73,6 +73,8 @@ function MiniVideo({ channel, isAdult, onFullscreen }: MiniPlayerProps) {
       {playback.source ? (
         <Video
           key={playback.videoKey}
+          // Our own controls show what the stream is; no library "LIVE" badge.
+          controlsStyles={NO_LIVE_BADGE}
           source={playback.source}
           style={StyleSheet.absoluteFill}
           resizeMode="contain"
@@ -104,6 +106,8 @@ function MiniVideo({ channel, isAdult, onFullscreen }: MiniPlayerProps) {
     </Pressable>
   );
 }
+
+const NO_LIVE_BADGE = { hideLiveBadge: true };
 
 const styles = StyleSheet.create({
   frame: {

@@ -66,7 +66,9 @@ export function ListRow({
       ) : null}
     </>
   );
-  if (!onPress && !onLongPress)
+  // A toggle row flips from anywhere on the row (a bigger target than the switch alone).
+  const press = onPress ?? (toggle ? () => toggle.onChange(!toggle.value) : undefined);
+  if (!press && !onLongPress)
     return (
       <View style={styles.row} testID={testID}>
         {body}
@@ -77,7 +79,7 @@ export function ListRow({
       testID={testID}
       accessibilityRole="button"
       accessibilityState={selected === undefined ? undefined : { selected }}
-      onPress={onPress}
+      onPress={press}
       onLongPress={onLongPress}
       style={({ pressed }) => [styles.row, pressed && styles.pressed]}
     >

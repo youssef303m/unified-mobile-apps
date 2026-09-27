@@ -33,12 +33,16 @@ name: "Flow 4 - live, guide and catch-up"
 # R-091: the first tap previews in the mini player, the second goes full screen.
 - tapOn:
     id: "channel-10000"
+    waitToSettleTimeoutMs: 500
+    retryTapIfNoChange: false
 - extendedWaitUntil:
     visible:
       id: "live-preview"
     timeout: 15000
 - tapOn:
     id: "channel-10000"
+    waitToSettleTimeoutMs: 500
+    retryTapIfNoChange: false
 - extendedWaitUntil:
     visible:
       id: "live-player"
@@ -59,11 +63,15 @@ name: "Flow 4 - live, guide and catch-up"
     text: "1  Fixture Channel 1"
 - tapOn:
     id: "live-next"
+    waitToSettleTimeoutMs: 500
+    retryTapIfNoChange: false
 - assertVisible:
     id: "live-channel-name"
     text: "6  Fixture Channel 6"
 - tapOn:
     id: "live-previous"
+    waitToSettleTimeoutMs: 500
+    retryTapIfNoChange: false
 - assertVisible:
     id: "live-channel-name"
     text: "1  Fixture Channel 1"
@@ -80,6 +88,8 @@ name: "Flow 4 - live, guide and catch-up"
       SCREEN: "live-player"
 - tapOn:
     id: "live-guide"
+    waitToSettleTimeoutMs: 500
+    retryTapIfNoChange: false
 - extendedWaitUntil:
     visible:
       id: "guide-screen"
@@ -101,6 +111,8 @@ name: "Flow 4 - live, guide and catch-up"
       SCREEN: "live-player"
 - tapOn:
     id: "live-catchup"
+    waitToSettleTimeoutMs: 500
+    retryTapIfNoChange: false
 - extendedWaitUntil:
     visible:
       id: "catchup-sheet"
@@ -140,6 +152,13 @@ name: "Flow 4 - live, guide and catch-up"
 - extendedWaitUntil:
     visible:
       id: "playlists-screen"
+    timeout: 15000
+# Portals have their own list (R-036: IBOPlayer adds playlists and portals separately).
+- tapOn:
+    id: "playlists-portals"
+- extendedWaitUntil:
+    visible:
+      id: "portals-screen"
     timeout: 15000
 - tapOn: "Fixture Portal"
 - assertVisible: 'Switch playlist\?'

@@ -67,16 +67,22 @@ name: "Flow 3 - next episode"
       SCREEN: "player-screen"
 - tapOn:
     id: "player-more"
+    waitToSettleTimeoutMs: 500
+    retryTapIfNoChange: false
 - scrollUntilVisible:
     element:
       id: "quick-seek-minute"
     direction: DOWN
 - tapOn:
     id: "quick-seek-minute"
+    waitToSettleTimeoutMs: 500
+    retryTapIfNoChange: false
 - inputText: "10"
 - hideKeyboard
 - tapOn:
     id: "quick-seek-go"
+    waitToSettleTimeoutMs: 500
+    retryTapIfNoChange: false
 
 # N-07: the card appears in the last 30 s; it plays episode 4.
 - extendedWaitUntil:
@@ -86,6 +92,8 @@ name: "Flow 3 - next episode"
 - assertVisible: "Next episode"
 - tapOn:
     id: "next-episode-play"
+    waitToSettleTimeoutMs: 500
+    retryTapIfNoChange: false
 - extendedWaitUntil:
     notVisible:
       id: "player-loading"

@@ -1,6 +1,6 @@
 // The full-screen players' system chrome (tech-stack.md): the status and navigation bars hidden,
 // and the screen kept on while playing. Orientation follows the route (useRouteOrientation).
-import { useEffect } from "react";
+import { memo, useEffect } from "react";
 import { activateKeepAwakeAsync, deactivateKeepAwake } from "expo-keep-awake";
 import { NavigationBar } from "expo-navigation-bar";
 import { StatusBar } from "expo-status-bar";
@@ -18,12 +18,15 @@ export function useKeepAwakeWhile(playing: boolean): void {
   }, [playing]);
 }
 
-/** Hides the system bars while mounted (immersive full screen). */
-export function PlayerChrome() {
+/**
+ * Hides the system bars while mounted (immersive full screen). Memoised: the players re-render
+ * on every progress event, and each render would apply the bars again.
+ */
+export const PlayerChrome = memo(function PlayerChrome() {
   return (
     <>
       <StatusBar hidden style="light" />
       <NavigationBar hidden />
     </>
   );
-}
+});

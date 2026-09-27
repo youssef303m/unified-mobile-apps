@@ -16,7 +16,7 @@ server). They run against the development build on a phone connected over USB.
 | `perf/big-category.yaml`       | M4: fling through a 5,000-movie category (run on its own, see below)     |
 
 Flows 2, 3 and 4 play video: in fixture mode, fixture stream URLs become public test streams
-(Mux HLS, Google MP4/MKV, an Akamai live stream, an Apple TS segment; docs/decisions.md), so the
+(Mux HLS, Google MP4/MKV, a Unified Streaming live stream, an Apple TS segment; docs/decisions.md), so the
 phone needs internet. They need the M5 development build (react-native-video).
 
 `common/` holds shared steps (not run on their own). The flows drive the fixtures through the

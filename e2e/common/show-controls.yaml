@@ -1,15 +1,16 @@
-# The player controls hide on their own (10 s VOD, 7.5 s live) and a tap toggles them: tap the
-# screen only when the control we need is not on screen. CONTROL: a control's id; SCREEN: the
-# player's id.
+# The player controls hide on their own (10 s VOD, 7.5 s live) and a tap toggles them. To get a
+# full window for the next taps: wait until they have hidden, then tap the screen to show them.
+# CONTROL: a control's id; SCREEN: the player's id.
 appId: com.iboplayer.mobile
 ---
-- runFlow:
-    when:
-      notVisible:
-        id: ${CONTROL}
-    commands:
-      - tapOn:
-          id: ${SCREEN}
+- extendedWaitUntil:
+    notVisible:
+      id: ${CONTROL}
+    timeout: 15000
+- tapOn:
+    id: ${SCREEN}
+    waitToSettleTimeoutMs: 500
+    retryTapIfNoChange: false
 - extendedWaitUntil:
     visible:
       id: ${CONTROL}

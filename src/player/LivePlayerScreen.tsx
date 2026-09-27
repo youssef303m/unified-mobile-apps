@@ -237,6 +237,8 @@ function LivePlayer({ request }: { request: LiveRequest }) {
         {playback.source && focused ? (
           <Video
             key={playback.videoKey}
+            // Our own controls show what the stream is; no library "LIVE" badge.
+            controlsStyles={NO_LIVE_BADGE}
             ref={videoRef}
             source={playback.source}
             style={{ width: layoutBox.width, height: layoutBox.height }}
@@ -476,6 +478,8 @@ function LivePlayer({ request }: { request: LiveRequest }) {
     </View>
   );
 }
+
+const NO_LIVE_BADGE = { hideLiveBadge: true };
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.overlay.video },

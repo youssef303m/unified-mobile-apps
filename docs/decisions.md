@@ -753,7 +753,7 @@ therefore become public test streams:
 | Catch-up and Stalker series | Mux's Big Buck Bunny HLS (10:34)                |
 | `.mp4` movies               | Google's Big Buck Bunny MP4                     |
 | `.mkv` movies               | Google's Media3 MKV sample                      |
-| Live channels               | Akamai's live HLS test stream                   |
+| Live channels               | Unified Streaming's live HLS demo stream        |
 | Channel 10001               | Apple's bipbop MPEG-TS segment (progressive TS) |
 | Channel 10002               | A URL that answers 403, to show the error state |
 
@@ -776,3 +776,52 @@ Other URLs are untouched. Playback in fixture mode needs internet.
   - The Live tab's mini player stops when the tab loses focus.
   - The live player unmounts its video while the guide or a catch-up player is on top, and
     reloads at the live edge when it comes back.
+
+### D-073 · What the first phone run of the player found
+
+The M5 development build on the owner's phone found these, all fixed:
+
+- **Seeks were checked against a position of 0.** react-native-video 6.19's
+  `getCurrentPosition` resolves the view through a lookup its own code marks "to do". It failed
+  on the New Architecture, so every seek looked failed and was reloaded at the first target
+  (three +30 s presses gave +30 s). Seeks are now checked against the position from the
+  player's progress events (every 250 ms).
+- **A tap on a control also toggled the controls.** A native tap gesture on the layer below still
+  received touches that landed on the buttons above it. Tap and double-tap are now a plain
+  `Pressable` under the controls, so a button keeps its touch. The swipes (brightness, volume)
+  and pinch stay native gestures, which a tap never starts.
+- **Akamai's public live test stream broke.** Its master playlist now lists variants that answer 404. The fixture live channels play Unified Streaming's live demo stream instead.
+
+- **react-native-video drew its own "LIVE" badge** over live streams. It is hidden
+  (`controlsStyles.hideLiveBadge`); the live bar already says what is playing.
+- **A tap on a settings row with a switch did nothing;** only the switch itself flipped. Toggle rows
+  now flip from anywhere on the row (all screens).
+- **The players re-applied the system bars four times a second** (on every progress event).
+  `PlayerChrome` is memoised.
+
+Checked by hand on the phone:
+
+- HLS: movies and episodes.
+- Raw MPEG-TS: fixture channel 2. The 10 s file plays to its end, then the live player
+  reconnects.
+- MP4: movie 3.
+- Live HLS.
+- The failed state: channel 3 answers 403 → "Access denied…", then Next channel plays.
+- PiP: from Home and from the PiP button, with live and VOD video continuing; back to the full
+  player afterwards.
+- Background audio: with the screen off, the media session stays PLAYING and the position
+  advances, with a media notification (transport controls).
+- Rotation: the players are landscape, and the other screens portrait.
+
+Notes for the flows:
+
+- Maestro waits for the screen to settle after each tap, and a playing video never settles: a
+  tap took about 11 s, longer than the controls stay up. Taps inside the players use
+  `waitToSettleTimeoutMs: 500`.
+- `common/show-controls.yaml` waits for the controls to hide, then taps to show them, so the next
+  taps get a full 10 s.
+- An HLS seek takes 2–4 s to land on the phone (a segment load).
+- `uiautomator dump` cannot get an idle screen while video plays and silently keeps the previous
+  file: use screenshots to see the player.
+- After `am force-stop`, this phone (Honor) sometimes blocks Maestro's launch; flow 10 once failed
+  that way and passed when run again.

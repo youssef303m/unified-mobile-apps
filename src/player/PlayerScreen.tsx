@@ -211,13 +211,9 @@ function VodPlayer({ request }: { request: VodRequest }) {
         videoRef.current?.seek(target);
         current.current.resetCursor();
       },
-      position: async () => {
-        try {
-          return (await videoRef.current?.getCurrentPosition()) ?? 0;
-        } catch {
-          return 0;
-        }
-      },
+      // The position from the progress events (every 250 ms): react-native-video 6.19's
+      // getCurrentPosition cannot find the view on the New Architecture (D-073).
+      position: async () => latest.current.position,
       reload:
         item.kind === "catchup"
           ? undefined
@@ -387,6 +383,8 @@ function VodPlayer({ request }: { request: VodRequest }) {
         {playback.source ? (
           <Video
             key={playback.videoKey}
+            // Our own controls show what the stream is; no library "LIVE" badge.
+            controlsStyles={NO_LIVE_BADGE}
             ref={videoRef}
             source={playback.source}
             style={{ width: box.width, height: box.height }}
@@ -569,6 +567,8 @@ function VodPlayer({ request }: { request: VodRequest }) {
     </View>
   );
 }
+
+const NO_LIVE_BADGE = { hideLiveBadge: true };
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.overlay.video },
