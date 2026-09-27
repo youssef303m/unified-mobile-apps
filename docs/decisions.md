@@ -825,3 +825,20 @@ Notes for the flows:
   file: use screenshots to see the player.
 - After `am force-stop`, this phone (Honor) sometimes blocks Maestro's launch; flow 10 once failed
   that way and passed when run again.
+
+### D-074 · M6 scope: the settings and services the owner dropped
+
+The owner dropped these from v1 on 2026-09-27. Each keeps its TV default, so the app behaves as
+the TV app does with the setting untouched:
+
+- **Font Size:** Normal. Android's system font scale still applies.
+- **Toggle TMDB API:** on.
+- **Toggle Home Favorites:** on (the Live favourites row shows; still hidden for Stalker).
+- **Load on Demand:** enabled.
+- **Custom Categories:** off; no custom rows and no "Add to…".
+- **Media Player choice:** one engine (react-native-video); the fallback chain is automatic.
+- **App Theme and Channel Theme:** not used; one dark look and one Live layout.
+- **Stararcs proxy:** not offered. R-042, R-110, R-112 and R-113 do not apply, and Q-stararcs-http
+  is moot.
+
+`docs/parity.md` lists each as dropped with this reason.
