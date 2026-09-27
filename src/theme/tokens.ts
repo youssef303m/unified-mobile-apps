@@ -65,6 +65,9 @@ export const motion = {
   pressMs: 120,
   controlsFadeMs: 200,
   controlsAutoHideMs: 4000,
+  /** The players keep the TV's timeouts (player.md §3.3; docs/decisions.md D-067). */
+  vodControlsHideMs: 10_000,
+  liveBarHideMs: 7_500,
   shimmerLoopMs: 1200,
   toastMs: 4000,
 } as const;

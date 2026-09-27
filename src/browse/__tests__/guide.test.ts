@@ -6,8 +6,10 @@ import { parsePlaylist } from "@/api/ibo/playlists";
 import type { Playlist } from "@/api/ibo/types";
 import { memoryStore } from "@/api/store";
 import type { ContentSource } from "@/content/ContentSource";
-import { login } from "@/content/catalogue";
+import { CatalogueSession, login } from "@/content/catalogue";
+import { toggleHiddenCategory } from "@/content/rules/live";
 import type { CatalogueItem } from "@/content/types";
+import { openTestDb } from "@/db/testing/testDb";
 import { formatYmdHm, stalkerGuide, xtreamGuide, type GuideProgramme } from "@/utils/epgTime";
 
 import {
@@ -16,6 +18,8 @@ import {
   guideDays,
   loadCatchup,
   mobileGuideTap,
+  replayCategories,
+  replayChannels,
   startOfDay,
 } from "../guide";
 
@@ -216,5 +220,39 @@ describe("R-097 catch-up", () => {
       kind: "error",
       reason: "request_failed",
     });
+  });
+});
+
+describe("R-097 Replay lists", () => {
+  async function context(playlist: Playlist) {
+    const store = memoryStore();
+    const db = await openTestDb();
+    const { source } = await login(playlist, store);
+    const catalogue = new CatalogueSession(db, source, playlist);
+    await catalogue.ensureSection("live");
+    return { db, store, catalogue };
+  }
+
+  it("R-097: categories with archive channels (hidden ones left out); only those channels", async () => {
+    const ctx = await context(xtream);
+    const result = await replayCategories(ctx);
+    const ids = result.kind === "ok" ? result.categories.map((c) => c.category_id) : [];
+    expect(ids.length).toBeGreaterThan(0);
+    const first = ids[0] ?? "";
+    const channels = await replayChannels(ctx, first, "default");
+    expect(channels.length).toBeGreaterThan(0);
+    expect(channels.every((c) => c.tv_archive !== 0 && c.tv_archive_duration !== 0)).toBe(true);
+    toggleHiddenCategory(ctx.store, ctx.catalogue.playlistId, "live", first);
+    const after = await replayCategories(ctx);
+    expect(after.kind === "ok" && after.categories.some((c) => c.category_id === first)).toBe(
+      false,
+    );
+  });
+
+  it("R-097: no Replay for Stalker or M3U", async () => {
+    for (const playlist of [portal, m3u]) {
+      const ctx = await context(playlist);
+      expect((await replayCategories(ctx)).kind).toBe("none");
+    }
   });
 });

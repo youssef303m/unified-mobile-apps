@@ -4,6 +4,7 @@ import {
   BottomSheetBackdrop,
   BottomSheetFlatList,
   BottomSheetModal,
+  BottomSheetScrollView,
   BottomSheetView,
   type BottomSheetBackdropProps,
 } from "@gorhom/bottom-sheet";
@@ -67,6 +68,14 @@ function Title({ title }: { title?: string }) {
   );
 }
 
+export interface SheetProps extends BaseProps {
+  children: ReactNode;
+  /** Long content (the player's track and settings sheets): a fixed height that scrolls. */
+  scrollable?: boolean;
+  /** Centred at this width on wide (landscape) screens. */
+  maxWidth?: number;
+}
+
 export function Sheet({
   visible,
   presentKey,
@@ -74,31 +83,42 @@ export function Sheet({
   title,
   testID,
   children,
-}: BaseProps & { children: ReactNode }) {
+  scrollable = false,
+  maxWidth,
+}: SheetProps) {
   const ref = useModal(visible, presentKey);
-  const { height } = useWindowDimensions();
+  const { width, height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
+  const side = maxWidth && width > maxWidth ? (width - maxWidth) / 2 : 0;
+  const body = (
+    <View style={[styles.body, { paddingBottom: insets.bottom + spacing.lg }]}>
+      <Title title={title} />
+      {children}
+    </View>
+  );
   return (
     <BottomSheetModal
       ref={ref}
       onDismiss={onClose}
-      enableDynamicSizing
+      enableDynamicSizing={!scrollable}
+      snapPoints={scrollable ? SCROLL_SNAP : undefined}
       maxDynamicContentSize={height * MAX_HEIGHT}
       backdropComponent={Backdrop}
       backgroundStyle={styles.background}
       handleIndicatorStyle={styles.handle}
-      style={styles.shadow}
+      style={[styles.shadow, side > 0 && { marginHorizontal: side }]}
     >
-      {/* Dynamic sizing measures BottomSheetView: padding on it keeps the sheet from showing. */}
-      <BottomSheetView testID={testID}>
-        <View style={[styles.body, { paddingBottom: insets.bottom + spacing.lg }]}>
-          <Title title={title} />
-          {children}
-        </View>
-      </BottomSheetView>
+      {scrollable ? (
+        <BottomSheetScrollView testID={testID}>{body}</BottomSheetScrollView>
+      ) : (
+        // Dynamic sizing measures BottomSheetView: padding on it keeps the sheet from showing.
+        <BottomSheetView testID={testID}>{body}</BottomSheetView>
+      )}
     </BottomSheetModal>
   );
 }
+
+const SCROLL_SNAP = ["90%"];
 
 export interface ListSheetProps<T> extends BaseProps {
   data: readonly T[];

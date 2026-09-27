@@ -30,7 +30,7 @@ import { useTabBack } from "@/hooks/useTabBack";
 import { useSession } from "@/session/store";
 import { kvStore } from "@/storage/kv";
 import { artwork, colors, layout, spacing } from "@/theme/tokens";
-import { openItem, play } from "@/utils/content";
+import { openItem, playItem } from "@/utils/content";
 import { genreList } from "@/utils/format";
 import { playlistTitle } from "@/utils/playlists";
 
@@ -188,7 +188,7 @@ function Hero({ item }: { item: CatalogueItem }) {
       genres={genres}
       inMyList={inMyList}
       onToggleMyList={() => toggle(item, false)}
-      onPlay={() => play(item)}
+      onPlay={() => void playItem(item)}
       onInfo={() => openItem(item)}
       testID="home-hero"
     />

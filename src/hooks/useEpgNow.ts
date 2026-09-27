@@ -13,6 +13,8 @@ const EPG_STALE_MS = 10 * 60_000;
 export interface NowPlaying {
   current?: EpgProgramme;
   next?: EpgProgramme;
+  /** Up to 4 programmes that have not ended (the live player's EPG ‹ ›). */
+  programmes: EpgProgramme[];
   /** 0-100. */
   progress: number;
 }
@@ -27,6 +29,6 @@ export function useEpgNow(channel: CatalogueItem | undefined): NowPlaying | unde
     queryFn: ({ signal }) => need(ctx).catalogue.source.epg(need(channel), signal),
   });
   if (!query.data) return undefined;
-  const { current, next } = getNextProgrammes(query.data);
-  return { current, next, progress: current ? programmeProgress(current) : 0 };
+  const { current, next, programmes } = getNextProgrammes(query.data);
+  return { current, next, programmes, progress: current ? programmeProgress(current) : 0 };
 }

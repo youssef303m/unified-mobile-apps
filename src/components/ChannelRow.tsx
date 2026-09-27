@@ -17,8 +17,9 @@ export interface ChannelRowProps {
   number?: number;
   logo?: string;
   now?: { title: string; times: string; progress: number };
-  favourite: boolean;
-  onToggleFavourite: () => void;
+  /** Without a handler the heart is hidden (Replay). */
+  favourite?: boolean;
+  onToggleFavourite?: () => void;
   onPress: () => void;
   onLongPress?: () => void;
   playing?: boolean;
@@ -30,7 +31,7 @@ export function ChannelRow({
   number,
   logo,
   now,
-  favourite,
+  favourite = false,
   onToggleFavourite,
   onPress,
   onLongPress,
@@ -68,14 +69,16 @@ export function ChannelRow({
           </>
         ) : null}
       </View>
-      <IconButton
-        icon={Heart}
-        label={favourite ? t("remove_favorites") : t("add_to_favorite")}
-        onPress={onToggleFavourite}
-        filled={favourite}
-        color={favourite ? colors.brand.light : colors.text.secondary}
-        testID={testID ? `${testID}-favourite` : undefined}
-      />
+      {onToggleFavourite ? (
+        <IconButton
+          icon={Heart}
+          label={favourite ? t("remove_favorites") : t("add_to_favorite")}
+          onPress={onToggleFavourite}
+          filled={favourite}
+          color={favourite ? colors.brand.light : colors.text.secondary}
+          testID={testID ? `${testID}-favourite` : undefined}
+        />
+      ) : null}
     </Pressable>
   );
 }

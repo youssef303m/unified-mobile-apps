@@ -14,7 +14,7 @@ import { useArtwork, useSeriesDetails } from "@/hooks/useDetails";
 import { useIsFavourite, useToggleFavourite } from "@/hooks/useFavourite";
 import { DetailsLayout } from "@/screens/DetailsLayout";
 import { colors, layout, spacing } from "@/theme/tokens";
-import { play } from "@/utils/content";
+import { playEpisode } from "@/utils/content";
 import { durationParts } from "@/utils/format";
 
 // Series details (03-design/screens.md, user-flows.md §8 Mobile): the details header, Play or
@@ -73,7 +73,16 @@ export default function SeriesDetailsScreen() {
       cast={[]}
       play={{
         label: playLabel,
-        onPress: () => play(found),
+        // R-076: the last watched episode at its position, or S1E1.
+        onPress: () => {
+          if (!target) return;
+          const episodes = target.season.episodes;
+          playEpisode(found, episodes, episodes.indexOf(target.episode), {
+            isAdult,
+            start: target.resume ? target.resume.position : 0,
+            tmdbId: ok?.info.tmdbId,
+          });
+        },
         progress: target?.resume ? target.resume.percent / 100 : undefined,
       }}
       favourite={{ value: favourite, onToggle: () => toggle(found, isAdult) }}
@@ -102,7 +111,7 @@ export default function SeriesDetailsScreen() {
           {season.episodes.length === 0 ? (
             <EmptyState icon={Clapperboard} title={t("msg_no_episodes_available")} />
           ) : (
-            season.episodes.map((episode) => {
+            season.episodes.map((episode, index) => {
               const d = durationParts(episode.durationSecs);
               return (
                 <EpisodeRow
@@ -113,7 +122,13 @@ export default function SeriesDetailsScreen() {
                   synopsis={episode.plot}
                   image={episode.image || found.icon}
                   progress={(resumes[episode.id]?.percent ?? 0) / 100}
-                  onPress={() => play(found)}
+                  onPress={() =>
+                    playEpisode(found, season.episodes, index, {
+                      isAdult,
+                      start: "ask",
+                      tmdbId: ok?.info.tmdbId,
+                    })
+                  }
                   testID={`episode-${episode.id}`}
                 />
               );

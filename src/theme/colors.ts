@@ -39,6 +39,12 @@ export const colors = {
     track: "rgba(255,255,255,0.3)",
   },
   shadow: "rgba(0,0,0,0.5)",
+  /** The player's dim layers: the controls scrim and the floating panels. */
+  overlay: {
+    scrim: "rgba(0,0,0,0.45)",
+    panel: "rgba(20,20,20,0.92)",
+    video: "#000000",
+  },
 } as const;
 
 // Scrim gradients (angle in degrees, CSS convention).

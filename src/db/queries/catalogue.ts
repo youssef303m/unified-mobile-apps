@@ -332,3 +332,48 @@ export async function categoryCount(
   );
   return row?.n ?? 0;
 }
+
+/** R-097: SQL form of `hasArchive` (tv_archive ≠ 0 and tv_archive_duration ≠ 0). */
+const HAS_ARCHIVE = "i.tv_archive <> 0 AND i.tv_archive_duration <> 0";
+
+/** R-097: live categories that hold at least one channel with an archive, in provider order. */
+export async function archiveCategories(db: Db, playlistId: string): Promise<CategoryRow[]> {
+  const rows = await db.all<{
+    category_id: string;
+    name: string;
+    parent_id: string;
+    is_adult: number;
+    item_count: number;
+  }>(
+    `SELECT c.category_id, c.name, c.parent_id, c.is_adult,
+            (SELECT COUNT(*) FROM items i WHERE i.playlist_id = c.playlist_id AND i.kind = 'live'
+               AND i.category_id = c.category_id AND ${HAS_ARCHIVE}) AS item_count
+       FROM categories c WHERE c.playlist_id = ? AND c.kind = 'live' ORDER BY c.position`,
+    [playlistId],
+  );
+  return rows
+    .filter((r) => r.item_count > 0)
+    .map((r) => ({
+      category_id: r.category_id,
+      category_name: r.name,
+      parent_id: r.parent_id,
+      is_adult: r.is_adult === 1,
+      item_count: r.item_count,
+    }));
+}
+
+/** R-097: the channels of a category that have an archive, in the Replay sort (`live_sort`). */
+export async function archiveChannels(
+  db: Db,
+  playlistId: string,
+  categoryId: string,
+  sort: SortKey = "default",
+): Promise<CatalogueItem[]> {
+  const rows = await db.all<ItemRow>(
+    `SELECT ${ITEM_COLUMNS} FROM items i
+      WHERE i.playlist_id = ? AND i.kind = 'live' AND i.category_id = ? AND ${HAS_ARCHIVE}
+      ORDER BY ${orderBy(sort)}`,
+    [playlistId, categoryId],
+  );
+  return rows.map(toItem);
+}

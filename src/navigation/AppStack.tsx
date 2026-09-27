@@ -4,6 +4,8 @@ import { Stack } from "expo-router";
 import { accountOk, contentReady, useSession } from "@/session/store";
 import { colors } from "@/theme/tokens";
 
+import { useRouteOrientation } from "./useRouteOrientation";
+
 /**
  * The root stack. R-006: without a valid account nothing but the boot screens is reachable; the
  * tabs also need a loaded playlist. A blocked route falls back to the splash, which boots again.
@@ -11,6 +13,7 @@ import { colors } from "@/theme/tokens";
 export function AppStack() {
   const canUseAccount = useSession(accountOk);
   const canBrowse = useSession(contentReady);
+  useRouteOrientation();
   return (
     <Stack screenOptions={{ headerShown: false, contentStyle: styles.root }}>
       <Stack.Screen name="index" />
@@ -24,6 +27,10 @@ export function AppStack() {
         <Stack.Screen name="series/[id]" />
         <Stack.Screen name="category" />
         <Stack.Screen name="search" options={{ animation: "fade" }} />
+        <Stack.Screen name="player" options={{ animation: "fade", gestureEnabled: false }} />
+        <Stack.Screen name="channel/[id]" options={{ animation: "fade", gestureEnabled: false }} />
+        <Stack.Screen name="guide" />
+        <Stack.Screen name="replay" />
       </Stack.Protected>
       <Stack.Protected guard={canUseAccount}>
         <Stack.Screen name="account" />

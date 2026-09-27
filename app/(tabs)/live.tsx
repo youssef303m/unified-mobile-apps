@@ -1,28 +1,26 @@
 import { useMemo, useState } from "react";
-import { RefreshControl, StyleSheet, View, useWindowDimensions } from "react-native";
+import { RefreshControl, StyleSheet, View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { FlashList } from "@shopify/flash-list";
-import { Lock, Tv } from "lucide-react-native";
+import { CalendarDays, Lock, Rewind, Tv } from "lucide-react-native";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 
-import { recordChannelView } from "@/browse/library";
 import { initialLiveSelection } from "@/browse/live";
 import type { Row } from "@/browse/rows";
-import { AppText } from "@/components/AppText";
-import { Artwork } from "@/components/Artwork";
 import { CategoryChips, type Chip } from "@/components/CategoryChips";
 import { ChannelRow } from "@/components/ChannelRow";
 import { EmptyState } from "@/components/EmptyState";
+import { IconButton } from "@/components/IconButton";
 import { ListRow } from "@/components/ListRow";
 import { openQuickActions } from "@/components/QuickActionsSheet";
 import { SectionLoader } from "@/components/SectionLoader";
 import { ListSheet } from "@/components/Sheet";
 import { TopBar } from "@/components/TopBar";
-import { channelTapAction } from "@/content/rules/live";
+import { channelTapAction, replayAvailability } from "@/content/rules/live";
 import type { CatalogueItem } from "@/content/types";
-import { browseKey, need, refreshBrowse } from "@/hooks/queryClient";
-import { browseContext, useBrowse } from "@/hooks/useBrowse";
+import { browseKey, need } from "@/hooks/queryClient";
+import { useBrowse } from "@/hooks/useBrowse";
 import { useCategoryFlags, useFeed, useTabRows } from "@/hooks/useBrowseQueries";
 import { useEpgNow } from "@/hooks/useEpgNow";
 import { useIsFavourite, useToggleFavourite } from "@/hooks/useFavourite";
@@ -30,11 +28,12 @@ import { unlockCategory } from "@/hooks/useParental";
 import { cancelSection, loadSection, refreshCatalogue, useSection } from "@/hooks/useSection";
 import { useTabBack } from "@/hooks/useTabBack";
 import { rowTitle } from "@/i18n/rowTitles";
+import { MiniPlayer } from "@/player/MiniPlayer";
 import { sectionErrorKey } from "@/i18n/sectionErrors";
 import { kvStore } from "@/storage/kv";
 import { readSettings } from "@/storage/settings";
-import { artwork, colors, layout, radius, spacing } from "@/theme/tokens";
-import { play } from "@/utils/content";
+import { colors, layout, spacing } from "@/theme/tokens";
+import { openGuide, playChannel } from "@/utils/content";
 import { epgClock } from "@/utils/epgTime";
 
 function Channel({
@@ -73,32 +72,6 @@ function Channel({
       playing={playing}
       testID={`channel-${item.item_id}`}
     />
-  );
-}
-
-/** The sticky preview (screens.md Live): the player arrives in M5, so it shows the channel. */
-function Preview({ item }: { item: CatalogueItem }) {
-  const { t } = useTranslation();
-  const { width } = useWindowDimensions();
-  const now = useEpgNow(item);
-  return (
-    <View
-      style={[styles.preview, { height: width / artwork.liveNowCard.aspect }]}
-      testID="live-preview"
-    >
-      <Artwork uri={item.icon} style={styles.previewLogo} contentFit="contain" />
-      <AppText variant="bodyStrong" numberOfLines={1}>
-        {item.name}
-      </AppText>
-      {now?.current ? (
-        <AppText variant="meta" color="secondary" numberOfLines={1}>
-          {now.current.title}
-        </AppText>
-      ) : null}
-      <AppText variant="caption" color="tertiary">
-        {t("mobile_playback_soon")}
-      </AppText>
-    </View>
   );
 }
 
@@ -144,6 +117,12 @@ export default function LiveScreen() {
   const selectedItem = feed.items.find((i) => i.item_id === selectedId);
 
   const isAdultCategory = (id: string) => flags.get(id)?.isAdult ?? false;
+  const adultCategories = useMemo(
+    () => [...flags].filter(([, f]) => f.isAdult).map(([id]) => id),
+    [flags],
+  );
+  const fullscreen = (item: CatalogueItem) =>
+    playChannel(feed.items, Math.max(0, feed.items.indexOf(item)), adultCategories);
 
   const chooseRow = async (next: Row) => {
     if (next.type === "category" && !(await unlockCategory(next.isAdult))) return;
@@ -151,13 +130,10 @@ export default function LiveScreen() {
     setSelected(undefined);
   };
 
+  // R-072: the channel is added to Recently Viewed once it plays (MiniPlayer, live player).
   const tapChannel = (item: CatalogueItem) => {
-    if (channelTapAction(selectedId, item.item_id) === "fullscreen") return play(item);
+    if (channelTapAction(selectedId, item.item_id) === "fullscreen") return fullscreen(item);
     setSelected({ id: item.item_id, key: linkKey });
-    // R-072 / R-063: the preview adds a (non-adult) channel to Recently Viewed.
-    const current = browseContext();
-    if (current && recordChannelView(current, item, isAdultCategory(item.category_id)))
-      refreshBrowse(current.catalogue.playlistId);
   };
 
   const chips: Chip[] = [
@@ -217,7 +193,13 @@ export default function LiveScreen() {
           }}
           testID="live-chips"
         />
-        {selectedItem ? <Preview item={selectedItem} /> : null}
+        {selectedItem ? (
+          <MiniPlayer
+            channel={selectedItem}
+            isAdult={isAdultCategory(selectedItem.category_id)}
+            onFullscreen={() => fullscreen(selectedItem)}
+          />
+        ) : null}
         {feed.isSuccess && feed.items.length === 0 ? (
           <EmptyState
             icon={Tv}
@@ -264,6 +246,34 @@ export default function LiveScreen() {
         title={t("live_tv")}
         onSearch={() => router.push({ pathname: "/search", params: { scope: "live" } })}
         onAccount={() => router.push("/account")}
+        extra={
+          ready ? (
+            <>
+              {ctx?.catalogue.source.capabilities.epg ? (
+                <IconButton
+                  icon={CalendarDays}
+                  label={t("epg")}
+                  onPress={() =>
+                    openGuide(
+                      row ? rowTitle(t, "live", row) : t("live_tv"),
+                      feed.items,
+                      adultCategories,
+                    )
+                  }
+                  testID="live-guide-button"
+                />
+              ) : null}
+              {ctx && replayAvailability(ctx.catalogue.source.type) === "available" ? (
+                <IconButton
+                  icon={Rewind}
+                  label={t("replay")}
+                  onPress={() => router.push("/replay")}
+                  testID="live-replay-button"
+                />
+              ) : null}
+            </>
+          ) : undefined
+        }
       />
       {body}
       <ListSheet
@@ -296,15 +306,4 @@ export default function LiveScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.bg.base },
-  preview: {
-    marginHorizontal: layout.gutter,
-    marginBottom: spacing.sm,
-    borderRadius: radius.card,
-    backgroundColor: colors.surface[1],
-    alignItems: "center",
-    justifyContent: "center",
-    gap: spacing.xs,
-    padding: spacing.md,
-  },
-  previewLogo: { width: "30%", height: "45%", backgroundColor: "transparent" },
 });

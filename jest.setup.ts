@@ -36,3 +36,53 @@ jest.mock("@shopify/flash-list/dist/recyclerview/utils/measureLayout", () => {
     measureItemLayout: jest.fn(box(100, 100)),
   };
 });
+
+// The player's native modules (M5). The video renders a View that keeps its props, so tests can
+// fire its events (onLoad, onProgress, onEnd...) and read what it was given.
+jest.mock("react-native-video", () => {
+  const React = jest.requireActual<typeof import("react")>("react");
+  const { View } = jest.requireActual<typeof import("react-native")>("react-native");
+  const methods = {
+    seek: jest.fn(),
+    getCurrentPosition: jest.fn(async () => 0),
+    enterPictureInPicture: jest.fn(),
+    pause: jest.fn(),
+    resume: jest.fn(),
+  };
+  const Video = React.forwardRef(function Video(props: Record<string, unknown>, ref) {
+    React.useImperativeHandle(ref, () => methods);
+    return React.createElement(View, props);
+  });
+  return {
+    __esModule: true,
+    default: Video,
+    videoMethods: methods,
+    SelectedTrackType: {
+      SYSTEM: "system",
+      DISABLED: "disabled",
+      TITLE: "title",
+      LANGUAGE: "language",
+      INDEX: "index",
+    },
+  };
+});
+jest.mock("expo-screen-orientation", () => ({
+  lockAsync: jest.fn(async () => undefined),
+  unlockAsync: jest.fn(async () => undefined),
+  OrientationLock: { DEFAULT: 0, PORTRAIT_UP: 3, LANDSCAPE: 5 },
+}));
+jest.mock("expo-brightness", () => ({
+  getBrightnessAsync: jest.fn(async () => 0.5),
+  setBrightnessAsync: jest.fn(async () => undefined),
+}));
+jest.mock("expo-keep-awake", () => ({
+  activateKeepAwakeAsync: jest.fn(async () => undefined),
+  deactivateKeepAwake: jest.fn(async () => undefined),
+}));
+jest.mock("expo-navigation-bar", () => ({ NavigationBar: () => null }));
+jest.mock("react-native-volume-manager", () => ({
+  VolumeManager: {
+    getVolume: jest.fn(async () => ({ volume: 0.5 })),
+    setVolume: jest.fn(async () => undefined),
+  },
+}));

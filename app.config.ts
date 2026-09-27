@@ -43,6 +43,24 @@ const config: ExpoConfig = {
       },
     ],
     [
+      "react-native-video",
+      {
+        // N-05 Picture-in-Picture and N-06 background audio with media notification controls.
+        enableAndroidPictureInPicture: true,
+        enableNotificationControls: true,
+        enableBackgroundAudio: true,
+        // HLS and DASH (player.md §2.6); no Smooth Streaming or RTSP (IPTV does not use them).
+        androidExtensions: {
+          useExoplayerHls: true,
+          useExoplayerDash: true,
+          useExoplayerSmoothStreaming: false,
+          useExoplayerRtsp: false,
+        },
+      },
+    ],
+    // Quick start on raw MPEG-TS live streams (player.md §2.6; docs/decisions.md D-066).
+    "./plugins/withTsExtractorFlags",
+    [
       "expo-build-properties",
       {
         android: {

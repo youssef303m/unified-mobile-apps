@@ -6,14 +6,18 @@
 // could not be loaded" when none of them answered at all).
 import { CancelledError, ParseError } from "@/api/errors";
 import type { ContentSource } from "@/content/ContentSource";
-import { GUIDE, guideGivesUp } from "@/content/rules/live";
+import { GUIDE, guideGivesUp, hiddenCategories, replayAvailability } from "@/content/rules/live";
 import type { CatalogueItem } from "@/content/types";
+import { archiveCategories, archiveChannels, type CategoryRow } from "@/db/queries/catalogue";
+import type { SortKey } from "@/storage/settings";
 import {
   groupFinishedByDay,
   type CatchupDay,
   type EpgProgramme,
   type GuideProgramme,
 } from "@/utils/epgTime";
+
+import type { BrowseContext } from "./context";
 
 export type GuideRow =
   { status: "loading" } | { status: "done"; programmes: GuideProgramme[] } | { status: "error" };
@@ -199,4 +203,30 @@ export async function loadCatchup(
   }
   const days = groupFinishedByDay(programmes, now);
   return days.length > 0 ? { kind: "ok", days } : { kind: "empty" };
+}
+
+/**
+ * R-097 Replay: the live categories (hidden ones left out) that hold channels with an archive.
+ * "none" when the source has no Replay (Stalker is blocked, M3U has none) or nothing is left.
+ */
+export async function replayCategories(
+  ctx: BrowseContext,
+): Promise<{ kind: "ok"; categories: CategoryRow[] } | { kind: "none" }> {
+  const source = ctx.catalogue.source;
+  if (replayAvailability(source.type) !== "available") return { kind: "none" };
+  const pid = ctx.catalogue.playlistId;
+  const hidden = new Set(hiddenCategories(ctx.store, pid, "live"));
+  const categories = (await archiveCategories(ctx.db, pid)).filter(
+    (c) => !hidden.has(c.category_id),
+  );
+  return categories.length > 0 ? { kind: "ok", categories } : { kind: "none" };
+}
+
+/** R-097 / R-090: a category's channels with an archive, in the `live_sort` order. */
+export function replayChannels(
+  ctx: BrowseContext,
+  categoryId: string,
+  sort: SortKey,
+): Promise<CatalogueItem[]> {
+  return archiveChannels(ctx.db, ctx.catalogue.playlistId, categoryId, sort);
 }

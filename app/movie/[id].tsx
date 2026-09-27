@@ -12,7 +12,7 @@ import { useArtwork, useMovieDetails } from "@/hooks/useDetails";
 import { useIsFavourite, useToggleFavourite } from "@/hooks/useFavourite";
 import { DetailsLayout } from "@/screens/DetailsLayout";
 import { artwork, colors, spacing } from "@/theme/tokens";
-import { openItem, play } from "@/utils/content";
+import { openItem, playMovie } from "@/utils/content";
 import { formatClock } from "@/utils/format";
 
 function MoreLikeThis({ item, isAdult }: { item: CatalogueItem; isAdult: boolean }) {
@@ -72,11 +72,12 @@ export default function MovieDetailsScreen() {
         resume
           ? {
               label: t("mobile_resume_at", { time: formatClock(resume.position) }),
-              onPress: () => play(found),
+              // Resume starts at the saved position (the button already says where).
+              onPress: () => playMovie(found, isAdult, resume.position),
               progress: resume.percent / 100,
               caption: t("mobile_watched_percent", { percent: resume.percent }),
             }
-          : { label: t("mobile_play"), onPress: () => play(found) }
+          : { label: t("mobile_play"), onPress: () => playMovie(found, isAdult, 0) }
       }
       favourite={{ value: favourite, onToggle: () => toggle(found, isAdult) }}
     >
