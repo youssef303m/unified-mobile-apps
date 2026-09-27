@@ -2,20 +2,20 @@
 
 A new session must be able to continue from this file alone. Read `AGENTS.md` first.
 
-## Current milestone: M5 · Playback. Built; waiting for the M5 development build
+## Current milestone: M5 · Playback. Done; waiting for the owner's review
 
-| M5 item (04-build/roadmap.md)                                                                  | Status                                                                                                                    |
-| ---------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| VOD player: controls, gestures (N-04), tracks, external subtitles, resume, next episode (N-07) | done (`src/player/PlayerScreen.tsx`, `src/player/controls/`, `app/player.tsx`); trailers open YouTube (D-063)             |
-| Live player: zapping, the channels panel, EPG info, catch-up; the EPG guide screen             | done (`src/player/LivePlayerScreen.tsx`, `app/channel/[id].tsx`, `app/guide.tsx`, `app/replay.tsx`, Live tab mini player) |
-| PiP (N-05) and background audio (N-06)                                                         | done (react-native-video config plugin; the player settings sheet); to check on the phone                                 |
-| **Accept:** Maestro flows 2, 3 and 4; the HLS, MPEG-TS and MP4 checks on a device              | flows written (`e2e/flow-02…04`); **waiting for the M5 development build** to run them                                    |
+| M5 item (04-build/roadmap.md)                                                                  | Status                                                                                                                           |
+| ---------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| VOD player: controls, gestures (N-04), tracks, external subtitles, resume, next episode (N-07) | done (`src/player/PlayerScreen.tsx`, `src/player/controls/`, `app/player.tsx`); trailers open YouTube (D-063)                    |
+| Live player: zapping, the channels panel, EPG info, catch-up; the EPG guide screen             | done (`src/player/LivePlayerScreen.tsx`, `app/channel/[id].tsx`, `app/guide.tsx`, `app/replay.tsx`, Live tab mini player)        |
+| PiP (N-05) and background audio (N-06)                                                         | done (react-native-video config plugin; the player settings sheet); to check on the phone                                        |
+| **Accept:** Maestro flows 2, 3 and 4; the HLS, MPEG-TS and MP4 checks on a device              | **passing on the phone** (2026-09-27, M5 development build): flows 1–7 and 10; HLS, TS, MP4, live, PiP, background audio (D-073) |
 
 The services are platform-free in `src/player/` (stream plan, supervisor, seek, progress, SRT,
 ibosub lookup, tracks, queue, errors, aspect, live) and `src/browse/guide.ts` (guide loader,
 catch-up, Replay), all tested in the core Jest project. Decisions D-065 to D-072; new question
-Q-ffmpeg-audio. **The M4 development build cannot run this JavaScript** (no video module): the
-phone needs the M5 build first.
+Q-ffmpeg-audio. The phone run found and fixed six bugs (D-073). The M4 development build cannot
+run this JavaScript (no video module): the M5 build is installed on the owner's phone.
 
 ## Dev IBO backend (from the owner)
 
@@ -108,12 +108,7 @@ phone needs the M5 build first.
 
 ## Next
 
-- The owner builds and installs the M5 development build.
-- Then, on the phone: `maestro test e2e/` (flows 1 to 7 and 10), and the manual checks: HLS (a
-  movie), MPEG-TS (fixture channel 2, 10001), MP4 (a movie with an .mp4 extension), PiP from the
-  player and on Home, background audio with the screen off, rotation, and the error state
-  (fixture channel 3, 10002).
-- Then the M5 report and the owner's go-ahead for M6.
+- The owner's review of M5 and the go-ahead for M6 · Settings and the rest of parity.
 
 ## How to verify
 
