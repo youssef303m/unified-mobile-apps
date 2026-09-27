@@ -171,7 +171,13 @@ export function panelClient(): PanelClient {
  * playlist at all, the Playlists screen shows its empty state.
  */
 export async function loadActivePlaylist(
-  options: { playlistId?: string; signal?: AbortSignal; onStep?: (step: LoadStep) => void } = {},
+  options: {
+    playlistId?: string;
+    signal?: AbortSignal;
+    onStep?: (step: LoadStep) => void;
+    /** R-021: Auto Switch loaded this playlist instead of the requested one. */
+    onAutoSwitch?: (playlist: Playlist) => void;
+  } = {},
 ): Promise<AfterLoad> {
   const { playlists } = session.get();
   const requested = options.playlistId
@@ -194,6 +200,7 @@ export async function loadActivePlaylist(
     session.set({ failure: outcome.failure });
     return outcome.failure.screen;
   }
+  if (outcome.switched) options.onAutoSwitch?.(outcome.playlist);
   session.set({
     active: { playlist: outcome.playlist, catalogue: outcome.session, provider: outcome.provider },
     failure: undefined,

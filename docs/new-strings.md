@@ -1,11 +1,9 @@
 # New strings
 
-Keys added to `src/i18n/locales/en.json` for the phone app (05-reference/translations.md).
-
-**Arabic:** every key below, and the 60 TV keys the TV's Arabic file lacks, has a draft Arabic
-translation in `src/i18n/phone/ar.json` (owner's decision, D-077). The drafts are machine
-translations: a native speaker should review them before release. The other 16 languages are not
-in the app (D-020); send this list for translation in one batch when they are added.
+The keys the phone app added to the TV's strings. Since D-077 the app owns its locale files:
+every key has its English and Arabic in `src/i18n/locales/`, and the tests keep both complete.
+The Arabic is a machine draft, to be reviewed by a native speaker before release. This list is
+the batch to send when another language is added (D-020).
 
 | Key                                | English                                                                                                                                   | Where                                                         | Milestone |
 | ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------- | --------- |
@@ -193,3 +191,4 @@ in the app (D-020); send this list for translation in one batch when they are ad
 development builds can no longer choose production (docs/decisions.md D-061).
 `mobile_playback_soon` (M4) was removed in M5: Play opens the player.
 `mobile_dev_language` (M0) was removed in M6: Settings → Change Language replaced the dev switch.
+The 194 TV keys the phone does not use were removed from both files in M6 (D-077).

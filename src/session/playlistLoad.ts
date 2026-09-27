@@ -38,7 +38,14 @@ export type ProviderAccount =
   | { type: "m3u" };
 
 export type LoadOutcome =
-  | { kind: "ready"; playlist: Playlist; session: CatalogueSession; provider: ProviderAccount }
+  | {
+      kind: "ready";
+      playlist: Playlist;
+      session: CatalogueSession;
+      provider: ProviderAccount;
+      /** R-021: set when Auto Switch moved on from the requested playlist to this one. */
+      switched?: boolean;
+    }
   | { kind: "failed"; failure: LoadFailure };
 
 export interface LoadDeps {
@@ -101,7 +108,10 @@ export async function loadPlaylist(
       lastError = "no_url"; // R-009
     } else {
       try {
-        return await loadOne(deps, target);
+        const ready = await loadOne(deps, target);
+        return ready.kind === "ready" && target.id !== first.id
+          ? { ...ready, switched: true }
+          : ready;
       } catch (error) {
         if (error instanceof CancelledError || aborted(deps.signal))
           return {

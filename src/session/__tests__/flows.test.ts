@@ -170,6 +170,10 @@ describe("loading a playlist", () => {
     const db = await openTestDb();
     const next = await loadPlaylist({ store, db }, down, [down, m3u]);
     expect(next.kind === "ready" && next.playlist.id).toBe(m3u.id);
+    // The "Switched to …" toast is shown for it.
+    expect(next.kind === "ready" && next.switched).toBe(true);
+    const direct = await loadPlaylist({ store, db }, m3u, [down, m3u]);
+    expect(direct.kind === "ready" && direct.switched).toBeUndefined();
     expect(store.get(globalKeys.playlistId)).toBe(m3u.id);
 
     const down2: Playlist = { ...down, id: "down2" };

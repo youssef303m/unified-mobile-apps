@@ -41,3 +41,7 @@ run. When adding a library, check whether it needs one.
 - `android/` and `ios/` are generated (Continuous Native Generation) and not committed. Configure
   native behaviour in `app.config.ts` and config plugins.
 - Colours, sizes and fonts come from `src/theme/`; strings from `src/i18n/locales/`.
+- The app owns its string files (docs/decisions.md D-077): every new string goes into `en.json`
+  and `ar.json` in the same change (Arabic plurals need all six forms), and unused keys are
+  removed. The locale tests enforce both. This replaces the kit's "English only, keep the TV
+  files as a copy" rule.
