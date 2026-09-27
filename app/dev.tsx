@@ -14,7 +14,7 @@ const ACCOUNTS: readonly string[] = ["active", "trial", "expired"];
 /**
  * Dev and preview builds: `iboplayer://dev?…` drives the fixtures from the Maestro flows
  * (04-build/testing.md §4). `network=` picks the network mode, `reset=1` forgets the app data,
- * `account=` / `demo=1` / `agentsDown=1` / `big=1` set the fixture scenario, `lang=` the language. With `reset` or `network` the
+ * `account=` / `demo=1` / `agentsDown=1` / `big=1` / `expiresIn=<days>` (the Xtream account) set the fixture scenario, `lang=` the language. With `reset` or `network` the
  * app boots again; otherwise it returns to the screen it was on. Production builds ignore it.
  */
 export default function DevLinkScreen() {
@@ -25,6 +25,7 @@ export default function DevLinkScreen() {
     demo?: string;
     agentsDown?: string;
     big?: string;
+    expiresIn?: string;
     lang?: string;
   }>();
 
@@ -46,6 +47,9 @@ export default function DevLinkScreen() {
         ...(params.demo !== undefined ? { demoOnly: params.demo === "1" } : {}),
         ...(params.agentsDown !== undefined ? { agentsDown: params.agentsDown === "1" } : {}),
         ...(params.big !== undefined ? { bigPlaylist: params.big === "1" } : {}),
+        ...(params.expiresIn !== undefined && Number.isFinite(Number(params.expiresIn))
+          ? { xtreamExpiresInDays: Number(params.expiresIn) }
+          : {}),
       });
     }
     // `lang=en|ar`: the flows check English text; switching direction reloads the app.

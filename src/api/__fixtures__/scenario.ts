@@ -23,6 +23,8 @@ export interface Scenario {
   stalkerTokenExpires: boolean;
   /** The Stalker portal answers 405 to GET content calls (→ POST). */
   stalkerPostOnly: boolean;
+  /** The Xtream account expires in this many days (R-114); default 30. */
+  xtreamExpiresInDays: number;
 }
 
 const defaults: Scenario = {
@@ -36,6 +38,7 @@ const defaults: Scenario = {
   bigPlaylist: false,
   stalkerTokenExpires: false,
   stalkerPostOnly: false,
+  xtreamExpiresInDays: 30,
 };
 
 export const scenario: Scenario = { ...defaults, panelsDown: [] };

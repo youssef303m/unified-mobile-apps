@@ -39,6 +39,13 @@ import {
 import { ParentalControl } from "../parental";
 import { CategoryFeed, rowPreview, tabRows } from "../rows";
 import { isSearchable, searchContent } from "../search";
+import {
+  clearWatchListOf,
+  expirySheetDue,
+  hideableRows,
+  providerExpiryNotice,
+  setRowHidden,
+} from "../settings";
 
 const [xtream, , portal] = fixturePlaylists.map(parsePlaylist) as [Playlist, Playlist, Playlist];
 const HOME = { homeFavorites: true, sorts: { movie: "added", series: "added" } } as const;
@@ -406,5 +413,62 @@ describe("parental control", () => {
     expect(await parental.setPin("4321", "4321")).toEqual({ saved: "saved_on_device_only" });
     expect(store.get(globalKeys.parentPin)).toBe("4321");
     expect(sent).toEqual(["4321"]);
+  });
+});
+
+describe("Settings", () => {
+  it("Hide Categories lists every row but Search All, and hiding one removes it from the tab", async () => {
+    const ctx = await context();
+    const rows = await hideableRows(ctx, "movie");
+    const ids = rows.map((r) => r.row.id);
+    expect(ids).not.toContain("all");
+    expect(ids.slice(0, 4)).toEqual(["recent", "favourite", "top_rated", "newly_added"]);
+    const category = defined(rows.find((r) => r.row.type === "category"));
+    expect(category.hidden).toBe(false);
+
+    expect(setRowHidden(ctx, "movie", category.row.id)).toBe(true);
+    expect(
+      (await hideableRows(ctx, "movie")).find((r) => r.row.id === category.row.id)?.hidden,
+    ).toBe(true);
+    expect((await tabRows(ctx, "movie")).map((r) => r.id)).not.toContain(category.row.id);
+
+    expect(setRowHidden(ctx, "movie", category.row.id)).toBe(false);
+    expect((await tabRows(ctx, "movie")).map((r) => r.id)).toContain(category.row.id);
+  });
+
+  it("Hide Categories is empty for a section that was never loaded", async () => {
+    const db = await openTestDb();
+    const store = memoryStore();
+    const { source } = await login(xtream, store);
+    const ctx = { db, store, catalogue: new CatalogueSession(db, source, xtream) };
+    expect(await hideableRows(ctx, "series")).toEqual([]);
+  });
+
+  it("R-077 Clear Watch Lists empties one kind of Continue Watching", async () => {
+    const ctx = await context();
+    const pid = ctx.catalogue.playlistId;
+    saveMovieProgress(ctx.store, pid, "m1", 600, 3600, false);
+    const episode = { id: "e1", seasonNumber: 1, episodeNumber: 1 };
+    saveEpisodeProgress(ctx.store, pid, "s1", episode, 600, 3600, false);
+    clearWatchListOf(ctx, "movie");
+    expect(ctx.store.get(playlistKeys(pid).savedVodTimes)).toBeUndefined();
+    expect(ctx.store.get(playlistKeys(pid).savedSeriesTimes)).toBeDefined();
+  });
+
+  it("R-114 the expiry notice is for Xtream accounts, and the sheet opens once per launch", () => {
+    const now = new Date(2026, 8, 27, 12);
+    const inDays = (d: number) => Math.floor(new Date(2026, 8, 27 + d, 10).getTime() / 1000);
+    const xtreamAccount = (expUnix: number | null) =>
+      ({ type: "xtream", username: "u", account: { expUnix, expireDate: null } }) as never;
+    expect(providerExpiryNotice(xtreamAccount(inDays(3)), now)).toEqual({ kind: "days", days: 3 });
+    expect(providerExpiryNotice(xtreamAccount(inDays(0)), now)).toEqual({ kind: "hours" });
+    expect(providerExpiryNotice(xtreamAccount(inDays(9)), now)).toBeUndefined();
+    expect(providerExpiryNotice(xtreamAccount(null), now)).toBeUndefined();
+    expect(providerExpiryNotice({ type: "m3u" }, now)).toBeUndefined();
+
+    const shown = new Set<string>();
+    expect(expirySheetDue(shown, "p1")).toBe(true);
+    expect(expirySheetDue(shown, "p1")).toBe(false);
+    expect(expirySheetDue(shown, "p2")).toBe(true);
   });
 });

@@ -24,6 +24,7 @@ import { globalKeys } from "@/storage/keys";
 
 import { CatalogueSession, login } from "../catalogue";
 import { M3uSource } from "../M3uSource";
+import { forgetAllPlaylists } from "../sync";
 
 const [xtream, m3u, stalker] = fixturePlaylists.map(parsePlaylist) as [
   Playlist,
@@ -221,5 +222,19 @@ describe("refresh (R-052 / N-09)", () => {
     expect((await syncState(db, s.playlistId, "live"))?.synced_at).toBeGreaterThanOrEqual(
       before ?? 0,
     );
+  });
+});
+
+describe("R-120 Clear Cache", () => {
+  it("forgets the cached catalogue of every playlist", async () => {
+    const db = await openTestDb();
+    const a = (await session(xtream, db)).session;
+    const b = (await session(m3u, db)).session;
+    await a.ensureSection("live");
+    await b.ensureSection("live");
+    await forgetAllPlaylists(db);
+    expect(await categories(db, a.playlistId, "live")).toEqual([]);
+    expect(await categories(db, b.playlistId, "live")).toEqual([]);
+    expect(await syncState(db, a.playlistId, "live")).toBeUndefined();
   });
 });

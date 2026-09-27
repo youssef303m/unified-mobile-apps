@@ -8,6 +8,8 @@ export interface TrackInfo {
   title?: string;
   language?: string;
   selected?: boolean;
+  /** The MIME type (react-native-video's `type`). */
+  type?: string | null;
 }
 
 export interface TrackOption {
@@ -41,4 +43,27 @@ export function audioPickerState(
 ): "not_loaded" | "none" | "ok" {
   if (!loaded) return "not_loaded";
   return tracks.length === 0 ? "none" : "ok";
+}
+
+/** Formats phones often cannot decode without a licensed decoder (no FFmpeg in v1, D-070). */
+const LICENSED_AUDIO = new Set([
+  "audio/ac3",
+  "audio/eac3",
+  "audio/eac3-joc",
+  "audio/ac4",
+  "audio/true-hd",
+  "audio/vnd.dts",
+  "audio/vnd.dts.hd",
+  "audio/vnd.dts.uhd",
+]);
+
+/**
+ * Q-ffmpeg-audio: the video has audio, but the player selected none of it and every track is a
+ * Dolby or DTS format, so this phone has no decoder for it and plays the picture in silence.
+ */
+export function audioUnplayable(tracks: readonly TrackInfo[]): boolean {
+  return (
+    tracks.length > 0 &&
+    tracks.every((t) => !t.selected && LICENSED_AUDIO.has((t.type ?? "").toLowerCase()))
+  );
 }

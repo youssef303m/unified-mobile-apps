@@ -2,6 +2,7 @@
 // catalogue database and the network mode. The boot screens call these functions and navigate
 // by the route they return.
 import * as Application from "expo-application";
+import { Image } from "expo-image";
 
 import { webVerifyUrl } from "@/api/ibo/links";
 import { PanelClient } from "@/api/ibo/panel";
@@ -9,6 +10,7 @@ import { MANUAL_URL_KEY, panelUrlFromManualInput } from "@/api/ibo/servers";
 import type { Playlist } from "@/api/ibo/types";
 import { clearCache } from "@/content/rules/app";
 import { startupPlaylist } from "@/content/rules/playlists";
+import { forgetAllPlaylists } from "@/content/sync";
 import { acceptTerms, termsAccepted } from "@/content/rules/startup";
 import type { Db } from "@/db/database";
 import { openCatalogueDb } from "@/db/expoDb";
@@ -218,6 +220,22 @@ export function resetAppData(): void {
   flow = undefined;
   panel = undefined;
   session.reset();
+}
+
+/**
+ * Settings → Clear Cache (R-120): every setting, favourite and position goes (the device id stays,
+ * so the device re-verifies with the same MAC), with the cached catalogue and images. The dev-build
+ * network mode and fixture scenario stay, so a development build never falls back to production.
+ * The caller restarts the app.
+ */
+export async function clearAppCache(): Promise<void> {
+  const keep = new Map<string, string | undefined>(
+    [KEYS.networkMode, KEYS.fixtureScenario].map((k) => [prefixed(k), kvStore.get(prefixed(k))]),
+  );
+  clearCache(kvStore);
+  for (const [key, value] of keep) if (value !== undefined) kvStore.set(key, value);
+  await forgetAllPlaylists(await catalogueDb());
+  await Image.clearDiskCache();
 }
 
 /** The Playlists and Portals screens' add and delete calls. */

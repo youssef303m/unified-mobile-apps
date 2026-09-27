@@ -211,3 +211,10 @@ export async function forgetPlaylist(db: Db, playlistId: string): Promise<void> 
     }
   });
 }
+
+/** R-120 Clear Cache: removes the cached catalogue of every playlist. */
+export async function forgetAllPlaylists(db: Db): Promise<void> {
+  await db.transaction(async (tx) => {
+    for (const table of ["items", "categories", "sync_state"]) await tx.run(`DELETE FROM ${table}`);
+  });
+}

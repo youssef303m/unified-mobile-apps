@@ -37,7 +37,7 @@ import {
 } from "../supervisor";
 import { findSubtitles, groupLanguages, resolveTmdbId } from "../subtitles/lookup";
 import { cueSpans, normalizeTimestamp, parseSrt, SubtitleCursor } from "../subtitles/srt";
-import { audioPickerState, trackOptions } from "../tracks";
+import { audioPickerState, audioUnplayable, trackOptions } from "../tracks";
 
 describe("§2.6 stream plan", () => {
   it("gives Media3 an explicit type, and a progressive → HLS mini-chain for ambiguous URLs", () => {
@@ -326,6 +326,25 @@ describe("§5.1–5.3 tracks and external subtitles", () => {
     expect(options.map((o) => o.label)).toEqual(["English", "English · Commentary", "Track 3"]);
     expect(audioPickerState(false, [])).toBe("not_loaded");
     expect(audioPickerState(true, [])).toBe("none");
+  });
+
+  it("Q-ffmpeg-audio: Dolby or DTS audio the phone did not select is unplayable", () => {
+    expect(
+      audioUnplayable([
+        { index: 0, type: "audio/ac3" },
+        { index: 1, type: "audio/vnd.dts" },
+      ]),
+    ).toBe(true);
+    expect(audioUnplayable([{ index: 0, type: "audio/ac3", selected: true }])).toBe(false);
+    // A playable track exists: the player picks it, nothing to report.
+    expect(
+      audioUnplayable([
+        { index: 0, type: "audio/ac3" },
+        { index: 1, type: "audio/mp4a-latm" },
+      ]),
+    ).toBe(false);
+    expect(audioUnplayable([{ index: 0, type: "audio/mp4a-latm" }])).toBe(false);
+    expect(audioUnplayable([])).toBe(false);
   });
 
   it("groups ibosub languages (first file each), sorted, the app language first", () => {

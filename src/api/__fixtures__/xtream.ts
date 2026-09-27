@@ -3,6 +3,7 @@
 import { base64EncodeUtf8 } from "../crypto";
 
 import { XTREAM_BIG_HOST, XTREAM_HOST, XTREAM_PASS, XTREAM_USER } from "./hosts";
+import { scenario } from "./scenario";
 import { json, params, type FixtureRequest, type FixtureResponse } from "./types";
 
 export const XTREAM_BIG_COUNT = 20_000;
@@ -187,7 +188,7 @@ function account(username: string, password: string) {
       password,
       auth: 1,
       status: "Active",
-      exp_date: String(nowS() + 30 * 86_400),
+      exp_date: String(nowS() + scenario.xtreamExpiresInDays * 86_400),
       is_trial: "0",
       active_cons: "0",
       max_connections: "1",
