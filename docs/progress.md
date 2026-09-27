@@ -2,7 +2,17 @@
 
 A new session must be able to continue from this file alone. Read `AGENTS.md` first.
 
-## Current milestone: M6 · Settings and the rest of parity. Built; phone checks next
+## Current milestones: M6 · Settings and parity, M7 · Downloads. Built; phone checks next
+
+The owner asked to test M6 and M7 together on the phone. M7 needs a new development build
+(`npx eas-cli@latest build --profile development --platform android`, D-078).
+
+| M7 item (04-build/roadmap.md)                                | Status                                                                                                                         |
+| ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------ |
+| Download manager, queue, storage checks (N-03, player.md §8) | done (`src/downloads/`: manager, rules, native adapter; one at a time; space check; in-app downloader on every Android, D-078) |
+| Downloads screen, Download buttons, offline playback         | done (My List → Downloads, `src/screens/DownloadsList.tsx`; movie page and episode rows; the player plays the file)            |
+| Wi-Fi-only setting, notifications                            | done (Settings → Downloads, on by default; the library's progress notification; permission at the first download)              |
+| **Accept:** Maestro flow 9; the kill-and-resume manual test  | flow 9 written (`e2e/flow-09-download.yaml`); both to run on the phone with the new build                                      |
 
 | M6 item (04-build/roadmap.md)                                        | Status                                                                                                                               |
 | -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
@@ -75,7 +85,7 @@ Flow 5 now reaches Parental Control through Account → Settings.
   (`login`, `CatalogueSession`), `rules/` (all 88 R-xxx).
 - `src/storage/`: `keys.ts` (every TV key), `settings.ts` (TV defaults), `kv.ts` (MMKV).
 - `src/platform/`: polyfills, device identity, clipboard (D-046), links, device model.
-- `e2e/`: Maestro flows 1 to 8 and 10, the scrolling check (`perf/`) and shared steps.
+- `e2e/`: Maestro flows 1 to 10, the scrolling check (`perf/`) and shared steps.
 - `src/browse/` (M4): Home rows, tab rows and category feeds, details, search, My List, Live
   selection, parental control; `guide.ts` (M5: the guide loader, catch-up, Replay). `src/hooks/`
   (React Query), `src/screens/` (shared screens, the guide and Replay).
@@ -83,9 +93,12 @@ Flow 5 now reaches Parental Control through Account → Settings.
   (`session.ts`), `usePlayback` (URL resolution + supervisor), the VOD, live and mini players and
   `controls/`. `src/navigation/useRouteOrientation.ts`: orientation per route.
   `plugins/withTsExtractorFlags.js`: the Media3 TS flags patch (D-066).
-- Tests: 428 in 35 suites (`npm test`); Jest projects "app" and "core" (D-022, D-033; core also
-  covers `src/session`, `src/browse` and `src/player`).
-- `docs/decisions.md` (D-001 to D-076), `docs/parity.md` (TV → phone check), `docs/open-questions.md`, `docs/new-strings.md`.
+- `src/downloads/` (M7): the download manager and rules (platform-free, tested), the native
+  adapter (background downloader, expo-file-system) and the app instance and hooks.
+  `plugins/withInAppDownloader.js`: keeps downloads off Android's DownloadManager (D-078).
+- Tests: 445 in 37 suites (`npm test`); Jest projects "app" and "core" (D-022, D-033; core also
+  covers `src/session`, `src/browse`, `src/player` and `src/downloads`).
+- `docs/decisions.md` (D-001 to D-078), `docs/parity.md` (TV → phone check), `docs/open-questions.md`, `docs/new-strings.md`.
 
 ## Running the app on the phone
 
@@ -111,8 +124,8 @@ Flow 5 now reaches Parental Control through Account → Settings.
 
 ## Next
 
-- Run flows 8 and 5 and the M6 screens on the phone, then the M6 report.
-- Then M7 · Downloads (after the owner's go-ahead).
+- The owner makes the M7 development build; then flows 5, 8 and 9, the whole suite, the M6
+  screens and the download checks on the phone, then the M6 + M7 report.
 
 ## How to verify
 

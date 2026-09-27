@@ -1,0 +1,86 @@
+# Flow 9 (04-build/testing.md §4): download (a fixture file) → airplane mode → play offline.
+# The newest fixture movie (55000) is HLS, so it has no Download button (N-03). Fixture Movie 2
+# (55001) is an .mkv, which fixture mode downloads from the public 17 MB MKV test file, so the
+# phone needs internet (Wi-Fi: downloads are Wi-Fi only by default).
+appId: com.iboplayer.mobile
+name: "Flow 9 - download and play offline"
+---
+- runFlow:
+    file: common/fresh-start.yaml
+    env:
+      ACCOUNT: active
+- runFlow: common/accept-and-verify.yaml
+- extendedWaitUntil:
+    visible:
+      id: "home-screen"
+    timeout: 60000
+- extendedWaitUntil:
+    visible:
+      id: "hero-info"
+    timeout: 60000
+
+# HLS: no Download button.
+- tapOn:
+    id: "hero-info"
+- extendedWaitUntil:
+    visible:
+      id: "movie-details"
+    timeout: 15000
+- assertNotVisible:
+    id: "details-download"
+- back
+
+# Fixture Movie 2 (.mkv): Download, then wait until it is done.
+- tapOn:
+    id: "topbar-search"
+- tapOn:
+    id: "search-input"
+- inputText: "Fixture Movie 2 "
+- extendedWaitUntil:
+    visible:
+      id: "result-55001"
+    timeout: 60000
+- hideKeyboard
+- tapOn:
+    id: "result-55001"
+- extendedWaitUntil:
+    visible:
+      id: "movie-details"
+    timeout: 15000
+- tapOn:
+    id: "details-download"
+# Android 13+ asks for the notification permission at the first download.
+- runFlow:
+    when:
+      visible: "Allow"
+    commands:
+      - tapOn: "Allow"
+- extendedWaitUntil:
+    visible: "Downloaded"
+    timeout: 300000
+
+# My List → Downloads shows it; airplane mode; it plays from the phone.
+- openLink: "iboplayer://my-list?segment=downloads"
+- extendedWaitUntil:
+    visible:
+      id: "downloads-list"
+    timeout: 15000
+- assertVisible: ".*Fixture Movie 2 .*"
+- setAirplaneMode: enabled
+- tapOn:
+    id: "download-play-.*"
+    waitToSettleTimeoutMs: 500
+    retryTapIfNoChange: false
+- extendedWaitUntil:
+    visible:
+      id: "player-screen"
+    timeout: 15000
+- extendedWaitUntil:
+    notVisible:
+      id: "player-loading"
+    timeout: 30000
+- assertNotVisible:
+    id: "player-error"
+- takeScreenshot: flow-09-offline
+- setAirplaneMode: disabled
+- back

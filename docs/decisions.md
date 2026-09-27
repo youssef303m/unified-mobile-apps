@@ -913,3 +913,48 @@ format to preserve.
   `mobile_portal_name_placeholder`. Example URLs in placeholders stay as they are.
 - The clean-up found one missing behaviour: the "Auto Switch" toast (R-021, "Playlist failed to
   load. Switched to …") when Auto Switch Playlist loads another playlist. It is now shown.
+
+### D-078 · Downloads (M7)
+
+- **Libraries** (a new development build): `@kesha-antonov/react-native-background-downloader`
+  4.6.3 (the kit's choice: background transfers, a progress notification, pause and resume,
+  Wi-Fi only; a TurboModule with an Expo plugin) and `expo-file-system` 57.0.7 (the downloads
+  folder, free space). react-native-mmkv already provides MMKV, so the plugin runs with
+  `skipMmkvDependency`. The Android 13+ notification permission is asked at the first download.
+- **Never Android's DownloadManager** (player.md §8.3): it keeps every URL in a system database,
+  and Xtream URLs hold the password. The library uses its in-app downloader on Android 14+ but
+  DownloadManager below 14, so `plugins/withInAppDownloader.js` patches its Kotlin source at
+  prebuild: every Android version takes the in-app path (a foreground service below 14). The
+  patch fails the build if the code it expects changes; `src/__tests__/plugins.test.ts` checks it
+  (and the D-066 patch) against the installed sources.
+- **No stream URL in the manifest.** A record keeps the catalogue ids. The URL is built (Xtream),
+  read again from the catalogue (M3U, whose URLs hold the account) or requested from the portal
+  (Stalker `create_link`, with its headers) each time a download starts. A record of a playlist
+  that is not loaded waits in the queue. While a task runs, the library keeps its URL in its own
+  app-private storage.
+- **One download at a time** (player.md §8.2 "Limits": a download takes one of the account's
+  connections; new-features.md allowed 2). Playing a stream while a download runs shows a warning;
+  playing a downloaded file does not.
+- **Wi-Fi only** is on by default (N-03), in Settings → Downloads, and applies to running tasks.
+- **Space check**: a HEAD request (or a one-byte Range GET, which many IPTV servers answer better)
+  gives the size and Range support; free space must cover the file plus 200 MB. A server without
+  Range is marked: the Downloads screen says an interruption starts it again.
+- **Interruptions**: pause keeps the task and continues it. On Android 14+ a lost network pauses
+  the system job, which continues when the network returns; a Wi-Fi-only download below 14 waits
+  for Wi-Fi. A download the library reports as failed starts over on Retry (the library cannot
+  continue a failed task from JavaScript). To check on the phone.
+- **After a restart** the manager reattaches to the tasks the library kept; a task that is gone
+  goes back to the queue, and a finished file that is missing is marked "no longer available".
+- **Offline playback**: the player plays `file://` for a finished download, with the same resume
+  keys as online. Adult items ask for the PIN every time from the Downloads screen and never save
+  a position (R-061, R-063). A download of another playlist is listed but plays only once that
+  playlist is loaded (its progress keys belong to it).
+- **Subtitles** (player.md §8.2): when a download finishes, the ibosub subtitle in the app
+  language (else English) is saved next to it; a subtitle chosen while watching a downloaded
+  video is saved too. Offline, the subtitle sheet lists the saved ones.
+- **Fixtures**: downloads map fixture URLs to the public MP4 (65 MB) or MKV (17 MB) test file by
+  container (`fixtureDownloadFor`); HLS fixtures are never downloadable.
+- **Q-downloads** (default): kept until the user deletes them. An expired licence already blocks
+  the app (R-006, D-035); an expired playlist does not block its downloads. Removing a playlist or
+  portal offers to delete its downloads.
+- **Not in v1**: HLS VOD downloads (N-03), catch-up downloads, and a "downloaded" tick on posters.
