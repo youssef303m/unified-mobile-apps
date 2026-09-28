@@ -50,7 +50,9 @@ export function ListRow({
       {trailing}
       {toggle ? (
         <Switch
-          accessibilityLabel={title}
+          // The row is the one TalkBack stop for a toggle (role switch, checked state).
+          importantForAccessibility="no-hide-descendants"
+          accessible={false}
           value={toggle.value}
           onValueChange={toggle.onChange}
           trackColor={{ true: colors.brand.primary, false: colors.surface[3] }}
@@ -77,8 +79,17 @@ export function ListRow({
   return (
     <Pressable
       testID={testID}
-      accessibilityRole="button"
-      accessibilityState={selected === undefined ? undefined : { selected }}
+      // TalkBack: a toggle row is a switch, a row picked from a list is a radio, else a button.
+      accessibilityRole={toggle ? "switch" : selected !== undefined ? "radio" : "button"}
+      accessibilityLabel={toggle ? title : undefined}
+      accessibilityHint={toggle ? subtitle : undefined}
+      accessibilityState={
+        toggle
+          ? { checked: toggle.value }
+          : selected === undefined
+            ? undefined
+            : { checked: selected, selected }
+      }
       onPress={press}
       onLongPress={onLongPress}
       style={({ pressed }) => [styles.row, pressed && styles.pressed]}

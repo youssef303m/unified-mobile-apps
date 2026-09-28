@@ -68,7 +68,7 @@ export function HeroBanner({
           />
           <PressableScale
             accessibilityRole="button"
-            accessibilityLabel={`${t("mobile_play")} ${title}`}
+            accessibilityLabel={t("mobile_action_on_item", { action: t("mobile_play"), title })}
             onPress={onPlay}
             style={styles.play}
             testID="hero-play"

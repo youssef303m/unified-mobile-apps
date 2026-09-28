@@ -41,7 +41,11 @@ export function ContinueCard({
   const height = width / artwork.continueCard.aspect;
   return (
     <View style={{ width }} testID={testID}>
-      <PressableScale accessibilityRole="button" accessibilityLabel={title} onPress={onPress}>
+      <PressableScale
+        accessibilityRole="button"
+        accessibilityLabel={`${title}, ${t("mobile_watched_percent", { percent: Math.round(fraction * 100) })}`}
+        onPress={onPress}
+      >
         <View style={[styles.image, { width, height }]}>
           <Artwork uri={image} style={StyleSheet.absoluteFill} />
           <ProgressBar fraction={fraction} style={styles.progress} />

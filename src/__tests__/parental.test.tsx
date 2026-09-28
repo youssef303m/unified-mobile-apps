@@ -73,7 +73,7 @@ describe("Parental Control screen (R-065, R-066)", () => {
       </TestProviders>,
     );
     // Turning control on asks for a new PIN twice.
-    await fireEvent(screen.getByLabelText("Parental Control"), "valueChange", true);
+    await fireEvent.press(screen.getByLabelText("Parental Control"));
     await typePin("1234");
     await typePin("4321");
     expect(screen.getByTestId("pin-error")).toHaveTextContent("New PINs do not match");

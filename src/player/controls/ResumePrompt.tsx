@@ -1,10 +1,11 @@
 import { useEffect, useRef } from "react";
-import { StyleSheet, View } from "react-native";
+import { AccessibilityInfo, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import { AppText } from "@/components/AppText";
 import { Button } from "@/components/Button";
 import { RESUME_PROMPT_TIMEOUT_MS } from "@/content/rules/library";
+import { useScreenReader } from "@/hooks/useScreenReader";
 import { colors, radius, spacing } from "@/theme/tokens";
 import { formatClock } from "@/utils/format";
 
@@ -21,11 +22,17 @@ export function ResumePrompt({ position, onAnswer }: ResumePromptProps) {
   useEffect(() => {
     answer.current = onAnswer;
   });
-  // 15 s from when it appears, however often the screen re-renders.
+  // 15 s from when it appears, however often the screen re-renders. With TalkBack on it waits
+  // for an answer (reading it takes longer) and is announced.
+  const screenReader = useScreenReader();
   useEffect(() => {
+    if (screenReader) {
+      AccessibilityInfo.announceForAccessibility(`${t("resume")}. ${t("resume_video")}`);
+      return;
+    }
     const timer = setTimeout(() => answer.current(false), RESUME_PROMPT_TIMEOUT_MS);
     return () => clearTimeout(timer);
-  }, []);
+  }, [screenReader, t]);
   return (
     <View style={styles.backdrop} testID="resume-prompt">
       <View style={styles.card} accessibilityViewIsModal>

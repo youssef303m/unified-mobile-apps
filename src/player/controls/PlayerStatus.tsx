@@ -30,7 +30,7 @@ export function PlayerStatus({ playback, onNextChannel, compact }: PlayerStatusP
   const { status, error, buffering, started } = playback;
   if (status === "failed") {
     return (
-      <View style={styles.center} testID="player-error">
+      <View style={styles.center} testID="player-error" accessibilityLiveRegion="assertive">
         <View style={[styles.panel, compact && styles.compact]}>
           <CircleAlert size={compact ? layout.iconSize : 40} color={colors.status.danger} />
           <AppText variant={compact ? "bodyStrong" : "h3"} style={styles.text}>
@@ -60,7 +60,12 @@ export function PlayerStatus({ playback, onNextChannel, compact }: PlayerStatusP
   const loading = status === "resolving" || status === "loading" || !started || buffering;
   if (!reconnecting && !loading) return null;
   return (
-    <View style={styles.center} pointerEvents="none" testID="player-loading">
+    <View
+      style={styles.center}
+      pointerEvents="none"
+      testID="player-loading"
+      accessibilityLiveRegion="polite"
+    >
       <ActivityIndicator size={compact ? "small" : "large"} color={colors.brand.primary} />
       {reconnecting ? (
         <AppText variant="meta" style={styles.reconnecting} testID="player-reconnecting">

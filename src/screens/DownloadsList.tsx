@@ -112,35 +112,35 @@ function DownloadRow({
       {record.status === "done" ? (
         <IconButton
           icon={CirclePlay}
-          label={t("mobile_play")}
+          label={t("mobile_action_on_item", { action: t("mobile_play"), title })}
           onPress={() => void play()}
           testID={`download-play-${record.id}`}
         />
       ) : record.status === "failed" ? (
         <IconButton
           icon={RotateCw}
-          label={t("mobile_download_retry")}
+          label={t("mobile_action_on_item", { action: t("mobile_download_retry"), title })}
           onPress={() => void manager.resume(record.id)}
           testID={`download-retry-${record.id}`}
         />
       ) : record.status === "paused" ? (
         <IconButton
           icon={Download}
-          label={t("mobile_download_resume")}
+          label={t("mobile_action_on_item", { action: t("mobile_download_resume"), title })}
           onPress={() => void manager.resume(record.id)}
           testID={`download-resume-${record.id}`}
         />
       ) : (
         <IconButton
           icon={CirclePause}
-          label={t("mobile_download_pause")}
+          label={t("mobile_action_on_item", { action: t("mobile_download_pause"), title })}
           onPress={() => void manager.pause(record.id)}
           testID={`download-pause-${record.id}`}
         />
       )}
       <IconButton
         icon={Trash2}
-        label={t("delete")}
+        label={t("mobile_action_on_item", { action: t("delete"), title })}
         onPress={confirmDelete}
         testID={`download-delete-${record.id}`}
       />

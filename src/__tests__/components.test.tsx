@@ -46,8 +46,8 @@ describe("PosterCard", () => {
     expect(
       screen.getByTestId("poster-progress", { includeHiddenElements: true }),
     ).toHaveAccessibilityValue({ now: 50 });
-    await fireEvent.press(screen.getByLabelText("Dune"));
-    await fireEvent(screen.getByLabelText("Dune"), "longPress");
+    await fireEvent.press(screen.getByLabelText("Dune, 50% watched"));
+    await fireEvent(screen.getByLabelText("Dune, 50% watched"), "longPress");
     expect(onPress).toHaveBeenCalled();
     expect(onLongPress).toHaveBeenCalled();
   });
@@ -156,7 +156,7 @@ describe("HeroBanner, CategoryChips, TabBar", () => {
     await fireEvent.press(screen.getByTestId("hero-play"));
     await fireEvent.press(screen.getByTestId("hero-info"));
     expect([onToggle, onPlay, onInfo].every((f) => f.mock.calls.length === 1)).toBe(true);
-    expect(screen.getByLabelText("Remove from Favorites")).toBeOnTheScreen();
+    expect(screen.getByLabelText("My List, Remove from Favorites")).toBeOnTheScreen();
   });
 
   it("the selected chip is marked selected", async () => {

@@ -487,5 +487,10 @@
   "mobile_offline_content": "You're offline. Showing what's saved on this phone; downloads play as usual.",
   "mobile_home_empty": "Nothing to show yet. Pull down to refresh.",
   "mobile_moved_to": "{{name}}: position {{position}} of {{total}}",
-  "mobile_still_expired": "Your licence is still expired."
+  "mobile_still_expired": "Your licence is still expired.",
+  "mobile_show_controls": "Show player controls",
+  "mobile_locked_label": "{{name}}, locked",
+  "mobile_opens_list": "Opens a list to choose from",
+  "mobile_action_on_item": "{{action}}: {{title}}",
+  "mobile_time_of": "{{time}} of {{total}}"
 }

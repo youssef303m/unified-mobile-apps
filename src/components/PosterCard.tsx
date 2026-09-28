@@ -50,7 +50,15 @@ export function PosterCard({
     <PressableScale
       testID={testID}
       accessibilityRole="button"
-      accessibilityLabel={title}
+      accessibilityLabel={[
+        title,
+        caption,
+        progress !== undefined && progress > 0
+          ? t("mobile_watched_percent", { percent: Math.round(progress * 100) })
+          : undefined,
+      ]
+        .filter(Boolean)
+        .join(", ")}
       accessibilityHint={badge === "lock" ? t("parent_control") : undefined}
       onPress={onPress}
       onLongPress={onLongPress}

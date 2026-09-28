@@ -89,9 +89,9 @@ describe("boot screens", () => {
     account("active", [{ id: "a", playlist_name: "Alpha", playlist_type: "xc", url: "http://a" }]);
     await render(<PlaylistsScreen />);
     expect(screen.getByText("Alpha")).toBeTruthy();
-    fireEvent(screen.getByLabelText("Auto Switch Playlist"), "valueChange", true);
+    fireEvent.press(screen.getByLabelText("Auto Switch Playlist"));
     expect(kvStore.get(globalKeys.autoSwitchPlaylist)).toBe("on");
-    fireEvent(screen.getByLabelText("Start on Playlist"), "valueChange", true);
+    fireEvent.press(screen.getByLabelText("Start on Playlist"));
     expect(kvStore.get(globalKeys.appInitializationChoice)).toBe("playlist_first");
   });
 });

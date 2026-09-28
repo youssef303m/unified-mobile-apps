@@ -503,5 +503,10 @@
   "mobile_offline_content": "أنت غير متصل. يتم عرض المحتوى المحفوظ على هذا الهاتف، والتنزيلات تعمل كالمعتاد.",
   "mobile_home_empty": "لا يوجد شيء لعرضه بعد. اسحب للأسفل للتحديث.",
   "mobile_moved_to": "{{name}}: الموضع {{position}} من {{total}}",
-  "mobile_still_expired": "لا يزال ترخيصك منتهي الصلاحية."
+  "mobile_still_expired": "لا يزال ترخيصك منتهي الصلاحية.",
+  "mobile_show_controls": "إظهار عناصر تحكم المشغل",
+  "mobile_locked_label": "{{name}}، مقفل",
+  "mobile_opens_list": "يفتح قائمة للاختيار منها",
+  "mobile_action_on_item": "{{action}}: {{title}}",
+  "mobile_time_of": "{{time}} من {{total}}"
 }

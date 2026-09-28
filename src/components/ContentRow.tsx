@@ -55,8 +55,13 @@ export function ContentRow<T>({
     <View style={[styles.root, style]} testID={testID}>
       <Pressable
         accessibilityRole={onSeeAll ? "button" : "header"}
-        accessibilityLabel={onSeeAll ? `${title}, ${t("mobile_see_all")}` : title}
-        disabled={!onSeeAll}
+        accessibilityLabel={[
+          locked ? t("mobile_locked_label", { name: title }) : title,
+          onSeeAll ? t("mobile_see_all") : undefined,
+        ]
+          .filter(Boolean)
+          .join(", ")}
+        // Without See all it is a plain header, never "disabled" (it has no onPress).
         onPress={onSeeAll}
         style={styles.header}
         testID={testID ? `${testID}-see-all` : undefined}

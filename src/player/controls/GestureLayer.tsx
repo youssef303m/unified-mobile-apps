@@ -28,6 +28,11 @@ export interface GestureLayerProps {
   onPinch?: (pinchOut: boolean) => void;
   /** Screen lock: every gesture off except the tap (which shows the unlock button). */
   locked?: boolean;
+  /**
+   * TalkBack: with a label, the layer is one focusable "Show controls" button (the controls are
+   * hidden and nothing else is on screen).
+   */
+  accessibilityLabel?: string;
   children?: ReactNode;
 }
 
@@ -43,6 +48,7 @@ export function GestureLayer({
   onDoubleTapSeek,
   onPinch,
   locked,
+  accessibilityLabel,
   children,
 }: GestureLayerProps) {
   const { t } = useTranslation();
@@ -147,7 +153,9 @@ export function GestureLayer({
         <Pressable
           style={StyleSheet.absoluteFill}
           onPress={press}
-          accessible={false}
+          accessible={accessibilityLabel !== undefined}
+          accessibilityRole={accessibilityLabel !== undefined ? "button" : undefined}
+          accessibilityLabel={accessibilityLabel}
           testID="player-gestures"
         />
         {children}

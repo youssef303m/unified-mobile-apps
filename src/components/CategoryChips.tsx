@@ -1,5 +1,6 @@
 import { Pressable, ScrollView, StyleSheet } from "react-native";
 import { ChevronDown, Lock } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 
 import { colors, layout, radius, spacing } from "@/theme/tokens";
 import { maxFontSizeMultiplier } from "@/theme/typography";
@@ -26,6 +27,7 @@ export interface CategoryChipsProps {
 const ICON = 16;
 
 export function CategoryChips({ chips, onPress, testID }: CategoryChipsProps) {
+  const { t } = useTranslation();
   return (
     <ScrollView
       horizontal
@@ -44,7 +46,10 @@ export function CategoryChips({ chips, onPress, testID }: CategoryChipsProps) {
             testID={chip.testID ?? `chip-${chip.key}`}
             accessibilityRole="button"
             accessibilityState={{ selected: chip.selected ?? false }}
-            accessibilityLabel={chip.label}
+            accessibilityLabel={
+              chip.locked ? t("mobile_locked_label", { name: chip.label }) : chip.label
+            }
+            accessibilityHint={chip.dropdown ? t("mobile_opens_list") : undefined}
             onPress={() => onPress(chip.key)}
             style={({ pressed }) => [
               styles.chip,

@@ -74,8 +74,9 @@ export function SeekBar({ position, duration, onSeek, onScrub, disabled, testID 
             min: 0,
             max: Math.round(duration),
             now: Math.round(shown),
-            text: formatClock(shown),
+            text: t("mobile_time_of", { time: formatClock(shown), total: formatClock(duration) }),
           }}
+          accessibilityState={{ disabled: !canSeek }}
           accessibilityActions={[{ name: "increment" }, { name: "decrement" }]}
           onAccessibilityAction={(e) => {
             if (!canSeek) return;

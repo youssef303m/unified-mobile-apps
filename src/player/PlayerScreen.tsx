@@ -16,6 +16,7 @@ import {
   movieResumePosition,
   shouldOfferResume,
 } from "@/content/rules/library";
+import { useScreenReader } from "@/hooks/useScreenReader";
 import { refreshBrowse } from "@/hooks/queryClient";
 import { useBrowse } from "@/hooks/useBrowse";
 import { kvStore } from "@/storage/kv";
@@ -256,11 +257,13 @@ function VodPlayer({ request }: { request: VodRequest }) {
   // ---------- controls auto-hide (10 s, parity) ----------
   const [tick, setTick] = useState(0);
   const poke = () => setTick((n) => n + 1);
+  // TalkBack: the controls stay (a focused control must not vanish).
+  const screenReader = useScreenReader();
   useEffect(() => {
-    if (!controls || ui.paused || scrubbing || sheet || !playback.started) return;
+    if (!controls || ui.paused || scrubbing || sheet || !playback.started || screenReader) return;
     const timer = setTimeout(() => setControls(false), motion.vodControlsHideMs);
     return () => clearTimeout(timer);
-  }, [controls, ui.paused, scrubbing, sheet, playback.started, tick]);
+  }, [controls, ui.paused, scrubbing, sheet, playback.started, tick, screenReader]);
 
   // ---------- seeking ----------
   const unavailable = () =>
@@ -437,6 +440,9 @@ function VodPlayer({ request }: { request: VodRequest }) {
         <>
           <GestureLayer
             locked={locked}
+            accessibilityLabel={
+              screenReader && !showControls && !locked ? t("mobile_show_controls") : undefined
+            }
             onTap={() => {
               if (locked) {
                 setUnlockHint(true);
@@ -481,7 +487,7 @@ function VodPlayer({ request }: { request: VodRequest }) {
               onEpisodes={episodes ? () => setSheet("episodes") : undefined}
             />
           ) : null}
-          {locked && unlockHint ? (
+          {locked && (unlockHint || screenReader) ? (
             <View style={styles.unlock}>
               <IconButton
                 icon={LockOpen}

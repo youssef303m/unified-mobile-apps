@@ -1003,3 +1003,21 @@ Playlists screen with a generic error: Home and the downloads were unreachable.
 - No network-state library: the app finds out it is offline when a request fails, and the user
   goes back online with Try again (fewer native modules; D-045). A pull to refresh that fails shows
   "Data loading failed".
+
+### D-082 · TalkBack pass (M8)
+
+The M8 audit found every control named, but the player unusable with a screen reader and several
+states not announced. Changes:
+- **Player** (`useScreenReader`): with TalkBack on, the VOD controls and the live bar never
+  auto-hide; when hidden, the video area is one "Show player controls" button; a locked screen
+  always shows Unlock; the resume prompt waits for an answer (no 15 s "No") and is announced.
+- **Rows:** a toggle row is one `switch` stop with its checked state (the inner Switch is hidden
+  from TalkBack); a row picked from a list is a `radio` with `checked`.
+- **Announcements:** PIN entry progress and a wrong PIN, the player's failed panel and loading or
+  reconnecting, and a Move step ("Name: position 3 of 12").
+- **Names that carry what is on screen:** locked chips and rows say "locked"; picker chips have a
+  hint; poster and Continue cards include the caption and the watched percentage; an IconButton's
+  visible caption is part of its name; Downloads actions and Move buttons name their item; the
+  seek bar reads "12:03 of 45:00" and is marked disabled when the stream cannot seek.
+- Left for later (low): the EPG grid reading channels and programmes as separate lists, and the
+  zap swipe having no accessibility action (the Previous and Next channel buttons do the same).

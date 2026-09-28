@@ -81,14 +81,23 @@ export function PinPad({
       ) : null}
       <Animated.View
         style={[styles.dots, shaking]}
+        accessible
         accessibilityLabel={t("mobile_pin_entered", { count: digits.length, total: PIN_LENGTH })}
+        accessibilityLiveRegion="polite"
         testID="pin-dots"
       >
         {Array.from({ length: PIN_LENGTH }, (_, i) => (
           <View key={i} style={[styles.dot, i < digits.length && styles.dotFilled]} />
         ))}
       </Animated.View>
-      <AppText variant="meta" color="danger" style={styles.center} testID="pin-error">
+      <AppText
+        variant="meta"
+        color="danger"
+        style={styles.center}
+        testID="pin-error"
+        accessibilityLiveRegion="assertive"
+        importantForAccessibility={error ? "yes" : "no"}
+      >
         {error ?? " "}
       </AppText>
       <View style={styles.pad}>

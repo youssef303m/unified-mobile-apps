@@ -36,7 +36,8 @@ export function IconButton({
     <Pressable
       testID={testID}
       accessibilityRole="button"
-      accessibilityLabel={label}
+      // The visible caption is part of the name (Voice Access says what it shows).
+      accessibilityLabel={caption && !label.includes(caption) ? `${caption}, ${label}` : label}
       accessibilityState={{ selected: filled, disabled }}
       disabled={disabled}
       onPress={onPress}

@@ -33,6 +33,7 @@ import { ListSheet } from "@/components/Sheet";
 import { showToast } from "@/components/Toast";
 import { hasArchive } from "@/content/rules/live";
 import type { CatalogueItem } from "@/content/types";
+import { useScreenReader } from "@/hooks/useScreenReader";
 import { refreshBrowse } from "@/hooks/queryClient";
 import { useBrowse } from "@/hooks/useBrowse";
 import { useEpgNow } from "@/hooks/useEpgNow";
@@ -190,11 +191,13 @@ function LivePlayer({ request }: { request: LiveRequest }) {
     setBar(true);
     setTick((n) => n + 1);
   }, []);
+  // TalkBack: the bar stays (a focused control must not vanish).
+  const screenReader = useScreenReader();
   useEffect(() => {
-    if (!bar || sheet) return;
+    if (!bar || sheet || screenReader) return;
     const timer = setTimeout(() => setBar(false), motion.liveBarHideMs);
     return () => clearTimeout(timer);
-  }, [bar, sheet, tick]);
+  }, [bar, sheet, tick, screenReader]);
 
   const zap = (direction: ZapDirection) => {
     const next = zapIndex(channels.length, index, direction);
@@ -286,6 +289,7 @@ function LivePlayer({ request }: { request: LiveRequest }) {
         <>
           <GestureLayer
             onTap={() => (bar ? setBar(false) : showBar())}
+            accessibilityLabel={screenReader && !bar ? t("mobile_show_controls") : undefined}
             onPinch={(out) => setAspect({ channel: playing.item_id, mode: pinchAspect(out) })}
           />
           <PlayerStatus
