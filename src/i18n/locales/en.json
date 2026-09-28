@@ -445,8 +445,8 @@
   "mobile_settings_storage": "Storage",
   "mobile_about": "About",
   "mobile_hidden_count": "Hidden: {{count}}",
-  "mobile_move_up": "Move up",
-  "mobile_move_down": "Move down",
+  "mobile_move_up": "Move {{name}} up",
+  "mobile_move_down": "Move {{name}} down",
   "mobile_move_hint": "Use the arrows to move an item up or down. Each change is saved at once.",
   "mobile_move_categories": "Move categories",
   "mobile_move_channel": "Move channel",
@@ -485,5 +485,7 @@
   "mobile_restart_app": "Restart the app",
   "mobile_offline_nothing_saved": "No connection. Connect to the internet to load this playlist the first time.",
   "mobile_offline_content": "You're offline. Showing what's saved on this phone; downloads play as usual.",
-  "mobile_home_empty": "Nothing to show yet. Pull down to refresh."
+  "mobile_home_empty": "Nothing to show yet. Pull down to refresh.",
+  "mobile_moved_to": "{{name}}: position {{position}} of {{total}}",
+  "mobile_still_expired": "Your licence is still expired."
 }

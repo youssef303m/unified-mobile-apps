@@ -15,6 +15,7 @@ import { CategoryChips } from "@/components/CategoryChips";
 import { ContentRow } from "@/components/ContentRow";
 import { ContinueCard } from "@/components/ContinueCard";
 import { EmptyState } from "@/components/EmptyState";
+import { ErrorState } from "@/components/ErrorState";
 import { LiveNowCard } from "@/components/LiveNowCard";
 import { PosterCard } from "@/components/PosterCard";
 import { openQuickActions } from "@/components/QuickActionsSheet";
@@ -126,10 +127,13 @@ export default function MyListScreen() {
   const [chosen, setSegment] = useState<Segment | undefined>();
   // A link (the download notification flow, e2e) can open a segment; a tap wins.
   const segment = chosen ?? params.segment ?? "favourites";
-  const data = useMyList().data;
+  const myList = useMyList();
+  const data = myList.data;
 
   let body;
   if (segment === "downloads") body = <DownloadsList />;
+  else if (myList.isError)
+    body = <ErrorState onRetry={() => void myList.refetch()} testID="my-list-error" />;
   else if (segment === "continue") {
     const none = data && data.continueMovies.length + data.continueSeries.length === 0;
     body = none ? (

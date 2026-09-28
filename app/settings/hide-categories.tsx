@@ -8,6 +8,7 @@ import { setRowHidden } from "@/browse/settings";
 import { AppText } from "@/components/AppText";
 import { CategoryChips } from "@/components/CategoryChips";
 import { EmptyState } from "@/components/EmptyState";
+import { ErrorState } from "@/components/ErrorState";
 import { ListRow } from "@/components/ListRow";
 import { Screen } from "@/components/Screen";
 import type { ContentKind } from "@/content/types";
@@ -52,7 +53,9 @@ export default function HideCategoriesScreen() {
         }))}
         onPress={(key) => setKind(key as ContentKind)}
       />
-      {rows.isPending ? (
+      {rows.isError ? (
+        <ErrorState onRetry={() => void rows.refetch()} testID="hide-error" />
+      ) : rows.isPending ? (
         <ActivityIndicator color={colors.brand.primary} />
       ) : list.length === 0 ? (
         <EmptyState icon={EyeOff} title={t("categories_will_show_here")} />

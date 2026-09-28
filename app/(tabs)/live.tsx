@@ -12,11 +12,13 @@ import type { Row } from "@/browse/rows";
 import { CategoryChips, type Chip } from "@/components/CategoryChips";
 import { ChannelRow } from "@/components/ChannelRow";
 import { EmptyState } from "@/components/EmptyState";
+import { ErrorState } from "@/components/ErrorState";
 import { IconButton } from "@/components/IconButton";
 import { ListRow } from "@/components/ListRow";
 import { openQuickActions } from "@/components/QuickActionsSheet";
 import { SectionLoader } from "@/components/SectionLoader";
 import { ListSheet } from "@/components/Sheet";
+import { showToast } from "@/components/Toast";
 import { TopBar } from "@/components/TopBar";
 import { channelTapAction, replayAvailability } from "@/content/rules/live";
 import type { CatalogueItem } from "@/content/types";
@@ -166,6 +168,8 @@ export default function LiveScreen() {
     setRefreshing(true);
     try {
       await refreshCatalogue();
+    } catch {
+      showToast({ text: t("msg_data_loading_failed") });
     } finally {
       setRefreshing(false);
     }
@@ -213,7 +217,15 @@ export default function LiveScreen() {
             onFullscreen={() => fullscreen(selectedItem)}
           />
         ) : null}
-        {feed.isSuccess && feed.items.length === 0 ? (
+        {rows.isError || (feed.isError && feed.items.length === 0) ? (
+          <ErrorState
+            onRetry={() => {
+              if (rows.isError) void rows.refetch();
+              else void feed.refetch();
+            }}
+            testID="live-error"
+          />
+        ) : feed.isSuccess && feed.items.length === 0 ? (
           <EmptyState
             icon={Tv}
             title={

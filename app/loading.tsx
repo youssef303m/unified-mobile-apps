@@ -9,7 +9,7 @@ import { showToast } from "@/components/Toast";
 import { deviceCredentials } from "@/content/rules/startup";
 import { LOAD_STEP_KEYS } from "@/i18n/statusKeys";
 import { loadActivePlaylist } from "@/session/boot";
-import { useSession } from "@/session/store";
+import { session, useSession } from "@/session/store";
 import { globalKeys } from "@/storage/keys";
 import { kvStore } from "@/storage/kv";
 import { goAfterLoad } from "@/utils/navigation";
@@ -42,7 +42,11 @@ export default function LoadingScreen() {
           text: `${t("msg_playlist_failed_to_load_switched_to")} "${playlistTitle(playlist)}".`,
         }),
     })
-      .catch(() => "playlists" as const)
+      .catch(() => {
+        // An unexpected error still explains itself on the Playlists screen.
+        session.set({ failure: { screen: "playlists", error: "playlist_generic" } });
+        return "playlists" as const;
+      })
       .then((result) => {
         // A retry replaced this attempt; an abort still lands on the Playlists screen.
         if (controller.current === current) goAfterLoad(result);

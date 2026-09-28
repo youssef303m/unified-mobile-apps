@@ -461,8 +461,8 @@
   "mobile_settings_storage": "التخزين",
   "mobile_about": "حول التطبيق",
   "mobile_hidden_count": "المخفية: {{count}}",
-  "mobile_move_up": "تحريك لأعلى",
-  "mobile_move_down": "تحريك لأسفل",
+  "mobile_move_up": "نقل {{name}} للأعلى",
+  "mobile_move_down": "نقل {{name}} للأسفل",
   "mobile_move_hint": "استخدم الأسهم لتحريك العنصر لأعلى أو لأسفل. يُحفظ كل تغيير فورًا.",
   "mobile_move_categories": "تحريك الفئات",
   "mobile_move_channel": "تحريك القناة",
@@ -501,5 +501,7 @@
   "mobile_restart_app": "إعادة تشغيل التطبيق",
   "mobile_offline_nothing_saved": "لا يوجد اتصال. اتصل بالإنترنت لتحميل قائمة التشغيل هذه أول مرة.",
   "mobile_offline_content": "أنت غير متصل. يتم عرض المحتوى المحفوظ على هذا الهاتف، والتنزيلات تعمل كالمعتاد.",
-  "mobile_home_empty": "لا يوجد شيء لعرضه بعد. اسحب للأسفل للتحديث."
+  "mobile_home_empty": "لا يوجد شيء لعرضه بعد. اسحب للأسفل للتحديث.",
+  "mobile_moved_to": "{{name}}: الموضع {{position}} من {{total}}",
+  "mobile_still_expired": "لا يزال ترخيصك منتهي الصلاحية."
 }

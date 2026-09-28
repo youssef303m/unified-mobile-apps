@@ -6,6 +6,7 @@ import { AppText } from "@/components/AppText";
 import { Button } from "@/components/Button";
 import { Logo } from "@/components/Logo";
 import { Screen } from "@/components/Screen";
+import { showToast } from "@/components/Toast";
 import { config } from "@/config";
 import { deviceCredentials } from "@/content/rules/startup";
 import { openUrl } from "@/platform/links";
@@ -44,10 +45,13 @@ export default function ExpiredScreen() {
         onPress={() => {
           setChecking(true);
           checkAgain()
-            .catch(() => "expired" as const)
+            .catch(() => "failed" as const)
             .then((route) => {
               setChecking(false);
-              if (route !== "expired") goToBootRoute(route);
+              // The check always answers: still expired, or no server reached.
+              if (route === "failed") showToast({ text: t("mobile_verify_network_error") });
+              else if (route === "expired") showToast({ text: t("mobile_still_expired") });
+              else goToBootRoute(route);
             });
         }}
       />

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ActivityIndicator, StyleSheet, View } from "react-native";
+import { AccessibilityInfo, ActivityIndicator, StyleSheet, View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { FlashList } from "@shopify/flash-list";
 import { useQuery } from "@tanstack/react-query";
@@ -15,6 +15,7 @@ import {
 } from "@/browse/order";
 import type { Row } from "@/browse/rows";
 import { AppText } from "@/components/AppText";
+import { ErrorState } from "@/components/ErrorState";
 import { IconButton } from "@/components/IconButton";
 import { ListRow } from "@/components/ListRow";
 import { Screen } from "@/components/Screen";
@@ -46,14 +47,14 @@ function OrderRow({ entry, onMove }: { entry: Entry; onMove: (delta: -1 | 1) => 
           <>
             <IconButton
               icon={ChevronUp}
-              label={t("mobile_move_up")}
+              label={t("mobile_move_up", { name: entry.title })}
               onPress={() => onMove(-1)}
               disabled={!entry.canUp}
               testID={`order-up-${entry.id}`}
             />
             <IconButton
               icon={ChevronDown}
-              label={t("mobile_move_down")}
+              label={t("mobile_move_down", { name: entry.title })}
               onPress={() => onMove(1)}
               disabled={!entry.canDown}
               testID={`order-down-${entry.id}`}
@@ -117,6 +118,12 @@ export default function LiveOrderScreen() {
     if (!next) return;
     setMoved(next);
     refreshBrowse(ctx.catalogue.playlistId);
+    // TalkBack: say where the item is now.
+    const visible = entries.length;
+    const position = entries.findIndex((e) => e.id === entry.id) + delta + 1;
+    AccessibilityInfo.announceForAccessibility(
+      t("mobile_moved_to", { name: entry.title, position, total: visible }),
+    );
   };
 
   return (
@@ -127,7 +134,9 @@ export default function LiveOrderScreen() {
       testID="live-order"
     >
       <AppText color="secondary">{t("mobile_move_hint")}</AppText>
-      {!list ? (
+      {loaded.isError && !list ? (
+        <ErrorState onRetry={() => void loaded.refetch()} testID="order-error" />
+      ) : !list ? (
         <ActivityIndicator color={colors.brand.primary} />
       ) : (
         <FlashList

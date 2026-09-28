@@ -13,6 +13,7 @@ import { CatchupSheet } from "@/components/CatchupSheet";
 import { CategoryChips } from "@/components/CategoryChips";
 import { ChannelRow } from "@/components/ChannelRow";
 import { EmptyState } from "@/components/EmptyState";
+import { ErrorState } from "@/components/ErrorState";
 import { IconButton } from "@/components/IconButton";
 import { replayAvailability } from "@/content/rules/live";
 import type { CatalogueItem } from "@/content/types";
@@ -53,6 +54,8 @@ export function ReplayScreen() {
   let body;
   if (availability === "stalker_blocked")
     body = <EmptyState icon={Rewind} title={t("msg_replay_not_available_for_stalker_portals")} />;
+  else if (categories.isError)
+    body = <ErrorState onRetry={() => void categories.refetch()} testID="replay-error" />;
   else if (categories.isPending)
     body = <ActivityIndicator style={styles.center} color={colors.brand.primary} />;
   else if (availability === "not_available" || list.length === 0)
@@ -74,7 +77,9 @@ export function ReplayScreen() {
           }}
           testID="replay-categories"
         />
-        {channels.data && channels.data.length === 0 ? (
+        {channels.isError ? (
+          <ErrorState onRetry={() => void channels.refetch()} testID="replay-channels-error" />
+        ) : channels.data && channels.data.length === 0 ? (
           <EmptyState icon={Rewind} title={t("msg_no_channels_available_for_replay")} />
         ) : (
           <FlashList

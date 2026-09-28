@@ -9,6 +9,8 @@ import type { Row } from "@/browse/rows";
 import { CategoryChips } from "@/components/CategoryChips";
 import { ContentRow } from "@/components/ContentRow";
 import { EmptyState } from "@/components/EmptyState";
+import { ErrorState } from "@/components/ErrorState";
+import { showToast } from "@/components/Toast";
 import { ListRow } from "@/components/ListRow";
 import { PosterCard } from "@/components/PosterCard";
 import { openQuickActions } from "@/components/QuickActionsSheet";
@@ -99,6 +101,8 @@ export function VodTabScreen({ kind }: { kind: "movie" | "series" }) {
     setRefreshing(true);
     try {
       await refreshCatalogue();
+    } catch {
+      showToast({ text: t("msg_data_loading_failed") });
     } finally {
       setRefreshing(false);
     }
@@ -127,6 +131,8 @@ export function VodTabScreen({ kind }: { kind: "movie" | "series" }) {
         onRetry={() => void loadSection(kind)}
       />
     );
+  else if (rows.isError)
+    body = <ErrorState onRetry={() => void rows.refetch()} testID={`${kind}-error`} />;
   else if (rows.isSuccess && list.every((r) => r.type === "virtual"))
     body = <EmptyState icon={Film} title={t("mobile_section_empty", { section: title })} />;
   else
