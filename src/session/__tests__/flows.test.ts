@@ -178,7 +178,14 @@ describe("loading a playlist", () => {
 
     const down2: Playlist = { ...down, id: "down2" };
     const all = await loadPlaylist({ store, db }, down, [down, down2]);
-    expect(all.kind === "failed" && all.failure.error).toBe("all_failed");
+    // Both are unreachable and nothing is saved: the offline message (D-081).
+    expect(all.kind === "failed" && all.failure.error).toBe("offline");
+    const refused: Playlist = { ...xtream, id: "exp2", username: "expired_user" };
+    const mixed = await loadPlaylist({ store, db }, down, [
+      down,
+      { ...refused, origin_url: undefined },
+    ]);
+    expect(mixed.kind === "failed" && mixed.failure.error).toBe("all_failed");
   });
 
   it("R-021: without Auto Switch the failure stops at the first playlist", async () => {
@@ -186,7 +193,36 @@ describe("loading a playlist", () => {
       down,
       m3u,
     ]);
-    expect(outcome.kind === "failed" && outcome.failure.error).toBe("playlist_generic");
+    expect(outcome.kind === "failed" && outcome.failure.error).toBe("offline");
+  });
+
+  it("D-081: with no connection, a playlist opens from its saved catalogue", async () => {
+    const db = await openTestDb();
+    const store = memoryStore();
+    expect((await loadPlaylist({ store, db }, m3u, [m3u])).kind).toBe("ready");
+    const unreachable: Playlist = { ...m3u, url: `http://${DOWN_HOST}/list.m3u` };
+    const outcome = await loadPlaylist({ store, db }, unreachable, [unreachable]);
+    expect(outcome.kind === "ready" && outcome.offline).toBe(true);
+    if (outcome.kind !== "ready") return;
+    // The saved sections count as loaded: nothing is downloaded offline.
+    expect(outcome.session.isLoaded("live")).toBe(true);
+    expect(store.get(globalKeys.playlistId)).toBe(m3u.id);
+  });
+
+  it("D-081: with no connection and nothing saved, the error says so", async () => {
+    const outcome = await loadPlaylist({ store: memoryStore(), db: await openTestDb() }, down, [
+      down,
+    ]);
+    expect(outcome).toEqual({ kind: "failed", failure: { screen: "playlists", error: "offline" } });
+  });
+
+  it("D-081: a provider refusal is not treated as offline", async () => {
+    const db = await openTestDb();
+    const store = memoryStore();
+    await loadPlaylist({ store, db }, xtream, [xtream]);
+    const refused: Playlist = { ...xtream, username: "expired_user", origin_url: undefined };
+    const outcome = await loadPlaylist({ store, db }, refused, [refused]);
+    expect(outcome.kind === "failed" && outcome.failure.error).toBe("playlist_expired");
   });
 
   it("R-011: an aborted load reports aborted, on the Portals screen for a portal", async () => {

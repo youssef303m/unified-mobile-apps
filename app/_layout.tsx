@@ -9,17 +9,23 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
+import { CrashScreen } from "@/components/CrashScreen";
 import { PinPrompt } from "@/components/PinPrompt";
 import { QuickActionsSheet } from "@/components/QuickActionsSheet";
 import { ToastHost } from "@/components/Toast";
 import { queryClient } from "@/hooks/queryClient";
 import { initI18n } from "@/i18n";
 import { AppStack } from "@/navigation/AppStack";
+import { installGlobalErrorHandler } from "@/session/crashReporting";
 import { applyNetworkSetting } from "@/session/network";
 import { fontMap } from "@/theme/fonts";
 import { colors } from "@/theme/tokens";
 
 void SplashScreen.preventAutoHideAsync();
+installGlobalErrorHandler();
+
+// A screen that throws while rendering shows this instead of closing the app (D-079).
+export const ErrorBoundary = CrashScreen;
 
 function boot() {
   applyNetworkSetting();

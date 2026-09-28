@@ -27,6 +27,9 @@ const config: ExpoConfig = {
     allowBackup: false,
     // Download progress notifications on Android 13+ (N-03; asked at the first download).
     permissions: ["android.permission.POST_NOTIFICATIONS"],
+    // The background downloader declares this for Android's DownloadManager, which the app never
+    // uses (D-078), so the release manifest leaves it out.
+    blockedPermissions: ["android.permission.DOWNLOAD_WITHOUT_NOTIFICATION"],
   },
   plugins: [
     "expo-router",

@@ -94,6 +94,11 @@ export class CatalogueSession {
     return this.loaded.has(kind);
   }
 
+  /** Offline (D-081): the saved copy of a section stands for this session's load. */
+  markLoaded(kind: ContentKind): void {
+    this.loaded.add(kind);
+  }
+
   /** Whether the section has a cached copy from an earlier session (Home renders from it). */
   async hasCache(kind: ContentKind): Promise<boolean> {
     return (await syncState(this.db, this.playlistId, kind)) !== undefined;

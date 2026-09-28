@@ -19,7 +19,13 @@ export interface SessionState {
   /** The current captcha on the Verify screen. */
   challenge?: CaptchaChallenge;
   /** The loaded playlist and its catalogue: the content tabs need both. */
-  active?: { playlist: Playlist; catalogue: CatalogueSession; provider: ProviderAccount };
+  active?: {
+    playlist: Playlist;
+    catalogue: CatalogueSession;
+    provider: ProviderAccount;
+    /** Opened from the phone's saved catalogue: no connection (D-081). */
+    offline?: boolean;
+  };
   /** The last failed load: the Playlists / Portals screen shows its banner. */
   failure?: LoadFailure;
   /** The Playlists screen was opened by the startup flow (Back exits, no CURRENT badge). */

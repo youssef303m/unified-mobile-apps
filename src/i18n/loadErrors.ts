@@ -17,6 +17,8 @@ export function loadErrorKey(failure: LoadFailure) {
       return failure.screen === "portals"
         ? "mobile_portal_error_aborted"
         : "mobile_playlist_error_aborted";
+    case "offline":
+      return "mobile_offline_nothing_saved";
     case "playlist_generic":
       return "mobile_playlist_error_generic";
   }

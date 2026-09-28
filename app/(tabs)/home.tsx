@@ -3,6 +3,7 @@ import { RefreshControl, StyleSheet, View } from "react-native";
 import Animated, { useAnimatedScrollHandler, useSharedValue } from "react-native-reanimated";
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Film, TriangleAlert } from "lucide-react-native";
 import type { TFunction } from "i18next";
 import { useTranslation } from "react-i18next";
 
@@ -13,6 +14,7 @@ import { AppText } from "@/components/AppText";
 import { Banner } from "@/components/Banner";
 import { Button } from "@/components/Button";
 import { CategoryChips } from "@/components/CategoryChips";
+import { EmptyState } from "@/components/EmptyState";
 import { ContentRow } from "@/components/ContentRow";
 import { ContinueCard } from "@/components/ContinueCard";
 import { HeroBanner } from "@/components/HeroBanner";
@@ -20,6 +22,7 @@ import { LiveNowCard } from "@/components/LiveNowCard";
 import { PosterCard } from "@/components/PosterCard";
 import { Sheet } from "@/components/Sheet";
 import { openQuickActions } from "@/components/QuickActionsSheet";
+import { showToast } from "@/components/Toast";
 import { TopBar } from "@/components/TopBar";
 import type { ExpiryNotice } from "@/content/rules/app";
 import { isNewlyAdded } from "@/content/rules/content";
@@ -38,7 +41,7 @@ import { kvStore } from "@/storage/kv";
 import { artwork, colors, layout, spacing } from "@/theme/tokens";
 import { openItem, playItem } from "@/utils/content";
 import { genreList } from "@/utils/format";
-import { playlistTitle } from "@/utils/playlists";
+import { playlistTitle, switchPlaylist } from "@/utils/playlists";
 
 const posterSize = { width: artwork.poster.width, height: artwork.poster.height };
 const continueSize = { width: artwork.continueCard.width, height: artwork.continueCard.height };
@@ -282,6 +285,8 @@ export default function HomeScreen() {
     setRefreshing(true);
     try {
       await refreshCatalogue();
+    } catch {
+      showToast({ text: t("msg_data_loading_failed") });
     } finally {
       setRefreshing(false);
       if (pid) refreshBrowse(pid);
@@ -338,9 +343,17 @@ export default function HomeScreen() {
             />
           </View>
         ) : null}
-        {offline || failed ? (
+        {offline || failed || active?.offline ? (
           <View style={styles.banners}>
             {offline ? <Banner tone="warning" lines={[t("mobile_offline_notice")]} /> : null}
+            {active?.offline ? (
+              <Banner
+                tone="warning"
+                lines={[t("mobile_offline_content")]}
+                action={{ label: t("try_again"), onPress: () => switchPlaylist(active.playlist) }}
+                testID="home-offline-banner"
+              />
+            ) : null}
             {failed ? (
               <Banner
                 lines={[t("msg_data_loading_failed")]}
@@ -358,6 +371,16 @@ export default function HomeScreen() {
             <SkeletonRow title={t("mobile_row_recent_movies")} />
             <SkeletonRow title={t("mobile_row_recent_series")} />
           </>
+        ) : null}
+        {home.isError ? (
+          <EmptyState
+            icon={TriangleAlert}
+            title={t("msg_data_loading_failed")}
+            action={{ label: t("try_again"), onPress: () => void home.refetch() }}
+            testID="home-error"
+          />
+        ) : empty && !syncing && !home.isPending && !failed ? (
+          <EmptyState icon={Film} title={t("mobile_home_empty")} testID="home-empty" />
         ) : null}
       </Animated.ScrollView>
       {expiry ? (

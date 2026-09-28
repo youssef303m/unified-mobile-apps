@@ -1,8 +1,9 @@
 import { useEffect } from "react";
-import { StyleSheet } from "react-native";
+import { AppState, StyleSheet } from "react-native";
 import { Stack } from "expo-router";
 
 import { startDownloads } from "@/downloads";
+import { flushAnalytics } from "@/session/analytics";
 import { accountOk, contentReady, useSession } from "@/session/store";
 import { colors } from "@/theme/tokens";
 
@@ -18,6 +19,13 @@ export function AppStack() {
   useRouteOrientation();
   // N-03: running downloads get their events back; waiting ones start when a playlist loads.
   useEffect(() => startDownloads(), []);
+  // Analytics upload what is buffered when the app goes to the background (services.md).
+  useEffect(() => {
+    const sub = AppState.addEventListener("change", (state) => {
+      if (state === "background") void flushAnalytics().catch(() => undefined);
+    });
+    return () => sub.remove();
+  }, []);
   return (
     <Stack screenOptions={{ headerShown: false, contentStyle: styles.root }}>
       <Stack.Screen name="index" />

@@ -958,3 +958,48 @@ format to preserve.
   the app (R-006, D-035); an expired playlist does not block its downloads. Removing a playlist or
   portal offers to delete its downloads.
 - **Not in v1**: HLS VOD downloads (N-03), catch-up downloads, and a "downloaded" tick on posters.
+
+### D-079 · Crash reporting hook and the crash screen (M8)
+
+- **Q-crash-reporting** (default): no SDK is bundled until the owner provides an account (a Sentry
+  DSN). `src/session/crashReporting.ts` is the hook: `reportError` sends to a sink that is unset,
+  so it does nothing. Enabling Sentry later means adding `@sentry/react-native` and calling
+  `setCrashSink` once at start. Reports carry route names and ids only, never URLs or credentials.
+- Uncaught JavaScript errors go to the hook, then to React Native's own handler
+  (`installGlobalErrorHandler`, in `app/_layout.tsx`).
+- A screen that throws while rendering shows `CrashScreen` (the root layout's `ErrorBoundary`
+  export): "Something went wrong", Try again (renders it again) and Restart the app.
+- The downloader's `DOWNLOAD_WITHOUT_NOTIFICATION` permission is blocked in `app.config.ts`: it is
+  for Android's DownloadManager, which the app never uses (D-078).
+
+### D-080 · Analytics wiring (M8)
+
+The M1 client (`src/api/analytics.ts`) is now called (Q-analytics, R-133):
+- after each device_info: one session per launch, the IP from the reply, and the "≥ 10 events or
+  24 h" upload rule; not on an offline start;
+- when the Live TV, Movies or Series tab opens (the TV's home tiles): `live_opened`,
+  `movies_opened`, `series_opened`;
+- when the app goes to the background: an upload.
+
+It runs **only in the production network mode**: IBO's analytics server is a real IBO server, so
+development and preview builds on fixtures or the dev backend never send anything. The device
+block is `platform: "android"`, the phone model, the Android release and API level, and the
+screen size in pixels.
+
+### D-081 · Offline mode (M8)
+
+The M8 audit found that without a connection the provider login failed, so the app landed on the
+Playlists screen with a generic error: Home and the downloads were unreachable.
+- When every attempt to load a playlist failed **for want of a connection** (a network error or a
+  timeout, never a provider refusal), the playlist opens from the catalogue saved on the phone.
+  Its saved sections count as loaded, so nothing is downloaded; a section never saved shows its
+  error with Try again. With Auto Switch, the first unreachable playlist with a saved catalogue
+  opens.
+- Home shows "You're offline. Showing what's saved on this phone; downloads play as usual." with
+  Try again (loads the playlist again). My List → Downloads plays as online. Streams fail with the
+  player's own error and Try again.
+- With nothing saved, the Playlists or Portals banner says "No connection. Connect to the internet
+  to load this playlist the first time." instead of the generic error.
+- No network-state library: the app finds out it is offline when a request fails, and the user
+  goes back online with Try again (fewer native modules; D-045). A pull to refresh that fails shows
+  "Data loading failed".

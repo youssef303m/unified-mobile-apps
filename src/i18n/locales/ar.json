@@ -496,5 +496,10 @@
   "mobile_downloads_empty_body": "نزّل الأفلام والحلقات من صفحاتها لمشاهدتها بدون اتصال.",
   "mobile_download_other_playlist": "تم تنزيله بقائمة تشغيل أخرى",
   "mobile_download_delete_playlist": "حذف تنزيلاتها أيضًا ({{count}})؟",
-  "mobile_keep": "إبقاء"
+  "mobile_keep": "إبقاء",
+  "mobile_crash_body": "حدثت مشكلة في هذه الشاشة. حاول مرة أخرى أو أعد تشغيل التطبيق.",
+  "mobile_restart_app": "إعادة تشغيل التطبيق",
+  "mobile_offline_nothing_saved": "لا يوجد اتصال. اتصل بالإنترنت لتحميل قائمة التشغيل هذه أول مرة.",
+  "mobile_offline_content": "أنت غير متصل. يتم عرض المحتوى المحفوظ على هذا الهاتف، والتنزيلات تعمل كالمعتاد.",
+  "mobile_home_empty": "لا يوجد شيء لعرضه بعد. اسحب للأسفل للتحديث."
 }
