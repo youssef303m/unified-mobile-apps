@@ -34,6 +34,15 @@ dev-only link `iboplayer://dev?network=fixtures&reset=1&account=trial|active|exp
    (`dev.mobile.maestro`, `dev.mobile.maestro.test`); remove them afterwards with
    `adb uninstall dev.mobile.maestro` and `adb uninstall dev.mobile.maestro.test`.
 
+## On a preview build (release step 1)
+
+A preview build has its JavaScript inside and no dev client; fixtures stay available
+(`EXPO_PUBLIC_ENABLE_FIXTURES=1`). No Metro or `adb reverse` is needed:
+
+```bash
+maestro test -e BUILD=preview e2e/
+```
+
 ## The scrolling check (M4)
 
 `maestro test e2e/` runs the numbered flows only. The scrolling check runs on its own, with

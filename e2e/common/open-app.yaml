@@ -1,10 +1,16 @@
-# Opens the development build on the dev server (a cold start otherwise shows the dev launcher).
-# The PC's Metro is reachable on the phone as localhost:8081 through `adb reverse` (e2e/README.md).
+# Opens the app. A development build is pointed at the dev server (a cold start otherwise shows
+# the dev launcher): the PC's Metro is reachable on the phone as localhost:8081 through
+# `adb reverse` (e2e/README.md). A preview build has its bundle inside: run the suite with
+# `maestro test -e BUILD=preview e2e/` and this step is skipped.
 appId: com.iboplayer.mobile
 ---
 - launchApp:
     stopApp: false
-- openLink: "iboplayer://expo-development-client/?url=http%3A%2F%2Flocalhost%3A8081"
+- runFlow:
+    when:
+      true: ${typeof BUILD === 'undefined' || BUILD !== 'preview'}
+    commands:
+      - openLink: "iboplayer://expo-development-client/?url=http%3A%2F%2Flocalhost%3A8081"
 - extendedWaitUntil:
     visible:
       id: "(loading-screen|terms-screen|verify-screen|welcome-screen|expired-screen|server-failed-screen|playlists-screen|home-screen)"
