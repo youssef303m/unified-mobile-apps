@@ -31,13 +31,13 @@ release; "Owner" lines need an answer or an account from the owner.
 
 ## 3. Performance budgets (architecture.md), on the mid-range phone, preview build
 
-| Scenario | Target | How to measure | Result |
-|---|---|---|---|
-| Cold start to Home, cached catalogue | < 2.5 s | `adb shell am start -W com.iboplayer.mobile/.MainActivity` (TotalTime) plus a stopwatch to Home | |
-| Sync a 20,000-channel Xtream playlist | progress shown, UI never freezes, < 30 s on 4G | the Live tab's loader | |
-| Scroll a 5,000-item category | 60 fps | `e2e/perf/big-category.yaml` with `dumpsys gfxinfo` | |
-| Search, first results | < 300 ms | type in Search on the big fixture | |
-| Play to first frame (VOD, good network) | < 2 s, spinner at once | stopwatch | |
+| Scenario                                | Target                                         | How to measure                                                                                  | Result |
+| --------------------------------------- | ---------------------------------------------- | ----------------------------------------------------------------------------------------------- | ------ |
+| Cold start to Home, cached catalogue    | < 2.5 s                                        | `adb shell am start -W com.iboplayer.mobile/.MainActivity` (TotalTime) plus a stopwatch to Home |        |
+| Sync a 20,000-channel Xtream playlist   | progress shown, UI never freezes, < 30 s on 4G | the Live tab's loader                                                                           |        |
+| Scroll a 5,000-item category            | 60 fps                                         | `e2e/perf/big-category.yaml` with `dumpsys gfxinfo`                                             |        |
+| Search, first results                   | < 300 ms                                       | type in Search on the big fixture                                                               |        |
+| Play to first frame (VOD, good network) | < 2 s, spinner at once                         | stopwatch                                                                                       |        |
 
 ## 4. Play Store (owner)
 

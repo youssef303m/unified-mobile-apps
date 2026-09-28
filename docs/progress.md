@@ -9,15 +9,15 @@ The owner asked to build M8, then retest the whole app. M6 and M7 phone checks s
 airplane mode); flow 5 needed one more Back (fixed); flows 7 and 10 did not run (the phone
 dropped off USB).
 
-| M8 item (04-build/roadmap.md)                                   | Status                                                                                                                         |
-| ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| M8 item (04-build/roadmap.md)                                    | Status                                                                                                                          |
+| ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
 | Error states on every screen                                     | done: `ErrorState` with Try again where a query failed silently; refresh failures toast; Expired and loading feedback           |
 | Offline mode (downloads usable, clear messaging)                 | done (D-081): a playlist opens from its saved catalogue without a connection; Home banner with Try again; "nothing saved" error |
 | TalkBack pass                                                    | done (D-082): the player keeps its controls, Unlock is reachable; switch/radio rows; announcements; fuller labels               |
 | Crash reporting (if decided)                                     | hook in place, disabled until the owner gives a Sentry DSN (D-079); a crash screen instead of closing                           |
-| Analytics (Q-analytics, carried from M6)                         | wired, production mode only (D-080)                                                                                           |
-| Performance budgets, release checklist                           | `docs/release-checklist.md` (budgets measured on the preview build)                                                            |
-| **Accept:** full Maestro suite + manual checklist; preview build | to do on the phone: the owner makes the preview build; `maestro test -e BUILD=preview e2e/`                                    |
+| Analytics (Q-analytics, carried from M6)                         | wired, production mode only (D-080)                                                                                             |
+| Performance budgets, release checklist                           | `docs/release-checklist.md` (budgets measured on the preview build)                                                             |
+| **Accept:** full Maestro suite + manual checklist; preview build | to do on the phone: the owner makes the preview build; `maestro test -e BUILD=preview e2e/`                                     |
 
 | M7 item (04-build/roadmap.md)                                | Status                                                                                                                         |
 | ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------ |

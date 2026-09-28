@@ -975,6 +975,7 @@ format to preserve.
 ### D-080 · Analytics wiring (M8)
 
 The M1 client (`src/api/analytics.ts`) is now called (Q-analytics, R-133):
+
 - after each device_info: one session per launch, the IP from the reply, and the "≥ 10 events or
   24 h" upload rule; not on an offline start;
 - when the Live TV, Movies or Series tab opens (the TV's home tiles): `live_opened`,
@@ -990,6 +991,7 @@ screen size in pixels.
 
 The M8 audit found that without a connection the provider login failed, so the app landed on the
 Playlists screen with a generic error: Home and the downloads were unreachable.
+
 - When every attempt to load a playlist failed **for want of a connection** (a network error or a
   timeout, never a provider refusal), the playlist opens from the catalogue saved on the phone.
   Its saved sections count as loaded, so nothing is downloaded; a section never saved shows its
@@ -1008,6 +1010,7 @@ Playlists screen with a generic error: Home and the downloads were unreachable.
 
 The M8 audit found every control named, but the player unusable with a screen reader and several
 states not announced. Changes:
+
 - **Player** (`useScreenReader`): with TalkBack on, the VOD controls and the live bar never
   auto-hide; when hidden, the video area is one "Show player controls" button; a locked screen
   always shows Unlock; the resume prompt waits for an answer (no 15 s "No") and is announced.
