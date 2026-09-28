@@ -2,10 +2,22 @@
 
 A new session must be able to continue from this file alone. Read `AGENTS.md` first.
 
-## Current milestones: M6 · Settings and parity, M7 · Downloads. Built; phone checks next
+## Current milestones: M6, M7 and M8 · Hardening and release. Built; the whole app is retested next
 
-The owner asked to test M6 and M7 together on the phone. M7 needs a new development build
-(`npx eas-cli@latest build --profile development --platform android`, D-078).
+The owner asked to build M8, then retest the whole app. M6 and M7 phone checks so far: flows 1, 2,
+3, 4, 6, 8 and 9 passed on the M7 development build (flow 9: the MKV downloaded, then played in
+airplane mode); flow 5 needed one more Back (fixed); flows 7 and 10 did not run (the phone
+dropped off USB).
+
+| M8 item (04-build/roadmap.md)                                   | Status                                                                                                                         |
+| ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| Error states on every screen                                     | done: `ErrorState` with Try again where a query failed silently; refresh failures toast; Expired and loading feedback           |
+| Offline mode (downloads usable, clear messaging)                 | done (D-081): a playlist opens from its saved catalogue without a connection; Home banner with Try again; "nothing saved" error |
+| TalkBack pass                                                    | done (D-082): the player keeps its controls, Unlock is reachable; switch/radio rows; announcements; fuller labels               |
+| Crash reporting (if decided)                                     | hook in place, disabled until the owner gives a Sentry DSN (D-079); a crash screen instead of closing                           |
+| Analytics (Q-analytics, carried from M6)                         | wired, production mode only (D-080)                                                                                           |
+| Performance budgets, release checklist                           | `docs/release-checklist.md` (budgets measured on the preview build)                                                            |
+| **Accept:** full Maestro suite + manual checklist; preview build | to do on the phone: the owner makes the preview build; `maestro test -e BUILD=preview e2e/`                                    |
 
 | M7 item (04-build/roadmap.md)                                | Status                                                                                                                         |
 | ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------ |
@@ -98,7 +110,7 @@ Flow 5 now reaches Parental Control through Account → Settings.
   `plugins/withInAppDownloader.js`: keeps downloads off Android's DownloadManager (D-078).
 - Tests: 445 in 37 suites (`npm test`); Jest projects "app" and "core" (D-022, D-033; core also
   covers `src/session`, `src/browse`, `src/player` and `src/downloads`).
-- `docs/decisions.md` (D-001 to D-078), `docs/parity.md` (TV → phone check), `docs/open-questions.md`, `docs/new-strings.md`.
+- `docs/decisions.md` (D-001 to D-082), `docs/parity.md` (TV → phone check), `docs/open-questions.md`, `docs/new-strings.md`.
 
 ## Running the app on the phone
 
@@ -124,8 +136,11 @@ Flow 5 now reaches Parental Control through Account → Settings.
 
 ## Next
 
-- The owner makes the M7 development build; then flows 5, 8 and 9, the whole suite, the M6
-  screens and the download checks on the phone, then the M6 + M7 report.
+- Retest the whole app on the phone (owner's request): the owner makes a preview build
+  (`npx eas-cli@latest build --profile preview --platform android`); then
+  `maestro test -e BUILD=preview e2e/`, the manual checks of `docs/release-checklist.md` §2 and
+  the budgets of §3; then the M6 + M7 + M8 report. The development build stays for fixes (M8 added
+  no native module).
 
 ## How to verify
 
