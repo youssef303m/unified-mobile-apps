@@ -4,7 +4,6 @@ import { useTranslation } from "react-i18next";
 
 import { TabBar, type TabItem } from "@/components/TabBar";
 import { useDownloads } from "@/downloads";
-import { trackTabOpened } from "@/session/analytics";
 import { colors } from "@/theme/tokens";
 
 // The bottom tabs (03-design/screens.md): Home · Live TV · Movies · Series · My List, drawn by the
@@ -51,10 +50,6 @@ export default function TabsLayout() {
     <Tabs
       tabBar={(props) => <AppTabBar {...props} />}
       screenOptions={{ headerShown: false, sceneStyle: { backgroundColor: colors.bg.base } }}
-      // R-133: opening Live TV, Movies or Series is an analytics event (production only).
-      screenListeners={({ route }) => ({
-        focus: () => void trackTabOpened(route.name).catch(() => undefined),
-      })}
     >
       <Tabs.Screen name="home" />
       <Tabs.Screen name="live" />

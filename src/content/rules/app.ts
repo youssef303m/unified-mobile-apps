@@ -1,10 +1,9 @@
 // J. Expiry notifications, K. settings side-effects, L. Stararcs proxy, M. misc
 // (01-product/business-rules.md R-110…R-133).
-import type { AnalyticsTracker } from "@/api/analytics";
 import type { KeyValueStore } from "@/api/store";
-import { CLEAR_CACHE_KEEP, globalKeys, P } from "@/storage/keys";
+import { globalKeys, P } from "@/storage/keys";
 
-import type { ContentKind, SourceType } from "../types";
+import type { SourceType } from "../types";
 
 // ---------- J ----------
 
@@ -34,13 +33,14 @@ export const LICENSE_DATE_NOTICE = false;
 // ---------- K ----------
 
 /**
- * R-120: Clear Cache deletes every prefixed key except the analytics ones (settings go back to
- * defaults, the device re-verifies). The caller restarts the app afterwards.
+ * R-120: Clear Cache deletes every prefixed key (settings go back to defaults, the device
+ * re-verifies). The TV keeps its analytics keys; the phone has none (D-080). The caller
+ * restarts the app afterwards.
  */
 export function clearCache(store: KeyValueStore): number {
   let removed = 0;
   for (const key of store.keys()) {
-    if (key.startsWith(P) && !CLEAR_CACHE_KEEP.includes(key)) {
+    if (key.startsWith(P)) {
       store.remove(key);
       removed++;
     }
@@ -125,9 +125,4 @@ export const WEATHER_MAX_AGE_DAYS = 13;
 
 export function weatherIsStale(savedAt: Date, now: Date = new Date()): boolean {
   return now.getTime() - savedAt.getTime() > WEATHER_MAX_AGE_DAYS * 86_400_000;
-}
-
-/** R-133: the analytics event sent when a section opens. */
-export function sectionTracker(kind: ContentKind): AnalyticsTracker {
-  return kind === "live" ? "live_opened" : kind === "movie" ? "movies_opened" : "series_opened";
 }

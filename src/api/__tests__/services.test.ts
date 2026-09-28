@@ -3,13 +3,11 @@ import { join } from "path";
 
 import { config } from "@/config";
 
-import { CACHED_TMDB_ID, analyticsReceived } from "../__fixtures__/services";
-import { ANALYTICS_SESSIONS_KEY, Analytics, sessionId } from "../analytics";
+import { CACHED_TMDB_ID } from "../__fixtures__/services";
 import { fixtureTransport } from "../fixtureTransport";
 import { NetworkError } from "../errors";
 import { fetchTransport, getJson, setTransport } from "../http";
 import { cachedImages } from "../imageCache";
-import { memoryStore } from "../store";
 import {
   cleanSearchQuery,
   setTmdbApiKey,
@@ -68,71 +66,6 @@ describe("IBO image cache (Q-image-store: read-only)", () => {
     const images = await cachedImages("tv", "136315");
     expect(images.tmdbId).toBe(136315);
     expect(images.logos[0]?.file_path).toBe("/logo.png");
-  });
-});
-
-describe("analytics (Q-analytics)", () => {
-  const device = {
-    platform: "android",
-    modelName: "Pixel",
-    version: "15",
-    sdkVersion: "35",
-    screenWidth: 1080,
-    screenHeight: 2400,
-    uhd: false,
-  };
-
-  it("session id is s_ + SHA256(start_mac)", () => {
-    expect(sessionId(1758873600, "3A:E3:1A:46:33:A5")).toMatch(/^s_[0-9a-f]{64}$/);
-  });
-
-  it("uploads once 5 events are buffered and removes exactly the sent ones", async () => {
-    const store = memoryStore();
-    const analytics = new Analytics(store, {
-      macAddress: "3A:E3:1A:46:33:A5",
-      appVersion: "1.0.0",
-      device,
-    });
-    analytics.startSession(1758873600);
-    analytics.setLocation({ ip: "203.0.113.42", country: "Egypt" });
-    analytics.setLocation({ ip: "198.51.100.1" });
-    for (const t of ["live_opened", "movies_opened", "series_opened", "live_opened"] as const)
-      await analytics.track(t, 1758873625);
-    expect(analyticsReceived).toHaveLength(0);
-    await analytics.track("movies_opened", 1758873700);
-    expect(analyticsReceived).toHaveLength(1);
-    const payload = analyticsReceived[0] as {
-      app_name: string;
-      device: { platform: string };
-      sessions: { ip_address: string; events: unknown[] }[];
-    };
-    expect(payload.app_name).toBe("iboplayer");
-    expect(payload.device.platform).toBe("android");
-    expect(payload.sessions[0]?.ip_address).toBe("203.0.113.42");
-    expect(payload.sessions[0]?.events).toHaveLength(5);
-    expect(analytics.bufferedCount()).toBe(0);
-  });
-
-  it("keeps at most 10 sessions and flushes old events after device_info", () => {
-    const store = memoryStore();
-    const analytics = new Analytics(store, { macAddress: "m", appVersion: "1", device });
-    for (let i = 0; i < 12; i++) analytics.startSession(1000 + i);
-    expect(JSON.parse(store.get(ANALYTICS_SESSIONS_KEY) ?? "[]")).toHaveLength(10);
-    store.set(
-      ANALYTICS_SESSIONS_KEY,
-      JSON.stringify([
-        {
-          session_id: "s",
-          start_time: 0,
-          ip_address: "",
-          userCountry: "",
-          userCity: "",
-          events: [{ tracker: "live_opened", timestamp: 0 }],
-        },
-      ]),
-    );
-    expect(analytics.shouldFlushAfterDeviceInfo(86_400)).toBe(true);
-    expect(analytics.shouldFlushAfterDeviceInfo(100)).toBe(false);
   });
 });
 

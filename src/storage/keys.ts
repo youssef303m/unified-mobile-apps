@@ -47,15 +47,7 @@ export const globalKeys = {
   smartProxyCountry: `${P}smart_proxy_country`,
   smartProxyServer: `${P}smart_proxy_server`,
   weatherForecast: `${P}weather-forecast`,
-  analyticsActive: `${P}analytics_active`,
-  analyticsSessions: `${P}analytics_sessions`,
 } as const;
-
-/** Keys kept by Clear Cache (R-120): the analytics session and buffer. */
-export const CLEAR_CACHE_KEEP: readonly string[] = [
-  globalKeys.analyticsActive,
-  globalKeys.analyticsSessions,
-];
 
 /** The TV's unprefixed keys. */
 export const unprefixedKeys = {

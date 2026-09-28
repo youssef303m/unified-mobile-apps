@@ -15,12 +15,10 @@ import { acceptTerms, termsAccepted } from "@/content/rules/startup";
 import type { Db } from "@/db/database";
 import { openCatalogueDb } from "@/db/expoDb";
 import { getOrCreateDeviceMac } from "@/platform/deviceIdentity";
-import { analyticsDevice } from "@/platform/deviceInfo";
 import { globalKeys } from "@/storage/keys";
 import { kvStore, KEYS, prefixed } from "@/storage/kv";
 
 import { afterDeviceInfo, type AccountRoute } from "./account";
-import { analyticsAfterDeviceInfo } from "./analytics";
 import { DeviceFlow, type CaptchaChallenge, type DeviceOutcome, type DeviceStep } from "./device";
 import { networkMode } from "./network";
 import { discoverPanelUrls } from "./networkMode";
@@ -145,17 +143,6 @@ async function routeDevice(outcome: DeviceOutcome): Promise<BootRoute> {
   }
   if (outcome.kind === "server_failed") return "server_failed";
   const macAddress = session.get().macAddress ?? "";
-  if (!outcome.offline)
-    void analyticsAfterDeviceInfo(
-      {
-        store: kvStore,
-        mode: networkMode(),
-        macAddress,
-        appVersion: appVersion(),
-        device: analyticsDevice(),
-      },
-      outcome.info,
-    ).catch(() => undefined);
   const result = await afterDeviceInfo(
     { store: kvStore, panel: panel as PanelClient, macAddress },
     outcome.info,

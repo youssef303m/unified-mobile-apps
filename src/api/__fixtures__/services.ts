@@ -1,11 +1,10 @@
-// TMDB, IBO image cache and analytics fixtures (02-backend/services.md examples).
+// TMDB, IBO image cache and subtitle fixtures (02-backend/services.md examples).
 import { config } from "@/config";
 
 import { json, notFound, type FixtureRequest, type FixtureResponse } from "./types";
 
 const tmdbHost = new URL(config.tmdb.apiBase).host;
 const cacheHost = new URL(config.imageCache.url).host;
-const analyticsUrl = new URL(config.analytics.url);
 const ibosubSearch = new URL(config.subtitles.searchUrl);
 const ibosubContent = new URL(config.subtitles.contentUrl);
 
@@ -38,8 +37,6 @@ const images = (id: number) => ({
   logos: [{ file_path: "/logo.png", width: 500, height: 200 }],
   posters: [{ file_path: "/poster.jpg", width: 500, height: 750 }],
 });
-
-export const analyticsReceived: unknown[] = [];
 
 export function servicesServer(request: FixtureRequest): FixtureResponse | undefined {
   const { host, pathname } = request.url;
@@ -106,10 +103,6 @@ export function servicesServer(request: FixtureRequest): FixtureResponse | undef
       status: "success",
       content: FIXTURE_SRT.replace(/Fixture/g, form.get("file_id") ?? ""),
     });
-  }
-  if (host === analyticsUrl.host && pathname === analyticsUrl.pathname) {
-    analyticsReceived.push(JSON.parse(request.body || "{}"));
-    return json({ success: true });
   }
   return undefined;
 }

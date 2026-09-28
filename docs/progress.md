@@ -15,7 +15,7 @@ dropped off USB).
 | Offline mode (downloads usable, clear messaging)                 | done (D-081): a playlist opens from its saved catalogue without a connection; Home banner with Try again; "nothing saved" error |
 | TalkBack pass                                                    | done (D-082): the player keeps its controls, Unlock is reachable; switch/radio rows; announcements; fuller labels               |
 | Crash reporting (if decided)                                     | hook in place, disabled until the owner gives a Sentry DSN (D-079); a crash screen instead of closing                           |
-| Analytics (Q-analytics, carried from M6)                         | wired, production mode only (D-080)                                                                                             |
+| Analytics (Q-analytics)                                          | removed by the owner (D-080); R-133 dropped                                                                                     |
 | Performance budgets, release checklist                           | `docs/release-checklist.md` (budgets measured on the preview build)                                                             |
 | **Accept:** full Maestro suite + manual checklist; preview build | to do on the phone: the owner makes the preview build; `maestro test -e BUILD=preview e2e/`                                     |
 
@@ -90,7 +90,7 @@ Flow 5 now reaches Parental Control through Account → Settings.
   ActivationCard, PlaylistRow, Logo, the dev switches).
 - `src/config.ts`: generated from the kit's config.json (`npm run config:generate`).
 - `src/api/` (M1): platform-free API layer: HTTP, errors, crypto, IBO, Xtream, M3U, Stalker,
-  TMDB, image cache, analytics, fixtures (`__fixtures__/`) and the fixture transport.
+  TMDB, image cache, fixtures (`__fixtures__/`) and the fixture transport.
 - `src/db/` (M2): the `Db` interface, `expoDb.ts` (expo-sqlite), schema + migrations with FTS5,
   `queries/catalogue.ts`, `testing/testDb.ts` (better-sqlite3 for tests).
 - `src/content/` (M2): `ContentSource` and the three sources, `sync.ts`, `catalogue.ts`

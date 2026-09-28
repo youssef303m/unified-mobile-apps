@@ -14,7 +14,6 @@ import {
   proxyConnectedLabel,
   proxyUsable,
   resetProxyOnColdStart,
-  sectionTracker,
   setLoadOnDemand,
   TOAST_MS,
   TV_TOAST_MS,
@@ -42,19 +41,15 @@ describe("J. Expiry notifications", () => {
 });
 
 describe("K. Settings side-effects", () => {
-  it("R-120: Clear Cache wipes every prefixed key except analytics", () => {
+  it("R-120: Clear Cache wipes every prefixed key (no analytics keys on the phone, D-080)", () => {
     const store = memoryStore({
       [globalKeys.termsApproved]: "true",
       [globalKeys.v4Token]: "t",
       gz3rYzUIC7_4821live_favourite: "[]",
-      [globalKeys.analyticsSessions]: "[]",
-      [globalKeys.analyticsActive]: "{}",
       stalker_mac: "00:1A:79:00:00:01",
     });
     expect(clearCache(store)).toBe(3);
-    expect(store.keys().sort()).toEqual(
-      [globalKeys.analyticsActive, globalKeys.analyticsSessions, "stalker_mac"].sort(),
-    );
+    expect(store.keys()).toEqual(["stalker_mac"]);
   });
 
   it("R-122: TMDB off disables TMDB calls", () => {
@@ -122,12 +117,6 @@ describe("M. Misc", () => {
     expect(weatherIsStale(new Date(2026, 8, 14), now)).toBe(false);
     expect(weatherIsStale(new Date(2026, 8, 12), now)).toBe(true);
   });
-
-  it("R-133: live_opened, movies_opened, series_opened when sections open", () => {
-    expect(sectionTracker("live")).toBe("live_opened");
-    expect(sectionTracker("movie")).toBe("movies_opened");
-    expect(sectionTracker("series")).toBe("series_opened");
-  });
 });
 
 describe("every business rule has a test named after it", () => {
@@ -141,6 +130,11 @@ describe("every business rule has a test named after it", () => {
     });
   }
 
+  // Rules the owner dropped from the phone app, with the decision that says so.
+  const DROPPED: Record<string, string> = {
+    "R-133": "D-080: no analytics in the phone app",
+  };
+
   it("covers every R-xxx in 01-product/business-rules.md", () => {
     const rules = readFileSync(
       join(root, "iboplayer-mobile-kit/01-product/business-rules.md"),
@@ -153,6 +147,6 @@ describe("every business rule has a test named after it", () => {
       ),
     );
     expect(ids.length).toBeGreaterThan(80);
-    expect(ids.filter((id) => !tested.has(id))).toEqual([]);
+    expect(ids.filter((id) => !tested.has(id) && !(id in DROPPED))).toEqual([]);
   });
 });

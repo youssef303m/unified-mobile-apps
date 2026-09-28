@@ -972,20 +972,14 @@ format to preserve.
 - The downloader's `DOWNLOAD_WITHOUT_NOTIFICATION` permission is blocked in `app.config.ts`: it is
   for Android's DownloadManager, which the app never uses (D-078).
 
-### D-080 · Analytics wiring (M8)
+### D-080 · No analytics (owner, 2026-09-28)
 
-The M1 client (`src/api/analytics.ts`) is now called (Q-analytics, R-133):
-
-- after each device_info: one session per launch, the IP from the reply, and the "≥ 10 events or
-  24 h" upload rule; not on an offline start;
-- when the Live TV, Movies or Series tab opens (the TV's home tiles): `live_opened`,
-  `movies_opened`, `series_opened`;
-- when the app goes to the background: an upload.
-
-It runs **only in the production network mode**: IBO's analytics server is a real IBO server, so
-development and preview builds on fixtures or the dev backend never send anything. The device
-block is `platform: "android"`, the phone model, the Android release and API level, and the
-screen size in pixels.
+The owner removed analytics from the phone app. The M1 client (`src/api/analytics.ts`), its
+fixture and tests, and the M8 wiring are deleted; nothing is sent to IBO's analytics server.
+R-133 (the section-opened events) is dropped, and the rule-coverage test lists it as dropped.
+R-120 Clear Cache now wipes every prefixed key (the TV kept its analytics keys; the phone has
+none). The analytics block stays in the generated `src/config.ts` (it mirrors the kit's
+config.json) and is unused.
 
 ### D-081 · Offline mode (M8)
 

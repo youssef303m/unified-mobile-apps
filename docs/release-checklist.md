@@ -47,8 +47,7 @@ release; "Owner" lines need an answer or an account from the owner.
 - [ ] **Owner:** privacy policy URL (Q-privacy), hosted on the website in `config.json`.
 - [ ] **Owner:** content rating answers, as the TV stores were answered.
 - [ ] Data safety form: the device id goes to the IBO backend; playlist credentials stay on the
-      phone (encrypted MMKV, no backup); analytics sends the events of D-080 (tab opens, device
-      model, app version, IP); no data is sold; no crash reporting unless the owner adds one.
+      phone (encrypted MMKV, no backup); no analytics (D-080); no data is sold; no crash reporting unless the owner adds one.
 - [ ] Foreground service declarations: `dataSync` (downloads the user starts, with a progress
       notification) and `mediaPlayback` (background audio and PiP controls).
 - [ ] Listing text says the app contains no content (vision.md); screenshots from the fixtures

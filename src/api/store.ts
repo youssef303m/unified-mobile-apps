@@ -1,5 +1,5 @@
 // The small persistent key-value store that some API modules need (the domain-list cache, the
-// Stalker quirks cache, the analytics buffer). The app passes the MMKV wrapper; tests pass
+// Stalker quirks cache). The app passes the MMKV wrapper; tests pass
 // `memoryStore()`. Keys are the full keys (prefix included where the TV uses one).
 
 export interface KeyValueStore {
