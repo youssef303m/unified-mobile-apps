@@ -978,8 +978,8 @@ The owner removed analytics from the phone app. The M1 client (`src/api/analytic
 fixture and tests, and the M8 wiring are deleted; nothing is sent to IBO's analytics server.
 R-133 (the section-opened events) is dropped, and the rule-coverage test lists it as dropped.
 R-120 Clear Cache now wipes every prefixed key (the TV kept its analytics keys; the phone has
-none). The analytics block stays in the generated `src/config.ts` (it mirrors the kit's
-config.json) and is unused.
+none). The generator (`scripts/generate-config.mjs`) leaves the kit's `analytics` block out of
+`src/config.ts`, so the server address and key are not in the app.
 
 ### D-081 · Offline mode (M8)
 

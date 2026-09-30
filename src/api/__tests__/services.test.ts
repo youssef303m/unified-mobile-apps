@@ -95,7 +95,7 @@ describe("use-fixtures mode", () => {
 });
 
 describe("src/config.ts is generated from the kit", () => {
-  it("matches 02-backend/config.json minus the TV-only values", () => {
+  it("matches 02-backend/config.json minus the TV-only values and analytics (D-080)", () => {
     const kit = JSON.parse(
       readFileSync(join(__dirname, "../../../iboplayer-mobile-kit/02-backend/config.json"), "utf8"),
     ) as Record<string, Record<string, unknown>>;
@@ -103,6 +103,7 @@ describe("src/config.ts is generated from the kit", () => {
     delete kit.store;
     delete kit.stararcs?.tvAssetToken;
     delete kit.defaults?.tvFallbackMac;
+    delete kit.analytics;
     expect(JSON.parse(JSON.stringify(config))).toEqual(kit);
   });
 });

@@ -58,16 +58,6 @@ export const config = {
     parentalPin: "0000",
     parentalPinOffValue: "off",
   },
-  analytics: {
-    url: "https://iboanalytics-backend.biduplive.com/api/events",
-    apiKey: "IohXchmaQySbxoFJkceJWIrCbvnFQSEJU/bcRHInGis=",
-    appName: "iboplayer",
-    uploadThresholdEvents: 5,
-    playlistFlushThreshold: 10,
-    maxBufferedSessions: 10,
-    maxEventAgeSeconds: 86400,
-    timeoutMs: 15000,
-  },
   stararcs: {
     baseUrl: "https://backend.stararcs.com",
     mirrorListUrl: "https://cdn.jsdelivr.net/gh/mr-akme/app-config@HEAD/stararcs/domain.json",
