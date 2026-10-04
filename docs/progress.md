@@ -4,7 +4,12 @@ A new session must be able to continue from this file alone. Read `AGENTS.md` fi
 
 ## Current milestones: M6, M7 and M8 · Hardening and release. Built; the whole app is retested next
 
-The owner asked to build M8, then retest the whole app. M6 and M7 phone checks so far: flows 1, 2,
+The owner asked to build M8, then retest the whole app. **Retest on the preview build
+(2026-10-04): all 10 Maestro flows passed**; the shared open step now stops the app first on a
+preview build, which has no dev-client reload. Cold start reaches Home in ~1.3-1.5 s; the
+5,000-movie scroll has 0.83% janky frames (docs/release-checklist.md §1, §3).
+
+Earlier, on the M7 development build: flows 1, 2,
 3, 4, 6, 8 and 9 passed on the M7 development build (flow 9: the MKV downloaded, then played in
 airplane mode); flow 5 needed one more Back (fixed); flows 7 and 10 did not run (the phone
 dropped off USB).
@@ -17,7 +22,7 @@ dropped off USB).
 | Crash reporting (if decided)                                     | hook in place, disabled until the owner gives a Sentry DSN (D-079); a crash screen instead of closing                           |
 | Analytics (Q-analytics)                                          | removed by the owner (D-080); R-133 dropped                                                                                     |
 | Performance budgets, release checklist                           | `docs/release-checklist.md` (budgets measured on the preview build)                                                             |
-| **Accept:** full Maestro suite + manual checklist; preview build | to do on the phone: the owner makes the preview build; `maestro test -e BUILD=preview e2e/`                                     |
+| **Accept:** full Maestro suite + manual checklist; preview build | Maestro 10/10 on the preview build (2026-10-04); the manual checklist (§2) to do                                                |
 
 | M7 item (04-build/roadmap.md)                                | Status                                                                                                                         |
 | ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------ |
@@ -136,11 +141,13 @@ Flow 5 now reaches Parental Control through Account → Settings.
 
 ## Next
 
-- Retest the whole app on the phone (owner's request): the owner makes a preview build
-  (`npx eas-cli@latest build --profile preview --platform android`); then
-  `maestro test -e BUILD=preview e2e/`, the manual checks of `docs/release-checklist.md` §2 and
-  the budgets of §3; then the M6 + M7 + M8 report. The development build stays for fixes (M8 added
-  no native module).
+- Retest the whole app on the phone (owner's request). Done on the preview build (2026-10-04): the
+  Maestro suite (10/10), cold start and the 5,000-item scroll. Left: the manual checks of
+  `docs/release-checklist.md` §2 (the owner's real playlists, kill-and-resume download, PiP,
+  TalkBack, Arabic), search and play-to-first-frame timing (§3), then the M6 + M7 + M8 report.
+  The development build stays for fixes (M8 added no native module).
+- expo-doctor reports four Expo patch releases (expo, expo-constants, expo-navigation-bar,
+  expo-router). Update them after the retest, then make a new build.
 
 ## How to verify
 

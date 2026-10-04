@@ -1,9 +1,15 @@
 # Opens the app. A development build is pointed at the dev server (a cold start otherwise shows
 # the dev launcher): the PC's Metro is reachable on the phone as localhost:8081 through
 # `adb reverse` (e2e/README.md). A preview build has its bundle inside: run the suite with
-# `maestro test -e BUILD=preview e2e/` and this step is skipped.
+# `maestro test -e BUILD=preview e2e/` and this step is skipped. Without that reload the app would
+# stay on the screen the previous flow left, so a preview build is stopped first: a cold start.
 appId: com.iboplayer.mobile
 ---
+- runFlow:
+    when:
+      true: ${typeof BUILD !== 'undefined' && BUILD === 'preview'}
+    commands:
+      - stopApp
 - launchApp:
     stopApp: false
 - runFlow:

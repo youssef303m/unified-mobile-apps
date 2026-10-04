@@ -5,11 +5,14 @@ release; "Owner" lines need an answer or an account from the owner.
 
 ## 1. Build and automated checks
 
-- [ ] `npm ci && npm run typecheck && npm run lint && npm test` pass.
-- [ ] Preview build: `npx eas-cli@latest build --profile preview --platform android`, installed
-      on the phone.
-- [ ] The Maestro suite passes on it: `maestro test -e BUILD=preview e2e/` (e2e/README.md).
-- [ ] `npx expo-doctor` passes.
+- [x] `npm ci && npm run typecheck && npm run lint && npm test` pass. (2026-10-04: 448 tests in
+      38 suites, on the installed tree; `npm ci` not rerun.)
+- [x] Preview build: `npx eas-cli@latest build --profile preview --platform android`, installed
+      on the phone. (2026-10-04: 1.0.0, 132.7 MB universal APK, on the DNP NX9, Android 16.)
+- [x] The Maestro suite passes on it: `maestro test -e BUILD=preview e2e/` (e2e/README.md).
+      (2026-10-04: 10/10 flows in 16 min.)
+- [ ] `npx expo-doctor` passes. (2026-10-04: 20/21; four Expo patch releases came out after the
+      build: expo, expo-constants, expo-navigation-bar, expo-router.)
 
 ## 2. Manual device checklist (testing.md §5)
 
@@ -31,13 +34,13 @@ release; "Owner" lines need an answer or an account from the owner.
 
 ## 3. Performance budgets (architecture.md), on the mid-range phone, preview build
 
-| Scenario                                | Target                                         | How to measure                                                                                  | Result |
-| --------------------------------------- | ---------------------------------------------- | ----------------------------------------------------------------------------------------------- | ------ |
-| Cold start to Home, cached catalogue    | < 2.5 s                                        | `adb shell am start -W com.iboplayer.mobile/.MainActivity` (TotalTime) plus a stopwatch to Home |        |
-| Sync a 20,000-channel Xtream playlist   | progress shown, UI never freezes, < 30 s on 4G | the Live tab's loader                                                                           |        |
-| Scroll a 5,000-item category            | 60 fps                                         | `e2e/perf/big-category.yaml` with `dumpsys gfxinfo`                                             |        |
-| Search, first results                   | < 300 ms                                       | type in Search on the big fixture                                                               |        |
-| Play to first frame (VOD, good network) | < 2 s, spinner at once                         | stopwatch                                                                                       |        |
+| Scenario                                | Target                                         | How to measure                                                                                  | Result                                                                                                            |
+| --------------------------------------- | ---------------------------------------------- | ----------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| Cold start to Home, cached catalogue    | < 2.5 s                                        | `adb shell am start -W com.iboplayer.mobile/.MainActivity` (TotalTime) plus a stopwatch to Home | 2026-10-04, DNP NX9: TotalTime 430-443 ms; Home drawn at ~1.3-1.5 s (timed screenshots, Fixture Big cached). Pass |
+| Sync a 20,000-channel Xtream playlist   | progress shown, UI never freezes, < 30 s on 4G | the Live tab's loader                                                                           | needs a real playlist (§2)                                                                                        |
+| Scroll a 5,000-item category            | 60 fps                                         | `e2e/perf/big-category.yaml` with `dumpsys gfxinfo`                                             | 2026-10-04, DNP NX9: 7,366 frames, 0.83% janky, p99 14 ms. Pass                                                   |
+| Search, first results                   | < 300 ms                                       | type in Search on the big fixture                                                               | to measure                                                                                                        |
+| Play to first frame (VOD, good network) | < 2 s, spinner at once                         | stopwatch                                                                                       | to measure                                                                                                        |
 
 ## 4. Play Store (owner)
 
