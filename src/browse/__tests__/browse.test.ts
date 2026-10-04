@@ -75,7 +75,7 @@ describe("N-01 Home", () => {
   it("R-054 / R-060: the hero is the newest movie with artwork; adult items are left out", async () => {
     const ctx = await context();
     const home = await loadHome(ctx, HOME);
-    expect(home.hero?.item_id).toBe("55000");
+    expect(home.heroes[0]?.item_id).toBe("55000");
     const recent = home.rows.find((r) => r.id === "recent_movies");
     expect(recent?.style).toBe("poster");
     const ids = recent && "items" in recent ? recent.items.map((i) => i.item_id) : [];

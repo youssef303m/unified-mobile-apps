@@ -169,7 +169,7 @@ export function ListSheet<T>({
 
 const styles = StyleSheet.create({
   background: {
-    backgroundColor: colors.bg.elevated,
+    backgroundColor: colors.card.bg,
     borderTopStartRadius: radius.sheet,
     borderTopEndRadius: radius.sheet,
   },

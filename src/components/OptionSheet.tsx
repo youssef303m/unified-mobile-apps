@@ -41,7 +41,7 @@ export function OptionSheet<K extends string>({
             selected={option.key === value}
             trailing={
               option.key === value ? (
-                <Check size={layout.iconSize} color={colors.brand.primary} />
+                <Check size={layout.iconSize} color={colors.brand.vivid} />
               ) : null
             }
             onPress={() => {

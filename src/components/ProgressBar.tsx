@@ -31,5 +31,5 @@ const styles = StyleSheet.create({
     backgroundColor: colors.progress.track,
     overflow: "hidden",
   },
-  fill: { height: "100%", backgroundColor: colors.brand.primary },
+  fill: { height: "100%", backgroundColor: colors.brand.vivid },
 });

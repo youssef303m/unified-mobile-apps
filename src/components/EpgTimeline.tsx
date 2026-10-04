@@ -20,7 +20,7 @@ import { Artwork } from "./Artwork";
 import { Skeleton } from "./Skeleton";
 
 // EpgTimeline (design-system.md §5): a horizontally scrolling time grid (1 hour = 240 dp), rows as
-// tall as ChannelRow, a now-line in brand.primary, a catch-up icon on past programmes with an
+// tall as ChannelRow, a now-line in brand.vivid, a catch-up icon on past programmes with an
 // archive, and sticky channel logos. Only the rows near the screen render their programmes
 // (R-096: ±10 rows around the visible ones load and render).
 export const HOUR_WIDTH = 240;
@@ -322,14 +322,14 @@ const styles = StyleSheet.create({
     bottom: spacing.xs,
     justifyContent: "center",
     paddingHorizontal: spacing.sm,
-    borderRadius: radius.button,
+    borderRadius: radius.badge + 2,
     backgroundColor: colors.surface[2],
   },
   past: { backgroundColor: colors.surface[1] },
   current: {
     backgroundColor: colors.surface[3],
     borderWidth: 1,
-    borderColor: colors.brand.primary,
+    borderColor: colors.brand.vivid,
   },
   pressed: { opacity: 0.7 },
   cellTitle: { flexDirection: "row", alignItems: "center", gap: spacing.xxs },
@@ -339,6 +339,6 @@ const styles = StyleSheet.create({
     top: 0,
     bottom: 0,
     width: 2,
-    backgroundColor: colors.brand.primary,
+    backgroundColor: colors.brand.vivid,
   },
 });

@@ -117,13 +117,13 @@ const styles = StyleSheet.create({
     backgroundColor: colors.progress.track,
     overflow: "hidden",
   },
-  played: { height: TRACK, backgroundColor: colors.brand.primary },
+  played: { height: TRACK, backgroundColor: colors.brand.vivid },
   thumb: {
     position: "absolute",
     width: THUMB,
     height: THUMB,
     borderRadius: THUMB / 2,
-    backgroundColor: colors.brand.primary,
+    backgroundColor: colors.brand.vivid,
   },
   bubble: {
     position: "absolute",

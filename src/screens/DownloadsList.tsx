@@ -1,5 +1,5 @@
-import { Alert, ScrollView, StyleSheet, View } from "react-native";
-import { CirclePause, CirclePlay, Download, RotateCw, Trash2 } from "lucide-react-native";
+import { Alert, Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { Database, Download, Pause, Play, RotateCw, Trash2 } from "lucide-react-native";
 import { useTranslation } from "react-i18next";
 
 import { AppText } from "@/components/AppText";
@@ -95,14 +95,15 @@ function DownloadRow({
   const fraction = record.bytesTotal > 0 ? record.bytesDone / record.bytesTotal : 0;
   return (
     <View style={styles.row} testID={`download-${record.id}`}>
-      <Artwork uri={record.poster} style={styles.thumb} />
+      <Artwork uri={record.poster} style={styles.thumb} fallbackTitle={record.title} />
       <View style={styles.text}>
-        <AppText variant="bodyStrong" numberOfLines={2}>
+        <AppText variant="metaStrong" numberOfLines={2}>
           {title}
         </AppText>
         <AppText
           variant="meta"
           color={record.status === "failed" ? "danger" : "secondary"}
+          style={styles.status}
           testID={`download-status-${record.id}`}
         >
           {statusLine(t, record, waiting)}
@@ -131,7 +132,10 @@ function DownloadRow({
       </View>
       {record.status === "done" ? (
         <IconButton
-          icon={CirclePlay}
+          icon={Play}
+          filled
+          variant="circle"
+          ringColor={colors.brand.vivid}
           label={t("mobile_action_on_item", { action: t("mobile_play"), title })}
           onPress={() => void play()}
           testID={`download-play-${record.id}`}
@@ -139,6 +143,7 @@ function DownloadRow({
       ) : record.status === "failed" ? (
         <IconButton
           icon={RotateCw}
+          variant="circle"
           label={t("mobile_action_on_item", { action: t("mobile_download_retry"), title })}
           onPress={() => void manager.resume(record.id)}
           testID={`download-retry-${record.id}`}
@@ -146,20 +151,24 @@ function DownloadRow({
       ) : record.status === "paused" ? (
         <IconButton
           icon={Download}
+          variant="circle"
           label={t("mobile_action_on_item", { action: t("mobile_download_resume"), title })}
           onPress={() => void manager.resume(record.id)}
           testID={`download-resume-${record.id}`}
         />
       ) : (
         <IconButton
-          icon={CirclePause}
+          icon={Pause}
+          variant="circle"
           label={t("mobile_action_on_item", { action: t("mobile_download_pause"), title })}
           onPress={() => void manager.pause(record.id)}
           testID={`download-pause-${record.id}`}
         />
       )}
+      <View style={styles.divider} />
       <IconButton
         icon={Trash2}
+        variant="circle"
         label={t("mobile_action_on_item", { action: t("delete"), title })}
         onPress={confirmDelete}
         testID={`download-delete-${record.id}`}
@@ -195,6 +204,8 @@ export function DownloadsList() {
       />
     );
   const { movies, series } = groupDownloads(records);
+  const used = storageUsed(records);
+  const free = downloads().freeBytes();
   const deleteAll = () =>
     Alert.alert(t("mobile_downloads_delete_all_title"), undefined, [
       { text: t("cancel"), style: "cancel" },
@@ -203,18 +214,29 @@ export function DownloadsList() {
   return (
     <ScrollView contentContainerStyle={styles.list} testID="downloads-list">
       <View style={styles.header}>
-        <AppText variant="meta" color="secondary" style={styles.grow} testID="downloads-storage">
-          {t("mobile_downloads_storage", {
-            used: formatBytes(storageUsed(records)),
-            free: formatBytes(downloads().freeBytes()),
-          })}
-        </AppText>
-        <Button
-          label={t("mobile_downloads_delete_all")}
+        <Database size={layout.iconSize} color={colors.text.secondary} />
+        <View style={styles.grow}>
+          <AppText variant="meta" numberOfLines={1} testID="downloads-storage">
+            {t("mobile_downloads_storage", {
+              used: formatBytes(used),
+              free: formatBytes(free),
+            })}
+          </AppText>
+          <ProgressBar fraction={used + free > 0 ? used / (used + free) : 0} style={styles.bar} />
+        </View>
+        <View style={styles.divider} />
+        <Pressable
+          accessibilityRole="button"
           onPress={deleteAll}
-          variant="ghost"
+          style={styles.deleteAll}
+          hitSlop={spacing.sm}
           testID="downloads-delete-all"
-        />
+        >
+          <Trash2 size={layout.iconSize - 4} color={colors.brand.vivid} />
+          <AppText variant="metaStrong" color="vivid">
+            {t("mobile_downloads_delete_all")}
+          </AppText>
+        </Pressable>
       </View>
       {movies.length ? (
         <View style={styles.section}>
@@ -236,8 +258,26 @@ const THUMB_WIDTH = 64;
 
 const styles = StyleSheet.create({
   list: { gap: spacing.lg, padding: layout.gutter, paddingBottom: spacing.xxxl },
-  header: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
-  grow: { flex: 1 },
+  // Style A without the glow (owner, D-085): plain cards and smaller text on this page.
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
+    padding: spacing.md,
+    borderRadius: radius.card,
+    borderWidth: 1,
+    borderColor: colors.border.card,
+    backgroundColor: colors.card.bg,
+  },
+  grow: { flex: 1, gap: spacing.sm },
+  bar: { borderRadius: radius.chip },
+  divider: {
+    width: StyleSheet.hairlineWidth * 2,
+    alignSelf: "stretch",
+    marginVertical: spacing.xs,
+    backgroundColor: colors.border.card,
+  },
+  deleteAll: { flexDirection: "row", alignItems: "center", gap: spacing.xs },
   section: { gap: spacing.sm },
   row: {
     flexDirection: "row",
@@ -245,8 +285,11 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     padding: spacing.sm,
     borderRadius: radius.card,
-    backgroundColor: colors.surface[1],
+    borderWidth: 1,
+    borderColor: colors.border.card,
+    backgroundColor: colors.card.bg,
   },
+  status: { fontSize: 12, lineHeight: 16 },
   thumb: {
     width: THUMB_WIDTH,
     height: (THUMB_WIDTH * 3) / 2,

@@ -19,7 +19,7 @@ import { Skeleton } from "./Skeleton";
 // ContentRow (design-system.md §5): an h3 title with an optional "See all ›" link, and a
 // horizontal FlashList of cards with 16 dp side insets. Loading shows 4 grey cards; a row with
 // nothing to show is hidden (N-01). A locked row (R-061) shows its title with a lock and asks for
-// the PIN from "See all".
+// the PIN from "See all". Style A: "See all" in red (docs/decisions.md D-085).
 export interface ContentRowProps<T> {
   title: string;
   data: readonly T[];
@@ -72,12 +72,12 @@ export function ContentRow<T>({
         </AppText>
         {onSeeAll ? (
           <View style={styles.seeAll}>
-            <AppText variant="meta" color="secondary">
+            <AppText variant="meta" color="vivid">
               {t("mobile_see_all")}
             </AppText>
             <ChevronRight
               size={spacing.lg}
-              color={colors.text.secondary}
+              color={colors.brand.vivid}
               style={I18nManager.isRTL ? styles.mirror : undefined}
             />
           </View>
@@ -118,7 +118,7 @@ const styles = StyleSheet.create({
     minHeight: layout.touchTarget - spacing.md,
   },
   title: { flex: 1 },
-  seeAll: { flexDirection: "row", alignItems: "center" },
+  seeAll: { flexDirection: "row", alignItems: "center", gap: spacing.xxs },
   mirror: { transform: [{ scaleX: -1 }] },
   skeletons: {
     flexDirection: "row",

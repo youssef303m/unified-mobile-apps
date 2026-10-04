@@ -78,7 +78,13 @@ export function ContinueCard({
 }
 
 const styles = StyleSheet.create({
-  image: { borderRadius: radius.poster, overflow: "hidden", backgroundColor: colors.surface[2] },
+  image: {
+    borderRadius: radius.poster,
+    overflow: "hidden",
+    backgroundColor: colors.surface[2],
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.border.card,
+  },
   progress: { position: "absolute", start: 0, end: 0, bottom: 0 },
   footer: { flexDirection: "row", alignItems: "center", marginTop: spacing.xs },
   text: { flex: 1 },

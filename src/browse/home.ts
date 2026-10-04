@@ -24,6 +24,8 @@ import { ROW_PREVIEW } from "./rows";
 
 /** Items in the Recently Added rows. */
 export const HOME_RECENT_LIMIT = 20;
+/** Style A: the hero is a carousel of the newest titles with artwork (docs/decisions.md D-085). */
+export const HERO_COUNT = 5;
 /** Category rows at the end of Home. */
 export const HOME_CATEGORY_ROWS = 3;
 
@@ -41,7 +43,8 @@ export type HomeRow =
     };
 
 export interface HomeData {
-  hero?: CatalogueItem;
+  /** The carousel: newest movies with artwork first, then series. */
+  heroes: CatalogueItem[];
   rows: HomeRow[];
 }
 
@@ -115,9 +118,9 @@ export async function loadHome(ctx: BrowseContext, options: HomeOptions): Promis
       });
   }
 
-  // The most recently added movie with artwork (series when there are no movies).
-  const hero =
-    (await heroCandidates(ctx.db, pid, "movie"))[0] ??
-    (await heroCandidates(ctx.db, pid, "series"))[0];
-  return { hero, rows };
+  // The most recently added movies with artwork, topped up with series.
+  const heroes = await heroCandidates(ctx.db, pid, "movie", HERO_COUNT);
+  if (heroes.length < HERO_COUNT)
+    heroes.push(...(await heroCandidates(ctx.db, pid, "series", HERO_COUNT - heroes.length)));
+  return { heroes, rows };
 }

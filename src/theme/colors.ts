@@ -9,6 +9,10 @@ export const colors = {
     accent: "#C0392B",
     light: "#FF8484",
     logoGrey: "#323232",
+    /** Style A (docs/decisions.md D-085): the bright red of selected chips, tabs and links. */
+    vivid: "#E5303A",
+    /** The soft red light around Play, a selected chip and the active tab. */
+    glow: "rgba(229,48,58,0.55)",
   },
   bg: {
     base: "#000000",
@@ -21,6 +25,18 @@ export const colors = {
   },
   border: {
     subtle: "rgba(255,255,255,0.08)",
+    /** Card outlines (style A). */
+    card: "rgba(255,255,255,0.10)",
+    /** Idle chips and round buttons. */
+    control: "rgba(255,255,255,0.25)",
+  },
+  /** Style A: cards, rows and the tab bar. */
+  card: {
+    bg: "#141416",
+    tab: "#101012",
+    /** Idle chip fill, and round buttons over artwork. */
+    control: "rgba(255,255,255,0.05)",
+    controlOverArt: "rgba(0,0,0,0.35)",
   },
   text: {
     primary: "#FFFFFF",

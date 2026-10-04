@@ -2,14 +2,14 @@ import { Pressable, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import type { LucideIcon } from "lucide-react-native";
 
-import { colors, layout, radius, spacing } from "@/theme/tokens";
+import { colors, elevation, layout, radius, spacing } from "@/theme/tokens";
 import { maxFontSizeMultiplier } from "@/theme/typography";
 
 import { AppText } from "./AppText";
 
-// TabBar (design-system.md §5): 5 tabs on bg.elevated. Icons are outline when idle and filled in
-// text.primary when active, with caption labels. A count badge (downloads, from M7) can sit on
-// a tab.
+// TabBar (design-system.md §5): 5 tabs with caption labels. Icons are outline when idle and filled
+// when active. A count badge (downloads, from M7) can sit on a tab. Style A (docs/decisions.md
+// D-085): a rounded top, and the active tab in red with a soft glow behind its icon.
 export interface TabItem {
   key: string;
   label: string;
@@ -27,60 +27,79 @@ export interface TabBarProps {
 export function TabBar({ tabs, activeKey, onPress }: TabBarProps) {
   const insets = useSafeAreaInsets();
   return (
-    <View style={[styles.root, { paddingBottom: insets.bottom }]} accessibilityRole="tablist">
-      {tabs.map(({ key, label, icon: Icon, badge, testID }) => {
-        const active = key === activeKey;
-        const tint = active ? colors.text.primary : colors.text.secondary;
-        return (
-          <Pressable
-            key={key}
-            testID={testID ?? `tab-${key}`}
-            accessibilityRole="tab"
-            accessibilityState={{ selected: active }}
-            accessibilityLabel={badge ? `${label}, ${badge}` : label}
-            onPress={() => onPress(key)}
-            style={styles.tab}
-          >
-            <View>
-              <Icon
-                size={layout.iconSize}
-                color={tint}
-                fill={active ? tint : "none"}
-                strokeWidth={layout.iconStroke}
-              />
-              {badge ? (
-                <View style={styles.badge}>
-                  <AppText
-                    variant="caption"
-                    color="onPrimary"
-                    maxFontSizeMultiplier={maxFontSizeMultiplier}
-                  >
-                    {badge}
-                  </AppText>
-                </View>
-              ) : null}
-            </View>
-            <AppText
-              variant="caption"
-              color={active ? "primary" : "secondary"}
-              numberOfLines={1}
-              maxFontSizeMultiplier={maxFontSizeMultiplier}
+    // The black outer view fills the rounded corners.
+    <View style={styles.outer}>
+      <View style={[styles.root, { paddingBottom: insets.bottom }]} accessibilityRole="tablist">
+        {tabs.map(({ key, label, icon: Icon, badge, testID }) => {
+          const active = key === activeKey;
+          const tint = active ? colors.brand.vivid : colors.text.secondary;
+          return (
+            <Pressable
+              key={key}
+              testID={testID ?? `tab-${key}`}
+              accessibilityRole="tab"
+              accessibilityState={{ selected: active }}
+              accessibilityLabel={badge ? `${label}, ${badge}` : label}
+              onPress={() => onPress(key)}
+              style={styles.tab}
             >
-              {label}
-            </AppText>
-          </Pressable>
-        );
-      })}
+              <View>
+                {active ? <View style={styles.glow} pointerEvents="none" /> : null}
+                <Icon
+                  size={layout.iconSize}
+                  color={tint}
+                  fill={active ? tint : "none"}
+                  strokeWidth={layout.iconStroke}
+                />
+                {badge ? (
+                  <View style={styles.badge}>
+                    <AppText
+                      variant="caption"
+                      color="onPrimary"
+                      maxFontSizeMultiplier={maxFontSizeMultiplier}
+                    >
+                      {badge}
+                    </AppText>
+                  </View>
+                ) : null}
+              </View>
+              <AppText
+                variant="caption"
+                color={active ? "vivid" : "secondary"}
+                numberOfLines={1}
+                maxFontSizeMultiplier={maxFontSizeMultiplier}
+              >
+                {label}
+              </AppText>
+            </Pressable>
+          );
+        })}
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  outer: { backgroundColor: colors.bg.base },
   root: {
     flexDirection: "row",
-    backgroundColor: colors.bg.elevated,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: colors.border.subtle,
+    backgroundColor: colors.card.tab,
+    borderTopStartRadius: radius.tabBar,
+    borderTopEndRadius: radius.tabBar,
+    borderWidth: 1,
+    borderBottomWidth: 0,
+    borderColor: colors.border.card,
+    paddingTop: spacing.xs,
+  },
+  // A small dot whose shadow is the glow; it sits behind the icon.
+  glow: {
+    position: "absolute",
+    top: layout.iconSize / 2 - 1,
+    start: layout.iconSize / 2 - 1,
+    width: 2,
+    height: 2,
+    borderRadius: 1,
+    ...elevation.glowSoft,
   },
   tab: {
     flex: 1,
@@ -96,7 +115,7 @@ const styles = StyleSheet.create({
     minWidth: spacing.lg,
     paddingHorizontal: spacing.xs,
     borderRadius: radius.chip,
-    backgroundColor: colors.brand.primary,
+    backgroundColor: colors.brand.vivid,
     alignItems: "center",
   },
 });

@@ -5,7 +5,8 @@ import { colors, radius, spacing } from "@/theme/tokens";
 
 import { AppText } from "./AppText";
 
-// A surface.1 card, radius 8, with an optional caption header (design-system.md §3, §5).
+// A card with an optional caption header (design-system.md §3, §5); style A: outlined, radius 14
+// (docs/decisions.md D-085).
 export function Card({ title, children }: { title?: string; children: ReactNode }) {
   return (
     <View style={styles.root}>
@@ -21,7 +22,9 @@ export function Card({ title, children }: { title?: string; children: ReactNode 
 
 const styles = StyleSheet.create({
   root: {
-    backgroundColor: colors.surface[1],
+    borderWidth: 1,
+    borderColor: colors.border.card,
+    backgroundColor: colors.card.bg,
     borderRadius: radius.card,
     padding: spacing.lg,
     gap: spacing.md,

@@ -37,7 +37,7 @@ export function fontFamily(language: string, weight: FontWeight): string {
 }
 
 export type TextVariant =
-  "display" | "h1" | "h2" | "h3" | "body" | "bodyStrong" | "meta" | "caption";
+  "display" | "h1" | "h2" | "h3" | "body" | "bodyStrong" | "meta" | "metaStrong" | "caption";
 
 interface TypeStyle {
   fontSize: number;
@@ -53,6 +53,8 @@ export const typeScale: Record<TextVariant, TypeStyle> = {
   body: { fontSize: 15, lineHeight: 21, weight: 400 },
   bodyStrong: { fontSize: 15, lineHeight: 21, weight: 600 },
   meta: { fontSize: 13, lineHeight: 18, weight: 500 },
+  /** Style A: poster and row titles (docs/decisions.md D-085). */
+  metaStrong: { fontSize: 13, lineHeight: 18, weight: 600 },
   caption: { fontSize: 11, lineHeight: 14, weight: 600 },
 };
 

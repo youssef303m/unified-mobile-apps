@@ -44,7 +44,7 @@ export function Screen({
             testID="header-back"
           >
             <ArrowLeft
-              size={layout.iconSize}
+              size={layout.iconSize - 2}
               color={colors.text.primary}
               style={I18nManager.isRTL ? styles.mirror : undefined}
             />
@@ -82,13 +82,20 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: spacing.sm,
     paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
     minHeight: layout.touchTarget + spacing.sm,
   },
+  // Style A: the back arrow in an outlined round button (docs/decisions.md D-085).
   iconButton: {
-    width: layout.touchTarget,
-    height: layout.touchTarget,
+    width: layout.circleButton,
+    height: layout.circleButton,
+    borderRadius: layout.circleButton / 2,
+    borderWidth: 1.5,
+    borderColor: colors.border.control,
+    backgroundColor: colors.card.control,
     alignItems: "center",
     justifyContent: "center",
+    marginStart: spacing.xs,
   },
   mirror: { transform: [{ scaleX: -1 }] },
   title: { flex: 1, paddingHorizontal: spacing.sm },
@@ -97,7 +104,7 @@ const styles = StyleSheet.create({
   footer: {
     padding: layout.gutter,
     gap: spacing.sm,
-    backgroundColor: colors.bg.elevated,
+    backgroundColor: colors.card.tab,
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: colors.border.subtle,
   },

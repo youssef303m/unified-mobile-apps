@@ -1053,3 +1053,35 @@ netinfo (D-083) needs a new native build, so the changes waiting for one went in
   `expo-navigation-bar` 57.0.3, `expo-router` 57.0.24 (pinned exactly);
 - `expo-clipboard` 57.0.2 replaces React Native's deprecated `Clipboard` (closes D-046). No
   install script is needed (D-045).
+
+### D-085 · Style A: the owner's visual direction (2026-10-05)
+
+The owner compared five styles in a mockup page and chose **A · Cinematic glow**, close to their
+reference screenshots, with three changes: no logo in the movie page's corner, no glow on the
+Downloads page, and smaller text there. It replaces several design-system.md values (the kit is
+read-only; this is the deviation):
+
+- **Colours:** `brand.vivid` #E5303A for selected chips, the active tab, "See all", "More",
+  badges, progress and the seek bar; `brand.glow` for the red light. Cards are #141416 with a 10%
+  white outline; the tab bar #101012. `brand.primary` stays the logo red and the brand button.
+- **Shapes:** pill buttons and chips (radius 999), posters 10, cards 14, sheets 20, inputs 12.
+- **Glow** (a box shadow) only on Play, the selected chip and the active tab, so a screen has a few
+  at most; no blur anywhere (a real-time blur drops frames on 2020-21 phones).
+- **Top bar:** the wide logo at 52 dp on Home; tab pages get a large title; Search and Account are
+  outlined round buttons (`IconButton` variants `circle` / `overArt`), as are the back buttons.
+- **Home hero:** a swipeable carousel of up to 5 of the newest titles with artwork (movies, then
+  series) with dots; centred title, genre pills, a details line with icons (year, duration, age,
+  IMDb rating), round My List and Info around a glowing white Play pill. No auto-advance.
+- **Chips:** optional icons (Home: Live TV, Movies, Series; My List: Favorites, Continue Watching,
+  Downloads); the current playlist chip shows as selected.
+- **Posters:** a thin outline, a one-line semibold title (`metaStrong`, new) and a grey year line.
+  A trailing "(2021)" in a provider's title moves to that line (`titleAndYear`), which also stops
+  the year showing twice on the details page. Missing artwork shows a grey card with the title
+  instead of the logo (hidden from TalkBack: the card already says the title).
+- **Details page:** a taller backdrop (0.8 of the width) with the title over its fade, a details
+  line with separators and an age pill, a full-width glowing Play pill, a red "More", round My
+  List, Trailer and Share.
+- **Tab bar:** a rounded top; the active tab red with a soft glow behind its icon.
+- **Downloads:** an outlined storage card (used and free, a bar, Delete all), outlined rows with
+  a red-outlined Play and round actions, no glow; titles at 13 and the status at 12.
+- EPG programme blocks keep small corners (not pills). The player keeps its own look.

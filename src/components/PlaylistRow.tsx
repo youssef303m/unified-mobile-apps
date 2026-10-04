@@ -67,7 +67,7 @@ export function PlaylistRow({ playlist, subtitle, badge, onPress, onMore }: Play
 
 const styles = StyleSheet.create({
   badge: {
-    backgroundColor: colors.brand.primary,
+    backgroundColor: colors.brand.vivid,
     borderRadius: radius.chip,
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.xxs,

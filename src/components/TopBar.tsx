@@ -14,7 +14,8 @@ import { Logo } from "./Logo";
 // TopBar (design-system.md §5): the logo (or the tab title) on the left; on the right any extra
 // action, Search and the profile avatar (→ Account). Over the hero it is transparent and turns
 // into bg.elevated at 90% opacity after 40 dp of scroll (`scrollY`); without `scrollY` it is
-// solid.
+// solid. Style A (docs/decisions.md D-085): the wide logo at 52 dp, a large page title, and round
+// Search and Account buttons.
 export interface TopBarProps {
   title?: string;
   onSearch: () => void;
@@ -52,21 +53,32 @@ export function TopBar({
       <Animated.View style={[StyleSheet.absoluteFill, styles.background, background]} />
       <View style={styles.bar}>
         {title ? (
-          <AppText variant="h1" numberOfLines={1} style={styles.title} accessibilityRole="header">
+          <AppText
+            variant="display"
+            numberOfLines={1}
+            style={styles.title}
+            accessibilityRole="header"
+          >
             {title}
           </AppText>
         ) : (
           <View style={styles.title}>
-            <Logo size={layout.topBarLogoHeight} align="start" />
+            <Logo size={layout.topBarLogoHeight} align="start" variant="wide" />
           </View>
         )}
         {extra}
-        <IconButton icon={Search} label={t("search")} onPress={onSearch} testID="topbar-search" />
+        <IconButton
+          icon={Search}
+          label={t("search")}
+          onPress={onSearch}
+          variant={overlay ? "overArt" : "circle"}
+          testID="topbar-search"
+        />
         <IconButton
           icon={CircleUserRound}
           label={t("account")}
           onPress={onAccount}
-          size={layout.iconSize + spacing.xs}
+          variant={overlay ? "overArt" : "circle"}
           testID="topbar-account"
         />
       </View>
@@ -82,8 +94,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     minHeight: layout.touchTarget + spacing.sm,
+    gap: spacing.xs,
     paddingStart: layout.gutter,
-    paddingEnd: spacing.xs,
+    paddingEnd: spacing.sm,
+    paddingVertical: spacing.xs,
   },
   title: { flex: 1, alignItems: "flex-start" },
 });

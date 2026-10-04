@@ -13,7 +13,9 @@ describe("theme tokens (03-design/design-system.md)", () => {
     expect(layout.gutter).toBe(16);
     expect(layout.posterGap).toBe(8);
     expect(layout.touchTarget).toBe(48);
-    expect(radius.poster).toBe(6);
+    // Style A (docs/decisions.md D-085): softer posters, pill buttons.
+    expect(radius.poster).toBe(10);
+    expect(radius.button).toBe(999);
     expect(Object.values(spacing)).toEqual([2, 4, 8, 12, 16, 20, 24, 32, 40, 56]);
   });
 });

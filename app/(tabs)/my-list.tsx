@@ -2,7 +2,7 @@ import { useState } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
-import { Bookmark, History } from "lucide-react-native";
+import { Bookmark, Clock, Download, Heart, History } from "lucide-react-native";
 import { useTranslation } from "react-i18next";
 
 import {
@@ -203,11 +203,22 @@ export default function MyListScreen() {
       />
       <CategoryChips
         chips={[
-          { key: "favourites", label: t("favorites"), selected: segment === "favourites" },
-          { key: "continue", label: t("continue_watching"), selected: segment === "continue" },
+          {
+            key: "favourites",
+            label: t("favorites"),
+            icon: Heart,
+            selected: segment === "favourites",
+          },
+          {
+            key: "continue",
+            label: t("continue_watching"),
+            icon: Clock,
+            selected: segment === "continue",
+          },
           {
             key: "downloads",
             label: t("mobile_downloads"),
+            icon: Download,
             selected: segment === "downloads",
             testID: "my-list-downloads",
           },

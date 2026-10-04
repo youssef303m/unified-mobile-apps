@@ -10,6 +10,7 @@ const TONES = {
   success: colors.status.success,
   warning: colors.status.warning,
   brandLight: colors.brand.light,
+  vivid: colors.brand.vivid,
 } as const;
 
 export type TextColor = keyof typeof TONES;

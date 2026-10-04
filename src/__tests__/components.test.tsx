@@ -151,7 +151,9 @@ describe("HeroBanner, CategoryChips, TabBar", () => {
         onInfo={onInfo}
       />,
     );
-    expect(screen.getByText("Drama • 2024")).toBeOnTheScreen();
+    // Style A: the genres are pills.
+    expect(screen.getByText("Drama")).toBeOnTheScreen();
+    expect(screen.getByText("2024")).toBeOnTheScreen();
     await fireEvent.press(screen.getByTestId("hero-my-list"));
     await fireEvent.press(screen.getByTestId("hero-play"));
     await fireEvent.press(screen.getByTestId("hero-info"));

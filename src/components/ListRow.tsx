@@ -7,7 +7,7 @@ import { colors, layout, radius, spacing } from "@/theme/tokens";
 import { AppText } from "./AppText";
 
 // SettingsRow (design-system.md §5): title, value or subtitle, and a chevron, a switch or a
-// custom trailing element. Pressed: surface.2.
+// custom trailing element. Pressed: surface.2. Style A: an outlined card (docs/decisions.md D-085).
 export interface ListRowProps {
   title: string;
   subtitle?: string;
@@ -55,7 +55,7 @@ export function ListRow({
           accessible={false}
           value={toggle.value}
           onValueChange={toggle.onChange}
-          trackColor={{ true: colors.brand.primary, false: colors.surface[3] }}
+          trackColor={{ true: colors.brand.vivid, false: colors.surface[3] }}
           thumbColor={colors.text.primary}
         />
       ) : null}
@@ -108,7 +108,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.sm,
     borderRadius: radius.card,
-    backgroundColor: colors.surface[1],
+    borderWidth: 1,
+    borderColor: colors.border.card,
+    backgroundColor: colors.card.bg,
   },
   pressed: { backgroundColor: colors.surface[2] },
   text: { flex: 1, gap: spacing.xxs },

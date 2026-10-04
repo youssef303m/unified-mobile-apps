@@ -1,12 +1,14 @@
 import { ActivityIndicator, Pressable, StyleSheet, View } from "react-native";
+import type { LucideIcon } from "lucide-react-native";
 
-import { colors, layout, radius, spacing } from "@/theme/tokens";
+import { colors, elevation, layout, radius, spacing } from "@/theme/tokens";
 
 import { AppText, type TextColor } from "./AppText";
 
-// PrimaryButton / SecondaryButton (03-design/design-system.md §5): height 44, radius 6.
-// "primary" is the white streaming-app button, "brand" the red one, "secondary" surface.2,
-// "ghost" a text-only link button.
+// PrimaryButton / SecondaryButton (03-design/design-system.md §5): height 44. "primary" is the
+// white streaming-app button, "brand" the red one, "secondary" an outlined dark one, "ghost" a
+// text-only link button. Style A (docs/decisions.md D-085): pills, an optional leading icon, and
+// a red glow for the one main action of a screen (`glow`).
 export type ButtonVariant = "primary" | "brand" | "secondary" | "ghost";
 
 export interface ButtonProps {
@@ -15,6 +17,10 @@ export interface ButtonProps {
   variant?: ButtonVariant;
   disabled?: boolean;
   loading?: boolean;
+  icon?: LucideIcon;
+  /** Solid icon (Play). */
+  fillIcon?: boolean;
+  glow?: boolean;
   testID?: string;
   accessibilityLabel?: string;
 }
@@ -22,7 +28,7 @@ export interface ButtonProps {
 const FILL: Record<ButtonVariant, { idle: string; pressed: string; text: TextColor }> = {
   primary: { idle: colors.text.primary, pressed: colors.text.secondary, text: "inverse" },
   brand: { idle: colors.brand.primary, pressed: colors.brand.primaryPressed, text: "onPrimary" },
-  secondary: { idle: colors.surface[2], pressed: colors.surface[3], text: "primary" },
+  secondary: { idle: colors.card.bg, pressed: colors.surface[2], text: "primary" },
   ghost: { idle: "transparent", pressed: colors.surface[2], text: "primary" },
 };
 
@@ -32,10 +38,14 @@ export function Button({
   variant = "primary",
   disabled = false,
   loading = false,
+  icon: Icon,
+  fillIcon = false,
+  glow = false,
   testID,
   accessibilityLabel,
 }: ButtonProps) {
   const fill = FILL[variant];
+  const tint = colors.text[fill.text === "inverse" ? "inverse" : "primary"];
   const inactive = disabled || loading;
   return (
     <Pressable
@@ -48,6 +58,8 @@ export function Button({
       style={({ pressed }) => [
         styles.root,
         { backgroundColor: pressed ? fill.pressed : fill.idle },
+        variant === "secondary" && styles.outlined,
+        glow && !inactive && elevation.glow,
         inactive && styles.inactive,
       ]}
     >
@@ -57,9 +69,14 @@ export function Button({
             color={variant === "primary" ? colors.text.inverse : colors.text.primary}
           />
         ) : (
-          <AppText variant="bodyStrong" color={fill.text} numberOfLines={2}>
-            {label}
-          </AppText>
+          <>
+            {Icon ? (
+              <Icon size={layout.iconSize - 4} color={tint} fill={fillIcon ? tint : "none"} />
+            ) : null}
+            <AppText variant="bodyStrong" color={fill.text} numberOfLines={2}>
+              {label}
+            </AppText>
+          </>
         )}
       </View>
     </Pressable>
@@ -73,6 +90,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     justifyContent: "center",
   },
-  content: { flexDirection: "row", justifyContent: "center", alignItems: "center" },
+  content: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: spacing.sm,
+  },
+  outlined: { borderWidth: 1, borderColor: colors.border.control },
   inactive: { opacity: 0.5 },
 });

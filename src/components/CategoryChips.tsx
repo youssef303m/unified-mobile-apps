@@ -1,20 +1,22 @@
 import { Pressable, ScrollView, StyleSheet } from "react-native";
-import { ChevronDown, Lock } from "lucide-react-native";
+import { ChevronDown, Lock, type LucideIcon } from "lucide-react-native";
 import { useTranslation } from "react-i18next";
 
-import { colors, layout, radius, spacing } from "@/theme/tokens";
+import { colors, elevation, layout, radius, spacing } from "@/theme/tokens";
 import { maxFontSizeMultiplier } from "@/theme/typography";
 
 import { AppText } from "./AppText";
 
-// CategoryChips (design-system.md §5): a horizontal pill list. Selected: white fill, black text.
-// Idle: a 1 dp text.tertiary outline. A chip with `dropdown` opens a picker sheet ("▾").
+// CategoryChips (design-system.md §5): a horizontal pill list. A chip with `dropdown` opens a
+// picker sheet ("▾"). Style A (docs/decisions.md D-085): an optional leading icon; idle chips
+// have a light outline, the selected one a red outline with a soft glow.
 export interface Chip {
   key: string;
   label: string;
   selected?: boolean;
   dropdown?: boolean;
   locked?: boolean;
+  icon?: LucideIcon;
   testID?: string;
 }
 
@@ -24,7 +26,7 @@ export interface CategoryChipsProps {
   testID?: string;
 }
 
-const ICON = 16;
+const ICON = 17;
 
 export function CategoryChips({ chips, onPress, testID }: CategoryChipsProps) {
   const { t } = useTranslation();
@@ -39,7 +41,8 @@ export function CategoryChips({ chips, onPress, testID }: CategoryChipsProps) {
       testID={testID}
     >
       {chips.map((chip) => {
-        const tint = chip.selected ? colors.text.inverse : colors.text.primary;
+        const tint = colors.text.primary;
+        const Icon = chip.icon;
         return (
           <Pressable
             key={chip.key}
@@ -57,10 +60,14 @@ export function CategoryChips({ chips, onPress, testID }: CategoryChipsProps) {
               pressed && !chip.selected && styles.pressed,
             ]}
           >
-            {chip.locked ? <Lock size={ICON} color={tint} /> : null}
+            {chip.locked ? (
+              <Lock size={ICON} color={tint} />
+            ) : Icon ? (
+              <Icon size={ICON} color={tint} strokeWidth={layout.iconStroke} />
+            ) : null}
             <AppText
               variant="meta"
-              color={chip.selected ? "inverse" : "primary"}
+              color="primary"
               numberOfLines={1}
               maxFontSizeMultiplier={maxFontSizeMultiplier}
             >
@@ -77,17 +84,19 @@ export function CategoryChips({ chips, onPress, testID }: CategoryChipsProps) {
 const styles = StyleSheet.create({
   // A horizontal ScrollView in a column otherwise grows to fill the height.
   scroll: { flexGrow: 0 },
-  row: { gap: spacing.sm, paddingHorizontal: layout.gutter, paddingVertical: spacing.xs },
+  // Room for the selected chip's glow.
+  row: { gap: spacing.sm, paddingHorizontal: layout.gutter, paddingVertical: spacing.md },
   chip: {
     flexDirection: "row",
     alignItems: "center",
-    gap: spacing.xs,
-    minHeight: layout.touchTarget - spacing.md,
-    paddingHorizontal: spacing.md,
+    gap: spacing.sm,
+    minHeight: layout.touchTarget - spacing.sm,
+    paddingHorizontal: spacing.lg,
     borderRadius: radius.chip,
     borderWidth: 1,
-    borderColor: colors.text.tertiary,
+    borderColor: colors.border.control,
+    backgroundColor: colors.card.control,
   },
-  selected: { backgroundColor: colors.text.primary, borderColor: colors.text.primary },
+  selected: { borderColor: colors.brand.vivid, ...elevation.glowSoft },
   pressed: { backgroundColor: colors.surface[2] },
 });

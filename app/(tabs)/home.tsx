@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
-import { RefreshControl, StyleSheet, View } from "react-native";
+import { FlatList, RefreshControl, StyleSheet, View, useWindowDimensions } from "react-native";
 import Animated, { useAnimatedScrollHandler, useSharedValue } from "react-native-reanimated";
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Film, TriangleAlert } from "lucide-react-native";
+import { Clapperboard, Film, TriangleAlert, Tv } from "lucide-react-native";
 import type { TFunction } from "i18next";
 import { useTranslation } from "react-i18next";
 
@@ -40,7 +40,7 @@ import { useSession } from "@/session/store";
 import { kvStore } from "@/storage/kv";
 import { artwork, colors, layout, spacing } from "@/theme/tokens";
 import { openItem, playItem } from "@/utils/content";
-import { genreList } from "@/utils/format";
+import { durationParts, genreList, yearOf } from "@/utils/format";
 import { playlistTitle, switchPlaylist } from "@/utils/playlists";
 
 const posterSize = { width: artwork.poster.width, height: artwork.poster.height };
@@ -220,20 +220,47 @@ function SkeletonRow({ title }: { title: string }) {
   );
 }
 
-function Hero({ item }: { item: CatalogueItem }) {
+function Hero({ item, page }: { item: CatalogueItem; page: { index: number; count: number } }) {
+  const { t } = useTranslation();
   const { info } = useMovieDetails(item.kind, item.item_id);
   const inMyList = useIsFavourite(item);
   const toggle = useToggleFavourite();
   const genres = genreList(info.data?.genre ?? (item.data?.genre as string | undefined));
+  const duration = durationParts(info.data?.duration);
+  const rating = Number(info.data?.rating ?? item.rating ?? 0);
   return (
     <HeroBanner
       title={item.name}
       image={info.data?.backdrop || item.icon}
       genres={genres}
+      year={yearOf(info.data?.releaseDate ?? (item.data?.releaseDate as string | undefined))}
+      duration={duration ? t("mobile_duration", { h: duration.h, m: duration.m }) : undefined}
+      age={info.data?.age}
+      rating={rating > 0 ? rating.toFixed(1) : undefined}
       inMyList={inMyList}
       onToggleMyList={() => toggle(item, false)}
       onPlay={() => void playItem(item)}
       onInfo={() => openItem(item)}
+      page={page}
+    />
+  );
+}
+
+// Style A (docs/decisions.md D-085): the newest titles as a swipeable carousel. Each page draws
+// its own dots, so no state is needed.
+function HeroCarousel({ items }: { items: CatalogueItem[] }) {
+  const { width } = useWindowDimensions();
+  return (
+    <FlatList
+      data={items}
+      horizontal
+      pagingEnabled
+      showsHorizontalScrollIndicator={false}
+      keyExtractor={(i) => `${i.kind}:${i.item_id}`}
+      renderItem={({ item, index }) => <Hero item={item} page={{ index, count: items.length }} />}
+      getItemLayout={(_, index) => ({ length: width, offset: width * index, index })}
+      initialNumToRender={1}
+      windowSize={3}
       testID="home-hero"
     />
   );
@@ -316,17 +343,23 @@ export default function HomeScreen() {
           />
         }
       >
-        {data?.hero ? (
-          <Hero item={data.hero} />
+        {data?.heroes.length ? (
+          <HeroCarousel items={data.heroes} />
         ) : (
           <View style={{ height: insets.top + layout.touchTarget + spacing.lg }} />
         )}
         <CategoryChips
           chips={[
-            { key: "playlist", label: playlist, dropdown: true, testID: "home-playlist-chip" },
-            { key: "live", label: t("live_tv") },
-            { key: "movies", label: t("movies") },
-            { key: "series", label: t("series") },
+            {
+              key: "playlist",
+              label: playlist,
+              dropdown: true,
+              selected: true,
+              testID: "home-playlist-chip",
+            },
+            { key: "live", label: t("live_tv"), icon: Tv },
+            { key: "movies", label: t("movies"), icon: Film },
+            { key: "series", label: t("series"), icon: Clapperboard },
           ]}
           onPress={(key) => {
             if (key === "playlist") router.push("/playlists");

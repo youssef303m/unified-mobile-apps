@@ -4,15 +4,18 @@ import { useTranslation } from "react-i18next";
 
 import { artwork, colors, radius, spacing } from "@/theme/tokens";
 import { maxFontSizeMultiplier } from "@/theme/typography";
+import { titleAndYear } from "@/utils/format";
 
 import { AppText } from "./AppText";
 import { Artwork } from "./Artwork";
 import { PressableScale } from "./PressableScale";
 import { ProgressBar } from "./ProgressBar";
 
-// PosterCard (design-system.md §5): the 2:3 image, radius 6, an optional corner badge (NEW, a
-// lock for parental, a downloaded tick), a progress bar and the title under it. Pressed: scale
-// 0.96. A long press opens the quick actions.
+// PosterCard (design-system.md §5): the 2:3 image, an optional corner badge (NEW, a lock for
+// parental, a downloaded tick), a progress bar and the title under it. Pressed: scale 0.96. A long
+// press opens the quick actions. Style A (docs/decisions.md D-085): radius 10 with a thin outline,
+// a one-line title with the year in grey under it (a trailing "(2021)" moves there), and a grey
+// card with the title when there is no artwork.
 export type PosterBadge = "new" | "lock" | "downloaded";
 
 export interface PosterCardProps {
@@ -24,6 +27,8 @@ export interface PosterCardProps {
   progress?: number;
   /** A line under the title: the last watched episode of a series ("S2EP5"). */
   caption?: string;
+  /** The year line when the title has none (series release date). */
+  year?: string;
   favourite?: boolean;
   onPress: () => void;
   onLongPress?: () => void;
@@ -39,6 +44,7 @@ export function PosterCard({
   badge,
   progress,
   caption,
+  year,
   favourite = false,
   onPress,
   onLongPress,
@@ -46,6 +52,8 @@ export function PosterCard({
 }: PosterCardProps) {
   const { t } = useTranslation();
   const height = width / artwork.poster.aspect;
+  const split = titleAndYear(title);
+  const subline = caption ?? split.year ?? year;
   return (
     <PressableScale
       testID={testID}
@@ -65,7 +73,7 @@ export function PosterCard({
       style={{ width }}
     >
       <View style={[styles.poster, { width, height }]}>
-        <Artwork uri={image} style={StyleSheet.absoluteFill} />
+        <Artwork uri={image} style={StyleSheet.absoluteFill} fallbackTitle={split.title} />
         {badge === "new" ? (
           <View style={[styles.badge, styles.newBadge]}>
             <AppText
@@ -96,12 +104,17 @@ export function PosterCard({
           <ProgressBar fraction={progress} style={styles.progress} testID="poster-progress" />
         ) : null}
       </View>
-      <AppText variant="meta" numberOfLines={2} maxFontSizeMultiplier={maxFontSizeMultiplier}>
-        {title}
+      <AppText variant="metaStrong" numberOfLines={1} maxFontSizeMultiplier={maxFontSizeMultiplier}>
+        {split.title}
       </AppText>
-      {caption ? (
-        <AppText variant="caption" color="secondary" maxFontSizeMultiplier={maxFontSizeMultiplier}>
-          {caption}
+      {subline ? (
+        <AppText
+          variant="meta"
+          color="tertiary"
+          numberOfLines={1}
+          maxFontSizeMultiplier={maxFontSizeMultiplier}
+        >
+          {subline}
         </AppText>
       ) : null}
     </PressableScale>
@@ -113,14 +126,16 @@ const styles = StyleSheet.create({
     borderRadius: radius.poster,
     overflow: "hidden",
     backgroundColor: colors.surface[2],
-    marginBottom: spacing.xs,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.border.card,
+    marginBottom: spacing.sm,
   },
-  badge: { position: "absolute", top: spacing.xs, start: spacing.xs },
-  corner: { position: "absolute", top: spacing.xs, end: spacing.xs },
+  badge: { position: "absolute", top: spacing.sm, start: spacing.sm },
+  corner: { position: "absolute", top: spacing.sm, end: spacing.sm },
   newBadge: {
-    backgroundColor: colors.brand.accent,
-    borderRadius: radius.button / 2,
-    paddingHorizontal: spacing.xs,
+    backgroundColor: colors.brand.vivid,
+    borderRadius: radius.badge,
+    paddingHorizontal: spacing.xs + spacing.xxs,
     paddingVertical: spacing.xxs,
   },
   iconBadge: {

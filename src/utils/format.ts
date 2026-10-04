@@ -39,6 +39,12 @@ export function yearOf(date: string | undefined): string | undefined {
   return /^(\d{4})/.exec(date ?? "")?.[1];
 }
 
+/** "Movie (2021)" → "Movie" and "2021": providers often end titles with the year (D-085). */
+export function titleAndYear(name: string): { title: string; year?: string } {
+  const match = /^(.*\S)\s*\((\d{4})\)\s*$/.exec(name);
+  return match?.[1] && match[2] ? { title: match[1], year: match[2] } : { title: name };
+}
+
 /** "Drama / Comedy" or "Sci-Fi, Adventure" → ["Drama", "Comedy"]. */
 export function genreList(genre: string | undefined): string[] {
   return (genre ?? "")

@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 import type { LucideIcon } from "lucide-react-native";
 
 import { colors, layout, spacing } from "@/theme/tokens";
@@ -8,7 +8,8 @@ import { AppText } from "./AppText";
 
 // An icon action with a 48 dp touch target (design-system.md §3, §6): outline icons, filled when
 // toggled (♥ favourite, ✓ in My List). An optional caption sits under the icon (the hero's
-// "My List" and "Info").
+// "My List" and "Info"). Style A's "circle" draws the icon in an outlined round button (D-085);
+// "overArt" darkens it for artwork behind.
 export interface IconButtonProps {
   icon: LucideIcon;
   label: string;
@@ -18,6 +19,9 @@ export interface IconButtonProps {
   color?: string;
   size?: number;
   disabled?: boolean;
+  variant?: "plain" | "circle" | "overArt";
+  /** The circle's outline (the red Play of a download row). */
+  ringColor?: string;
   testID?: string;
 }
 
@@ -30,8 +34,18 @@ export function IconButton({
   color = colors.text.primary,
   size = layout.iconSize,
   disabled = false,
+  variant = "plain",
+  ringColor,
   testID,
 }: IconButtonProps) {
+  const icon = (
+    <Icon
+      size={variant === "plain" ? size : Math.min(size, layout.iconSize - 2)}
+      color={color}
+      fill={filled ? color : "none"}
+      strokeWidth={layout.iconStroke}
+    />
+  );
   return (
     <Pressable
       testID={testID}
@@ -44,14 +58,24 @@ export function IconButton({
       hitSlop={spacing.xs}
       style={({ pressed }) => [styles.root, pressed && styles.pressed, disabled && styles.disabled]}
     >
-      <Icon
-        size={size}
-        color={color}
-        fill={filled ? color : "none"}
-        strokeWidth={layout.iconStroke}
-      />
+      {variant === "plain" ? (
+        icon
+      ) : (
+        <View
+          style={[
+            styles.circle,
+            variant === "overArt" && styles.overArt,
+            ringColor !== undefined && { borderColor: ringColor },
+          ]}
+        >
+          {icon}
+        </View>
+      )}
       {caption ? (
-        <AppText variant="caption" maxFontSizeMultiplier={maxFontSizeMultiplier}>
+        <AppText
+          variant={variant === "plain" ? "caption" : "meta"}
+          maxFontSizeMultiplier={maxFontSizeMultiplier}
+        >
           {caption}
         </AppText>
       ) : null}
@@ -65,8 +89,19 @@ const styles = StyleSheet.create({
     minHeight: layout.touchTarget,
     alignItems: "center",
     justifyContent: "center",
-    gap: spacing.xxs,
+    gap: spacing.xs,
   },
+  circle: {
+    width: layout.circleButton,
+    height: layout.circleButton,
+    borderRadius: layout.circleButton / 2,
+    borderWidth: 1.5,
+    borderColor: colors.border.control,
+    backgroundColor: colors.card.control,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  overArt: { backgroundColor: colors.card.controlOverArt },
   pressed: { opacity: 0.6 },
   disabled: { opacity: 0.4 },
 });

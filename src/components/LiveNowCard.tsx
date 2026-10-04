@@ -76,7 +76,9 @@ export function LiveNowCard({
 const styles = StyleSheet.create({
   card: {
     borderRadius: radius.poster,
-    backgroundColor: colors.surface[2],
+    borderWidth: 1,
+    borderColor: colors.border.card,
+    backgroundColor: colors.card.bg,
     alignItems: "center",
     justifyContent: "center",
     overflow: "hidden",
@@ -95,7 +97,7 @@ const styles = StyleSheet.create({
     width: LIVE_DOT,
     height: LIVE_DOT,
     borderRadius: LIVE_DOT / 2,
-    backgroundColor: colors.brand.primary,
+    backgroundColor: colors.brand.vivid,
   },
   progress: { position: "absolute", start: 0, end: 0, bottom: 0 },
 });

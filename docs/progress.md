@@ -113,9 +113,9 @@ Flow 5 now reaches Parental Control through Account → Settings.
 - `src/downloads/` (M7): the download manager and rules (platform-free, tested), the native
   adapter (background downloader, expo-file-system) and the app instance and hooks.
   `plugins/withInAppDownloader.js`: keeps downloads off Android's DownloadManager (D-078).
-- Tests: 445 in 37 suites (`npm test`); Jest projects "app" and "core" (D-022, D-033; core also
+- Tests: 455 in 39 suites (`npm test`); Jest projects "app" and "core" (D-022, D-033; core also
   covers `src/session`, `src/browse`, `src/player` and `src/downloads`).
-- `docs/decisions.md` (D-001 to D-084), `docs/parity.md` (TV → phone check), `docs/open-questions.md`, `docs/new-strings.md`.
+- `docs/decisions.md` (D-001 to D-085), `docs/parity.md` (TV → phone check), `docs/open-questions.md`, `docs/new-strings.md`.
 
 ## Running the app on the phone
 
@@ -150,6 +150,9 @@ Flow 5 now reaches Parental Control through Account → Settings.
   mobile data. netinfo is native, so **a new development build and a new preview build** are
   needed; then check on the phone: Download on mobile data (both choices), Use mobile data on a
   waiting download, Wi-Fi only turned off releasing it, and flow 9 again.
+- **Style A (owner, 2026-10-05, D-085):** the whole app restyled after the owner picked style A
+  from a mockup page. JavaScript only: it shows in the new development build through Metro; the
+  preview build needs one more EAS build. To check on the phone, then rerun the Maestro suite.
 - The same rebuild carries the Expo patch releases and `expo-clipboard` (D-084); expo-doctor
   passes 21/21.
 

@@ -25,25 +25,34 @@ export const layout = {
   iconStroke: 2,
   buttonHeight: 44,
   progressBarHeight: 3,
-  topBarLogoHeight: 28,
+  /** Style A: the wide logo on Home (D-085). */
+  topBarLogoHeight: 52,
+  /** Round icon buttons (top bar, hero, details actions). */
+  circleButton: 42,
   topBarSolidAfter: 40,
   splashLogoWidth: 200,
 } as const;
 
+// Style A (D-085): pill buttons and chips, softer cards.
 export const radius = {
-  poster: 6,
-  card: 8,
-  button: 6,
-  chip: 16,
-  sheet: 16,
-  input: 8,
+  poster: 10,
+  card: 14,
+  button: 999,
+  chip: 999,
+  sheet: 20,
+  input: 12,
+  badge: 4,
+  tabBar: 22,
 } as const;
 
-// Only the bottom sheet and the mini player get a shadow (0 -4 16 rgba(0,0,0,0.5)).
+// Style A adds a red glow, kept to a few elements on screen at a time: Play, the selected chip
+// and the active tab (D-085).
 export const elevation = {
   sheet: {
     boxShadow: `0px -4px 16px ${colors.shadow}`,
   },
+  glow: { boxShadow: `0px 0px 20px ${colors.brand.glow}` },
+  glowSoft: { boxShadow: `0px 0px 12px ${colors.brand.glow}` },
 } as const;
 
 // Reference sizes on a 360dp-wide phone.
