@@ -1,8 +1,6 @@
-// Copying the device id and key. React Native's own Clipboard module is deprecated but still in
-// the installed development build, so no rebuild is needed; expo-clipboard replaces it at the next
-// planned native rebuild (docs/decisions.md D-046).
-import { Clipboard } from "react-native";
+// Copying the device id and key (docs/decisions.md D-046).
+import { setStringAsync } from "expo-clipboard";
 
 export function copyText(text: string): void {
-  Clipboard.setString(text);
+  void setStringAsync(text);
 }

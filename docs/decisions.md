@@ -415,6 +415,7 @@ The Activation card copies the device id and key (screens.md). `expo-clipboard` 
 module, and the development build was just rebuilt, so `src/platform/clipboard.ts` uses React
 Native's own `Clipboard` (deprecated, still in RN 0.86 and in the build). It moves to
 `expo-clipboard` at the next native rebuild that is needed anyway (M5 adds `react-native-video`).
+Done with the D-083 rebuild (2026-10-04): `expo-clipboard` 57.0.2.
 
 ### D-047 · Non-ASCII text in encrypted requests
 
@@ -1043,3 +1044,12 @@ release a waiting download (D-078 said it did).
   downloads that start afterwards.
 - A record keeps `mobileData` (the user's choice) and `wifiOnlyTask` (the rule its task started
   with), so the screens follow the running task rather than the current setting.
+
+### D-084 · Expo patch releases and expo-clipboard, with the D-083 rebuild
+
+netinfo (D-083) needs a new native build, so the changes waiting for one went into it:
+
+- the Expo SDK 57 patch releases expo-doctor reported: `expo` 57.0.26, `expo-constants` 57.0.20,
+  `expo-navigation-bar` 57.0.3, `expo-router` 57.0.24 (pinned exactly);
+- `expo-clipboard` 57.0.2 replaces React Native's deprecated `Clipboard` (closes D-046). No
+  install script is needed (D-045).

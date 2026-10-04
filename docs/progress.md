@@ -115,7 +115,7 @@ Flow 5 now reaches Parental Control through Account → Settings.
   `plugins/withInAppDownloader.js`: keeps downloads off Android's DownloadManager (D-078).
 - Tests: 445 in 37 suites (`npm test`); Jest projects "app" and "core" (D-022, D-033; core also
   covers `src/session`, `src/browse`, `src/player` and `src/downloads`).
-- `docs/decisions.md` (D-001 to D-083), `docs/parity.md` (TV → phone check), `docs/open-questions.md`, `docs/new-strings.md`.
+- `docs/decisions.md` (D-001 to D-084), `docs/parity.md` (TV → phone check), `docs/open-questions.md`, `docs/new-strings.md`.
 
 ## Running the app on the phone
 
@@ -150,8 +150,8 @@ Flow 5 now reaches Parental Control through Account → Settings.
   mobile data. netinfo is native, so **a new development build and a new preview build** are
   needed; then check on the phone: Download on mobile data (both choices), Use mobile data on a
   waiting download, Wi-Fi only turned off releasing it, and flow 9 again.
-- expo-doctor reports four Expo patch releases (expo, expo-constants, expo-navigation-bar,
-  expo-router): best updated before that new build.
+- The same rebuild carries the Expo patch releases and `expo-clipboard` (D-084); expo-doctor
+  passes 21/21.
 
 ## How to verify
 
