@@ -7,6 +7,7 @@
     "@expo-google-fonts/noto-sans-arabic": "0.4.3",
     "@gorhom/bottom-sheet": "5.2.14",
     "@kesha-antonov/react-native-background-downloader": "4.6.3",
+    "@react-native-community/netinfo": "12.0.1",
     "@shopify/flash-list": "2.0.2",
     "@tanstack/react-query": "5.104.0",
     "crypto-js": "4.2.0",

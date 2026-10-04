@@ -11,6 +11,7 @@ import {
   fileNameFor,
   isDownloadable,
   MAX_PARALLEL,
+  needsWifi,
   spaceCheck,
   storableTarget,
 } from "./rules";
@@ -65,6 +66,8 @@ export class DownloadManager {
   private records: DownloadRecord[];
   private readonly live = new Set<string>();
   private readonly listeners = new Set<() => void>();
+  /** Bumped whenever a record's task is replaced: events of the old task are ignored. */
+  private readonly generations = new Map<string, number>();
   private lastSave = 0;
   private pumping = false;
 
@@ -135,13 +138,26 @@ export class DownloadManager {
 
   // ---------- changing ----------
 
-  setWifiOnly(on: boolean): void {
+  /**
+   * Turning Wi-Fi only off also releases the downloads waiting for Wi-Fi (D-083). Turning it on
+   * applies to downloads that start afterwards.
+   */
+  async setWifiOnly(on: boolean): Promise<void> {
     this.deps.store.set(WIFI_ONLY_KEY, on ? "on" : "off");
     this.deps.transfer.setAllowMetered(!on);
     this.emit();
+    if (!on) await this.release(this.records.map((r) => r.id));
   }
 
-  add(input: NewDownload): AddResult {
+  /** D-083: this download may use mobile data although Wi-Fi only is on. */
+  async allowMobileData(id: string): Promise<void> {
+    if (!this.get(id)) return;
+    this.update(id, { mobileData: true }, true);
+    await this.release([id]);
+  }
+
+  /** `mobileData`: the user chose to download on mobile data now (D-083). */
+  add(input: NewDownload, options: { mobileData?: boolean } = {}): AddResult {
     if (!isDownloadable(input.source, input.target)) return { kind: "not_downloadable" };
     const id = downloadId(input.playlistId, input.target);
     if (this.get(id)) return { kind: "exists", id };
@@ -155,6 +171,7 @@ export class DownloadManager {
         seriesName: input.seriesName,
         poster: input.poster,
         isAdult: input.isAdult,
+        ...(options.mobileData ? { mobileData: true } : {}),
         fileName: fileNameFor(id, input.source, input.target),
         status: "queued",
         bytesDone: 0,
@@ -262,12 +279,34 @@ export class DownloadManager {
 
   // ---------- internals ----------
 
+  /**
+   * A running task keeps the Wi-Fi rule it was started with, so a Wi-Fi only task that may now use
+   * mobile data goes back to the queue; `start` replaces it with a new task.
+   */
+  private async release(ids: string[]): Promise<void> {
+    for (const id of ids) {
+      const record = this.get(id);
+      if (record?.status === "downloading" && record.wifiOnlyTask && !this.needsWifi(record))
+        this.update(id, { status: "queued" }, true);
+    }
+    await this.pump();
+  }
+
+  private needsWifi(record: DownloadRecord): boolean {
+    return needsWifi(record, this.wifiOnly());
+  }
+
   /** Returns false when the record has to keep waiting (its playlist is not loaded). */
   private async start(record: DownloadRecord): Promise<boolean> {
     if (this.live.has(record.id)) {
-      this.update(record.id, { status: "downloading" }, true);
-      await this.deps.transfer.resume(record.id);
-      return true;
+      if (!record.wifiOnlyTask || this.needsWifi(record)) {
+        this.update(record.id, { status: "downloading" }, true);
+        await this.deps.transfer.resume(record.id);
+        return true;
+      }
+      // D-083: the old task would keep waiting for Wi-Fi; a new one starts over.
+      await this.deps.transfer.stop(record.id);
+      this.live.delete(record.id);
     }
     let stream: Awaited<ReturnType<ManagerDeps["resolve"]>>;
     try {
@@ -293,6 +332,7 @@ export class DownloadManager {
         bytesDone: 0,
         bytesTotal: probe.bytes ?? 0,
         noResume: !probe.ranges,
+        wifiOnlyTask: this.needsWifi(record),
         error: undefined,
       },
       true,
@@ -305,7 +345,7 @@ export class DownloadManager {
         headers: stream.headers,
         destination: this.deps.files.path(record.fileName),
         title: record.title,
-        allowMetered: !this.wifiOnly(),
+        allowMetered: !this.needsWifi(record),
       },
       this.events(record.id),
     );
@@ -313,17 +353,23 @@ export class DownloadManager {
   }
 
   private events(id: string): TransferEvents {
+    const generation = (this.generations.get(id) ?? 0) + 1;
+    this.generations.set(id, generation);
+    const stale = () => this.generations.get(id) !== generation;
     return {
       onBegin: (bytesTotal) => {
-        if (bytesTotal > 0) this.update(id, { bytesTotal }, true);
+        if (!stale() && bytesTotal > 0) this.update(id, { bytesTotal }, true);
       },
-      onProgress: (bytesDone, bytesTotal) =>
-        this.update(id, { bytesDone, ...(bytesTotal > 0 ? { bytesTotal } : {}) }),
+      onProgress: (bytesDone, bytesTotal) => {
+        if (!stale()) this.update(id, { bytesDone, ...(bytesTotal > 0 ? { bytesTotal } : {}) });
+      },
       onDone: (bytesTotal) => {
+        if (stale()) return;
         this.finish(id, bytesTotal);
         void this.pump();
       },
       onError: (error) => {
+        if (stale()) return;
         this.fail(id, error);
         void this.pump();
       },

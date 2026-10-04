@@ -141,7 +141,7 @@ export default function SettingsScreen() {
           toggle={{
             value: wifiOnly,
             onChange: (on) => {
-              downloads().setWifiOnly(on);
+              void downloads().setWifiOnly(on);
               setWifiOnly(on);
             },
           }}

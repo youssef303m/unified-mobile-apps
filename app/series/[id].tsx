@@ -48,7 +48,11 @@ function SeriesEpisode({
       {...row}
       download={
         download
-          ? { state: ROW_STATE[download.state], onPress: download.onPress, label: download.label }
+          ? {
+              state: download.waiting ? "queued" : ROW_STATE[download.state],
+              onPress: download.onPress,
+              label: download.label,
+            }
           : undefined
       }
     />

@@ -115,7 +115,7 @@ Flow 5 now reaches Parental Control through Account → Settings.
   `plugins/withInAppDownloader.js`: keeps downloads off Android's DownloadManager (D-078).
 - Tests: 445 in 37 suites (`npm test`); Jest projects "app" and "core" (D-022, D-033; core also
   covers `src/session`, `src/browse`, `src/player` and `src/downloads`).
-- `docs/decisions.md` (D-001 to D-082), `docs/parity.md` (TV → phone check), `docs/open-questions.md`, `docs/new-strings.md`.
+- `docs/decisions.md` (D-001 to D-083), `docs/parity.md` (TV → phone check), `docs/open-questions.md`, `docs/new-strings.md`.
 
 ## Running the app on the phone
 
@@ -145,9 +145,13 @@ Flow 5 now reaches Parental Control through Account → Settings.
   Maestro suite (10/10), cold start and the 5,000-item scroll. Left: the manual checks of
   `docs/release-checklist.md` §2 (the owner's real playlists, kill-and-resume download, PiP,
   TalkBack, Arabic), search and play-to-first-frame timing (§3), then the M6 + M7 + M8 report.
-  The development build stays for fixes (M8 added no native module).
+- **Found in the retest (owner, 2026-10-04):** a download on mobile data sat at 0% with no
+  explanation. Fixed (D-083): netinfo added, a dialog on mobile data, "Waiting for Wi-Fi" with Use
+  mobile data. netinfo is native, so **a new development build and a new preview build** are
+  needed; then check on the phone: Download on mobile data (both choices), Use mobile data on a
+  waiting download, Wi-Fi only turned off releasing it, and flow 9 again.
 - expo-doctor reports four Expo patch releases (expo, expo-constants, expo-navigation-bar,
-  expo-router). Update them after the retest, then make a new build.
+  expo-router): best updated before that new build.
 
 ## How to verify
 

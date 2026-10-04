@@ -22,6 +22,11 @@ jest.mock("expo-secure-store", () => {
 jest.mock("react-native-worklets", () => jest.requireActual("react-native-worklets/src/mock"));
 jest.mock("react-native-reanimated", () => jest.requireActual("react-native-reanimated/mock"));
 
+// NetInfo ships a Jest mock (a 3G connection: metered).
+jest.mock("@react-native-community/netinfo", () =>
+  jest.requireActual("@react-native-community/netinfo/jest/netinfo-mock"),
+);
+
 // @gorhom/bottom-sheet ships a Jest mock (a sheet renders its content inline).
 jest.mock("@gorhom/bottom-sheet", () => jest.requireActual("@gorhom/bottom-sheet/mock"));
 // FlashList measures its views, which have no size in Jest; this gives them one (as the library's

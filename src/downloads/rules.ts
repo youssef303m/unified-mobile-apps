@@ -3,7 +3,7 @@
 import type { CatalogueItem, Episode, SourceType } from "@/content/types";
 import { COMPLETE_FILES, urlPath } from "@/player/streamPlan";
 
-import type { DownloadRecord, DownloadTarget } from "./types";
+import type { Connection, DownloadRecord, DownloadTarget } from "./types";
 
 /** N-03: free space must cover the file plus this margin. */
 export const SPACE_MARGIN_BYTES = 200 * 1024 * 1024;
@@ -71,6 +71,33 @@ export function spaceCheck(
 ): { ok: true } | { ok: false; neededBytes: number } {
   const neededBytes = (fileBytes ?? 0) + SPACE_MARGIN_BYTES;
   return freeBytes >= neededBytes ? { ok: true } : { ok: false, neededBytes };
+}
+
+/** N-03: the Wi-Fi only rule applies to this download (on, and mobile data not allowed for it). */
+export function needsWifi(record: DownloadRecord, wifiOnly: boolean): boolean {
+  return wifiOnly && !record.mobileData;
+}
+
+/**
+ * Why a running or queued download does not move, for the screens (docs/decisions.md D-083): no
+ * connection, or a Wi-Fi only download on mobile data. A running task keeps the rule it started
+ * with, so its own flag decides; a queued one follows the setting.
+ */
+export function waitingFor(
+  record: DownloadRecord,
+  wifiOnly: boolean,
+  connection: Connection,
+): "wifi" | "connection" | undefined {
+  if (record.status !== "downloading" && record.status !== "queued") return undefined;
+  if (connection === "none") return "connection";
+  const wifiRule =
+    record.status === "downloading" ? record.wifiOnlyTask === true : needsWifi(record, wifiOnly);
+  return connection === "metered" && wifiRule ? "wifi" : undefined;
+}
+
+/** D-083: tapping Download asks first when Wi-Fi only is on and the phone is on mobile data. */
+export function asksBeforeDownload(wifiOnly: boolean, connection: Connection): boolean {
+  return wifiOnly && connection === "metered";
 }
 
 /**

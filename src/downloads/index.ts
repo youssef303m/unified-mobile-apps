@@ -16,7 +16,13 @@ import { NativeFiles, NativeTransfer, probe } from "./native";
 import type { DownloadRecord, DownloadTarget } from "./types";
 
 export type { DownloadRecord, DownloadTarget } from "./types";
-export { groupDownloads, isDownloadable, storageUsed } from "./rules";
+export {
+  asksBeforeDownload,
+  groupDownloads,
+  isDownloadable,
+  storageUsed,
+  waitingFor,
+} from "./rules";
 
 let instance: DownloadManager | undefined;
 
@@ -133,7 +139,10 @@ async function askNotifications(): Promise<void> {
   );
 }
 
-export async function requestDownload(input: NewDownload): Promise<AddResult> {
+export async function requestDownload(
+  input: NewDownload,
+  options?: { mobileData?: boolean },
+): Promise<AddResult> {
   await askNotifications();
-  return downloads().add(input);
+  return downloads().add(input, options);
 }

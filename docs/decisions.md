@@ -935,7 +935,8 @@ format to preserve.
 - **One download at a time** (player.md §8.2 "Limits": a download takes one of the account's
   connections; new-features.md allowed 2). Playing a stream while a download runs shows a warning;
   playing a downloaded file does not.
-- **Wi-Fi only** is on by default (N-03), in Settings → Downloads, and applies to running tasks.
+- **Wi-Fi only** is on by default (N-03), in Settings → Downloads. (Corrected by D-083: the
+  library fixes the rule per task, so the setting did not reach running tasks.)
 - **Space check**: a HEAD request (or a one-byte Range GET, which many IPTV servers answer better)
   gives the size and Range support; free space must cover the file plus 200 MB. A server without
   Range is marked: the Downloads screen says an interruption starts it again.
@@ -1018,3 +1019,27 @@ states not announced. Changes:
   seek bar reads "12:03 of 45:00" and is marked disabled when the stream cannot seek.
 - Left for later (low): the EPG grid reading channels and programmes as separate lists, and the
   zap swipe having no accessibility action (the Previous and Next channel buttons do the same).
+
+### D-083 · Wi-Fi only on mobile data (found in the preview retest)
+
+The owner started a download on mobile data: it sat at 0% with no explanation and no choice until
+the phone joined Wi-Fi. Android was holding the Wi-Fi only task, and the app could not tell. Also,
+the library fixes the Wi-Fi rule when a task is created, so turning the setting off did not
+release a waiting download (D-078 said it did).
+
+- **Network state:** `@react-native-community/netinfo` 12.0.1 (the kit's tech-stack choice; a
+  TurboModule, no install script; a new development and preview build). `src/platform/connection.ts`
+  reads Android's "metered" flag, so a phone hotspot counts as mobile data. Its reachability pings
+  to a third-party URL are turned off. Offline mode (D-081) still finds out from failed requests.
+- **Tapping Download** with Wi-Fi only on and the phone on mobile data asks first (owner's choice,
+  2026-10-04): "Use mobile data" (this download only; the setting is unchanged) or "Wait for
+  Wi-Fi". Dismissing the dialog adds nothing.
+- **A download that cannot move says why:** "Waiting for Wi-Fi" or "Waiting for a connection" on
+  the movie page, the episode row and the Downloads screen. There, "Use mobile data" releases it;
+  on the movie page or an episode row a tap offers Pause or Use mobile data.
+- **Releasing a Wi-Fi only task** (Use mobile data, or the setting turned off) stops it and starts
+  a new task, from the beginning: the library cannot change the rule of a task or continue its
+  bytes in a new one. Events from the replaced task are ignored. Turning Wi-Fi only on applies to
+  downloads that start afterwards.
+- A record keeps `mobileData` (the user's choice) and `wifiOnlyTask` (the rule its task started
+  with), so the screens follow the running task rather than the current setting.

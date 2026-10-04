@@ -6,12 +6,14 @@ import type { CatalogueItem, Episode } from "@/content/types";
 
 import { DOWNLOADS_KEY, DownloadManager, type NewDownload } from "../manager";
 import {
+  asksBeforeDownload,
   downloadId,
   groupDownloads,
   isDownloadable,
   SPACE_MARGIN_BYTES,
   spaceCheck,
   storageUsed,
+  waitingFor,
 } from "../rules";
 import type {
   DownloadFiles,
@@ -379,5 +381,78 @@ describe("N-03 download manager", () => {
     const record = (status: DownloadRecord["status"], bytesDone: number, bytesTotal: number) =>
       ({ status, bytesDone, bytesTotal }) as DownloadRecord;
     expect(storageUsed([record("done", GB, GB), record("downloading", 10, GB)])).toBe(GB + 10);
+  });
+});
+
+describe("D-083 Wi-Fi only on mobile data", () => {
+  it("a download allowed on mobile data starts with metered allowed", async () => {
+    const { manager, transfer } = setup();
+    manager.add(newMovie("1"), { mobileData: true });
+    await flush();
+    expect(transfer.started[0]?.allowMetered).toBe(true);
+    expect(manager.get("p1:movie:1")).toMatchObject({ mobileData: true, wifiOnlyTask: false });
+  });
+
+  it("Use mobile data replaces the waiting Wi-Fi only task; the old task's events are ignored", async () => {
+    const { manager, transfer } = setup();
+    manager.add(newMovie("1"));
+    await flush();
+    const old = transfer.emit("p1:movie:1");
+    expect(manager.get("p1:movie:1")?.wifiOnlyTask).toBe(true);
+    await manager.allowMobileData("p1:movie:1");
+    expect(transfer.stopped).toEqual(["p1:movie:1"]);
+    expect(transfer.started.map((s) => s.allowMetered)).toEqual([false, true]);
+    old.onError("network");
+    old.onProgress(5, GB);
+    expect(manager.get("p1:movie:1")).toMatchObject({
+      status: "downloading",
+      bytesDone: 0,
+      wifiOnlyTask: false,
+    });
+    transfer.emit("p1:movie:1").onProgress(10, GB);
+    expect(manager.get("p1:movie:1")?.bytesDone).toBe(10);
+  });
+
+  it("turning Wi-Fi only off releases waiting tasks; turning it on leaves running ones", async () => {
+    const { manager, transfer } = setup();
+    manager.add(newMovie("1"));
+    await flush();
+    await manager.setWifiOnly(false);
+    expect(transfer.stopped).toEqual(["p1:movie:1"]);
+    expect(transfer.started.map((s) => s.allowMetered)).toEqual([false, true]);
+    await manager.setWifiOnly(true);
+    expect(transfer.stopped).toHaveLength(1);
+    expect(manager.get("p1:movie:1")?.status).toBe("downloading");
+  });
+
+  it("a paused Wi-Fi only task allowed on mobile data starts over when resumed", async () => {
+    const { manager, transfer } = setup();
+    manager.add(newMovie("1"));
+    await flush();
+    await manager.pause("p1:movie:1");
+    await manager.allowMobileData("p1:movie:1");
+    expect(manager.get("p1:movie:1")?.status).toBe("paused");
+    expect(transfer.stopped).toEqual([]);
+    await manager.resume("p1:movie:1");
+    expect(transfer.stopped).toEqual(["p1:movie:1"]);
+    expect(transfer.resumed).toEqual([]);
+    expect(transfer.started.map((s) => s.allowMetered)).toEqual([false, true]);
+  });
+
+  it("explains why a download does not move, and when a tap asks first", () => {
+    const base = { ...({} as DownloadRecord), bytesDone: 0, bytesTotal: 0 };
+    const queued = { ...base, status: "queued" } as DownloadRecord;
+    const running = { ...base, status: "downloading", wifiOnlyTask: true } as DownloadRecord;
+    expect(waitingFor(queued, true, "metered")).toBe("wifi");
+    expect(waitingFor({ ...queued, mobileData: true }, true, "metered")).toBeUndefined();
+    expect(waitingFor(queued, false, "metered")).toBeUndefined();
+    expect(waitingFor(queued, true, "unmetered")).toBeUndefined();
+    expect(waitingFor(queued, true, "none")).toBe("connection");
+    expect(waitingFor(running, false, "metered")).toBe("wifi");
+    expect(waitingFor({ ...running, wifiOnlyTask: false }, true, "metered")).toBeUndefined();
+    expect(waitingFor({ ...base, status: "done" } as DownloadRecord, true, "none")).toBeUndefined();
+    expect(asksBeforeDownload(true, "metered")).toBe(true);
+    expect(asksBeforeDownload(true, "unknown")).toBe(false);
+    expect(asksBeforeDownload(false, "metered")).toBe(false);
   });
 });

@@ -14,11 +14,13 @@ import {
   groupDownloads,
   storageUsed,
   useDownloads,
+  waitingFor,
   type DownloadRecord,
 } from "@/downloads";
 import type { DownloadError } from "@/downloads/types";
 import { useBrowse } from "@/hooks/useBrowse";
 import { askPin } from "@/hooks/useParental";
+import { useConnection } from "@/platform/connection";
 import { colors, layout, radius, spacing } from "@/theme/tokens";
 import { playEpisode, playMovie } from "@/utils/content";
 import { formatBytes } from "@/utils/format";
@@ -32,7 +34,15 @@ const ERROR_KEYS: Record<DownloadError, `mobile_download_error_${DownloadError}`
   unknown: "mobile_download_error_unknown",
 };
 
-function statusLine(t: ReturnType<typeof useTranslation>["t"], r: DownloadRecord): string {
+type Waiting = ReturnType<typeof waitingFor>;
+
+function statusLine(
+  t: ReturnType<typeof useTranslation>["t"],
+  r: DownloadRecord,
+  waiting: Waiting,
+): string {
+  if (waiting === "wifi") return t("mobile_download_waiting_wifi");
+  if (waiting === "connection") return t("mobile_download_waiting_network");
   switch (r.status) {
     case "done":
       return formatBytes(r.bytesTotal);
@@ -54,9 +64,11 @@ function statusLine(t: ReturnType<typeof useTranslation>["t"], r: DownloadRecord
 function DownloadRow({
   record,
   activePlaylist,
+  waiting,
 }: {
   record: DownloadRecord;
   activePlaylist?: string;
+  waiting: Waiting;
 }) {
   const { t } = useTranslation();
   const manager = downloads();
@@ -93,8 +105,16 @@ function DownloadRow({
           color={record.status === "failed" ? "danger" : "secondary"}
           testID={`download-status-${record.id}`}
         >
-          {statusLine(t, record)}
+          {statusLine(t, record, waiting)}
         </AppText>
+        {waiting === "wifi" ? (
+          <Button
+            label={t("mobile_download_use_mobile_data")}
+            onPress={() => void manager.allowMobileData(record.id)}
+            variant="ghost"
+            testID={`download-mobile-data-${record.id}`}
+          />
+        ) : null}
         {record.status === "downloading" && record.noResume ? (
           <AppText variant="caption" color="tertiary">
             {t("mobile_download_no_resume")}
@@ -155,6 +175,16 @@ export function DownloadsList() {
   const records = useDownloads();
   const ctx = useBrowse();
   const active = ctx?.catalogue.playlistId;
+  const connection = useConnection();
+  const wifiOnly = downloads().wifiOnly();
+  const row = (r: DownloadRecord) => (
+    <DownloadRow
+      key={r.id}
+      record={r}
+      activePlaylist={active}
+      waiting={waitingFor(r, wifiOnly, connection)}
+    />
+  );
   if (records.length === 0)
     return (
       <EmptyState
@@ -189,17 +219,13 @@ export function DownloadsList() {
       {movies.length ? (
         <View style={styles.section}>
           <AppText variant="h3">{t("movies")}</AppText>
-          {movies.map((r) => (
-            <DownloadRow key={r.id} record={r} activePlaylist={active} />
-          ))}
+          {movies.map((r) => row(r))}
         </View>
       ) : null}
       {series.map((group) => (
         <View key={group.seriesId} style={styles.section}>
           <AppText variant="h3">{group.name}</AppText>
-          {group.episodes.map((r) => (
-            <DownloadRow key={r.id} record={r} activePlaylist={active} />
-          ))}
+          {group.episodes.map((r) => row(r))}
         </View>
       ))}
     </ScrollView>

@@ -37,6 +37,13 @@ export interface DownloadRecord {
   error?: DownloadError;
   /** The server ignores Range: an interrupted download starts again (player.md §8.2). */
   noResume?: boolean;
+  /** The user chose to download this one on mobile data although Wi-Fi only is on. */
+  mobileData?: boolean;
+  /**
+   * Its native task was started Wi-Fi only. The library fixes that rule per task, so once mobile
+   * data is allowed the task is replaced by a new one.
+   */
+  wifiOnlyTask?: boolean;
   /** Unix milliseconds. */
   createdAt: number;
   /** Subtitle files next to the video (player.md §8.2), by language code. */
@@ -90,6 +97,9 @@ export interface DownloadFiles {
   read(fileName: string): string | undefined;
   freeBytes(): number;
 }
+
+/** The phone's connection, as far as downloads care (unknown until the first reading). */
+export type Connection = "unmetered" | "metered" | "none" | "unknown";
 
 /** What a HEAD (or a one-byte Range GET) says about the file before starting. */
 export interface Probe {
