@@ -7,9 +7,10 @@ import { maxFontSizeMultiplier } from "@/theme/typography";
 
 import { AppText } from "./AppText";
 
-// TabBar (design-system.md §5): 5 tabs with caption labels. Icons are outline when idle and filled
-// when active. A count badge (downloads, from M7) can sit on a tab. Style A (docs/decisions.md
-// D-085): a rounded top, and the active tab in red with a soft glow behind its icon.
+// TabBar (design-system.md §5): 5 tabs with caption labels. Icons stay outlines (lucide icons are
+// not drawn to be filled). A count badge (downloads, from M7) can sit on a tab. Style A
+// (docs/decisions.md D-085): a rounded top, and the active tab in red, with a slightly thicker
+// stroke and a soft glow behind its icon.
 export interface TabItem {
   key: string;
   label: string;
@@ -48,8 +49,7 @@ export function TabBar({ tabs, activeKey, onPress }: TabBarProps) {
                 <Icon
                   size={layout.iconSize}
                   color={tint}
-                  fill={active ? tint : "none"}
-                  strokeWidth={layout.iconStroke}
+                  strokeWidth={active ? layout.iconStroke + 0.5 : layout.iconStroke}
                 />
                 {badge ? (
                   <View style={styles.badge}>

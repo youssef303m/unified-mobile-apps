@@ -1081,7 +1081,8 @@ read-only; this is the deviation):
 - **Details page:** a taller backdrop (0.8 of the width) with the title over its fade, a details
   line with separators and an age pill, a full-width glowing Play pill, a red "More", round My
   List, Trailer and Share.
-- **Tab bar:** a rounded top; the active tab red with a soft glow behind its icon.
+- **Tab bar:** a rounded top; the active tab red, with a slightly thicker outline and a soft glow
+  behind its icon. Icons are never filled (owner: lucide outlines look wrong filled).
 - **Downloads:** an outlined storage card (used and free, a bar, Delete all), outlined rows with
   a red-outlined Play and round actions, no glow; titles at 13 and the status at 12.
 - EPG programme blocks keep small corners (not pills). The player keeps its own look.
