@@ -115,7 +115,7 @@ Flow 5 now reaches Parental Control through Account → Settings.
   `plugins/withInAppDownloader.js`: keeps downloads off Android's DownloadManager (D-078).
 - Tests: 455 in 39 suites (`npm test`); Jest projects "app" and "core" (D-022, D-033; core also
   covers `src/session`, `src/browse`, `src/player` and `src/downloads`).
-- `docs/decisions.md` (D-001 to D-086), `docs/parity.md` (TV → phone check), `docs/open-questions.md`, `docs/new-strings.md`.
+- `docs/decisions.md` (D-001 to D-087), `docs/parity.md` (TV → phone check), `docs/open-questions.md`, `docs/new-strings.md`.
 
 ## Running the app on the phone
 

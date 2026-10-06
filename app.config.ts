@@ -69,6 +69,8 @@ const config: ExpoConfig = {
     // provides MMKV. The patch keeps every download off Android's DownloadManager (D-078).
     ["@kesha-antonov/react-native-background-downloader", { skipMmkvDependency: true }],
     "./plugins/withInAppDownloader",
+    // Local release builds signed with the EAS keystore when credentials.json is present (D-087).
+    "./plugins/withLocalReleaseSigning",
     [
       "expo-build-properties",
       {

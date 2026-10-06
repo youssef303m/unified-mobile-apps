@@ -42,3 +42,7 @@ yarn-error.*
 
 # test output
 coverage/
+
+# EAS credentials downloaded for local release builds (passwords; D-087)
+credentials.json
+/credentials/

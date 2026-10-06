@@ -1106,3 +1106,25 @@ The owner wants the backend to tell this app from the other platforms' apps by i
   `EXPO_PUBLIC_ENABLE_FIXTURES`), so the app always uses the production backend and has no
   network switch, dev link or gallery. Per the owner's rule the agent runs nothing against
   production; the owner tests the release build by hand.
+
+### D-087 · Local release builds on this PC (owner, 2026-10-07)
+
+The EAS free queue showed about 3 hours, so the owner chose to build the release APK locally.
+EAS's own `--local` builder needs Linux or macOS; a plain Gradle build works on Windows.
+
+- **Installed** (owner's go-ahead, licences accepted on their behalf): Android command-line tools
+  in `C:\Android\cmdline-tools\latest` (Google now ships the `android` CLI; `sdkmanager` is
+  deprecated), then `android --no-metrics --sdk=C:\Android sdk install "platforms;android-36"
+"build-tools;36.0.0" "ndk;27.1.12297006" "cmake;3.22.1"` (the versions React Native 0.86 asks
+  for). JDK 17 and Platform-Tools were already there. Windows long paths are on.
+- **Signing:** the EAS keystore, so a local APK installs over the cloud-built app and matches
+  future store builds. `npx eas-cli credentials -p android` → a profile → credentials.json →
+  Download writes `credentials.json` and `credentials/android/keystore.jks` (both git-ignored).
+  `plugins/withLocalReleaseSigning.js` makes the release build type read them at build time when
+  `credentials.json` exists; the passwords are never written into `android/`. EAS cloud builds
+  never see the file and sign as before.
+- **Build:** `npx expo prebuild --platform android --no-install`, then in `android/` with
+  JAVA_HOME (Temurin 17) and `ANDROID_HOME=C:\Android`: `./gradlew assembleRelease`. The APK is
+  `android/app/build/outputs/apk/release/app-release.apk`, for all four ABIs (owner: it must run
+  everywhere). The `release` env (no fixtures) applies because a local build sets no
+  `EXPO_PUBLIC_ENABLE_FIXTURES`; a local preview build would need it set in the shell.

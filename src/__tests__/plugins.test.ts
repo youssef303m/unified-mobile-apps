@@ -1,4 +1,4 @@
-// The prebuild patches (D-066, D-078) against the installed library sources: they apply once,
+// The prebuild patches (D-066, D-078, D-087) against the installed library sources: they apply once,
 // are idempotent, and fail loudly when the code they expect is gone.
 import { readFileSync } from "fs";
 import { join } from "path";
@@ -8,6 +8,11 @@ const root = join(__dirname, "..", "..");
 const ts = require("../../plugins/withTsExtractorFlags") as { patchSource: (s: string) => string };
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const dl = require("../../plugins/withInAppDownloader") as { patchSource: (s: string) => string };
+
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const signing = require("../../plugins/withLocalReleaseSigning") as {
+  patchBuildGradle: (s: string) => string;
+};
 
 const read = (path: string) => readFileSync(join(root, "node_modules", path), "utf8");
 
@@ -31,5 +36,24 @@ describe("prebuild patches", () => {
     expect(patched).not.toContain("if (Build.VERSION.SDK_INT >= 36) {");
     expect(dl.patchSource(patched)).toBe(patched);
     expect(() => dl.patchSource("class Nothing")).toThrow(/withInAppDownloader/);
+  });
+
+  it("D-087: release builds use credentials.json when it exists, without writing passwords", () => {
+    const gradle = [
+      "android {",
+      "    buildTypes {",
+      "        release {}",
+      "    }",
+      "    packagingOptions {",
+      "    }",
+      "}",
+    ].join("\n");
+    const patched = signing.patchBuildGradle(gradle);
+    expect(patched).toContain('rootProject.file("../credentials.json")');
+    expect(patched).toContain("buildTypes.release.signingConfig signingConfigs.localRelease");
+    expect(patched.indexOf("localRelease")).toBeLessThan(patched.indexOf("packagingOptions"));
+    expect(patched).not.toMatch(/storePassword '/);
+    expect(signing.patchBuildGradle(patched)).toBe(patched);
+    expect(() => signing.patchBuildGradle("android {}")).toThrow(/withLocalReleaseSigning/);
   });
 });
