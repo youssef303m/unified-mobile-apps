@@ -121,9 +121,16 @@ name: "Flow 4 - live, guide and catch-up"
     visible: '.*Programme 1 – Café|.*Programme \d+ – Café'
     timeout: 30000
 # The list is oldest first (parity): the newest finished programme is at the bottom.
-- scrollUntilVisible:
-    element: '.*Programme 24 – Café'
-    direction: DOWN
+# Slow swipes: the bottom sheet takes Maestro's fast scroll gesture for itself.
+- repeat:
+    while:
+      notVisible: '.*Programme 24 – Café'
+    times: 15
+    commands:
+      - swipe:
+          start: 50%, 85%
+          end: 50%, 50%
+          duration: 400
 - tapOn: '.*Programme 24 – Café'
 - extendedWaitUntil:
     visible:

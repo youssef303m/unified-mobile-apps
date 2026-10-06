@@ -161,10 +161,16 @@ export function ListSheet<T>({
         data={data}
         keyExtractor={keyExtractor}
         renderItem={render}
-        contentContainerStyle={{ paddingBottom: insets.bottom + spacing.lg }}
+        // Style A rows are outlined cards: inset like the header, with a gap (D-085).
+        ItemSeparatorComponent={RowGap}
+        contentContainerStyle={[styles.list, { paddingBottom: insets.bottom + spacing.lg }]}
       />
     </BottomSheetModal>
   );
+}
+
+function RowGap() {
+  return <View style={styles.rowGap} />;
 }
 
 const styles = StyleSheet.create({
@@ -176,6 +182,8 @@ const styles = StyleSheet.create({
   handle: { backgroundColor: colors.surface[3] },
   shadow: { boxShadow: `0px -4px 16px ${colors.shadow}` },
   body: { paddingHorizontal: layout.gutter, gap: spacing.md },
+  list: { paddingHorizontal: layout.gutter },
+  rowGap: { height: spacing.sm },
   listHeader: { paddingHorizontal: layout.gutter, gap: spacing.md, paddingBottom: spacing.sm },
   title: { textAlign: "center", paddingBottom: spacing.xs },
 });

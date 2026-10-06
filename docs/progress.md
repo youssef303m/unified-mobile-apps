@@ -151,8 +151,11 @@ Flow 5 now reaches Parental Control through Account → Settings.
   needed; then check on the phone: Download on mobile data (both choices), Use mobile data on a
   waiting download, Wi-Fi only turned off releasing it, and flow 9 again.
 - **Style A (owner, 2026-10-05, D-085):** the whole app restyled after the owner picked style A
-  from a mockup page. JavaScript only: it shows in the new development build through Metro; the
-  preview build needs one more EAS build. To check on the phone, then rerun the Maestro suite.
+  from a mockup page. On the new development build (2026-10-06) every Maestro flow passed, flows
+  2, 3, 4, 6 and 7 after fixes: list sheet rows inset (style A cards), the guide retries its scroll
+  to now after layout (it stopped short on a slow phone), and flows 4, 6, 7 updated (titles without
+  the year; slow swipes in the catch-up sheet). A long single run of the debug build still slows
+  down; the preview build needs one more EAS build, then the full suite in one run.
 - The same rebuild carries the Expo patch releases and `expo-clipboard` (D-084); expo-doctor
   passes 21/21.
 

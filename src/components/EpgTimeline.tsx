@@ -24,6 +24,8 @@ import { Skeleton } from "./Skeleton";
 // archive, and sticky channel logos. Only the rows near the screen render their programmes
 // (R-096: ±10 rows around the visible ones load and render).
 export const HOUR_WIDTH = 240;
+/** How long the scroll to now keeps retrying while the grid lays out. */
+const PENDING_MS = 1500;
 export const ROW_HEIGHT = artwork.channelLogo.height + spacing.lg;
 const LOGO_COLUMN = 88;
 const RULER_HEIGHT = 32;
@@ -176,6 +178,8 @@ export function EpgTimeline(props: EpgTimelineProps) {
   const { channels, day, now, onVisibleRows } = props;
   const header = useRef<ScrollView>(null);
   const body = useRef<ScrollView>(null);
+  // The x to show once the grid can scroll that far (a scroll before layout stops short).
+  const pending = useRef<{ x: number; animated: boolean } | null>(null);
   const [span, setSpan] = useState({ first: 0, last: WINDOW_ROWS * 2 });
   const dayStart = day.getTime();
   const nowMs = now.getTime();
@@ -197,13 +201,23 @@ export function EpgTimeline(props: EpgTimelineProps) {
   };
 
   // "Now" (and opening the guide on today): the current time, a little in from the start edge.
+  // Tried at once and again when the grid's size is known: on a slow phone the first try can
+  // come before layout and stop short.
+  const applyPending = () => {
+    const target = pending.current;
+    if (!target) return;
+    scrollX(body, target.x, target.animated);
+    scrollX(header, target.x, false);
+  };
   useEffect(() => {
-    const x = today ? nowX - HOUR_WIDTH / 2 : 0;
-    const timer = setTimeout(() => {
-      scrollX(body, x, props.scrollToNow > 0);
-      scrollX(header, x, false);
-    }, 50);
-    return () => clearTimeout(timer);
+    pending.current = { x: today ? nowX - HOUR_WIDTH / 2 : 0, animated: props.scrollToNow > 0 };
+    const timer = setTimeout(applyPending, 50);
+    // Later size changes (rows loading) must not pull the grid back after the user scrolls.
+    const done = setTimeout(() => (pending.current = null), PENDING_MS);
+    return () => {
+      clearTimeout(timer);
+      clearTimeout(done);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.scrollToNow, dayStart]);
 
@@ -254,6 +268,8 @@ export function EpgTimeline(props: EpgTimelineProps) {
         <ScrollView
           ref={body}
           horizontal
+          onLayout={applyPending}
+          onContentSizeChange={applyPending}
           onScroll={onHorizontal}
           scrollEventThrottle={16}
           showsHorizontalScrollIndicator={false}

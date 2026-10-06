@@ -3,6 +3,7 @@
 # Home hero is the newest movie with artwork of the loaded playlist (N-01).
 appId: com.iboplayer.mobile
 name: "Flow 7 - switch playlist"
+# Style A (D-085): a hero title shows without its trailing year; posters keep it in their label.
 ---
 - runFlow:
     file: common/fresh-start.yaml
@@ -16,7 +17,7 @@ name: "Flow 7 - switch playlist"
 # The Xtream playlist loads first; Home shows its newest movie.
 - assertVisible: ".*Fixture Xtream.*"
 - extendedWaitUntil:
-    visible: 'EN - Fixture Movie 1 \(2000\)'
+    visible: 'EN - Fixture Movie 1( \(2000\))?'
     timeout: 60000
 
 # Switch to the M3U playlist from the Home playlist chip.
@@ -36,9 +37,9 @@ name: "Flow 7 - switch playlist"
     timeout: 60000
 - assertVisible: ".*Fixture M3U.*"
 - extendedWaitUntil:
-    visible: 'Dune Part Two \(2024\)'
+    visible: 'Dune Part Two( \(2024\))?'
     timeout: 60000
-- assertNotVisible: 'EN - Fixture Movie 1 \(2000\)'
+- assertNotVisible: 'EN - Fixture Movie 1( \(2000\))?'
 
 # The new selection survives a restart (R-020 automatic: the saved playlist).
 - stopApp

@@ -60,7 +60,10 @@ name: "Flow 6 - search"
     visible:
       id: "movie-details"
     timeout: 15000
-- assertVisible: 'EN - Fixture Movie 12 \(2011\)'
+# Style A (D-085): the year moves from the title to the details line.
+- assertVisible:
+    id: "details-title"
+    text: "EN - Fixture Movie 12"
 - back
 
 # A series.
