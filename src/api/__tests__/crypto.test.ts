@@ -14,7 +14,7 @@ import {
   toUrlSafe,
 } from "../crypto";
 import { ParseError } from "../errors";
-import { macFromAndroidId, macFromRandomBytes } from "../ibo/identity";
+import { macFromAndroidId, macFromRandomBytes, withPlatformPrefix } from "../ibo/identity";
 import type { RandomSource } from "../random";
 
 /** Replays a fixed sequence of draws. */
@@ -136,16 +136,19 @@ describe("u_id (§4.1)", () => {
   });
 });
 
-describe("device id (§2.1, Q-device-id)", () => {
-  it("vector: SHA-256 of the namespaced ANDROID_ID, locally administered, uppercase", () => {
-    expect(macFromAndroidId("dd96dec43fb81c97")).toBe("3A:E3:1A:46:33:A5");
+describe("device id (§2.1, Q-device-id, D-086)", () => {
+  it("vector: SHA-256 of the namespaced ANDROID_ID, uppercase, the first two characters RN", () => {
+    expect(macFromAndroidId("dd96dec43fb81c97")).toBe("RN:E3:1A:46:33:A5");
   });
 
-  it("always has a locally administered, unicast first octet", () => {
-    for (const id of ["a", "b", "0000000000000000", "ffffffffffffffff"]) {
-      const first = parseInt(macFromAndroidId(id).slice(0, 2), 16);
-      expect(first & 0x03).toBe(0x02);
-    }
-    expect(macFromRandomBytes(Uint8Array.from([0xff, 1, 2, 3, 4, 5]))).toBe("FE:01:02:03:04:05");
+  it("always starts with RN, then five hex octets", () => {
+    for (const id of ["a", "b", "0000000000000000", "ffffffffffffffff"])
+      expect(macFromAndroidId(id)).toMatch(/^RN(:[0-9A-F]{2}){5}$/);
+    expect(macFromRandomBytes(Uint8Array.from([0xff, 1, 2, 3, 4, 5]))).toBe("RN:01:02:03:04:05");
+  });
+
+  it("adds the prefix to an id saved before D-086, once", () => {
+    expect(withPlatformPrefix("3A:E3:1A:46:33:A5")).toBe("RN:E3:1A:46:33:A5");
+    expect(withPlatformPrefix("RN:E3:1A:46:33:A5")).toBe("RN:E3:1A:46:33:A5");
   });
 });

@@ -1086,3 +1086,23 @@ read-only; this is the deviation):
 - **Downloads:** an outlined storage card (used and free, a bar, Delete all), outlined rows with
   a red-outlined Play and round actions, no glow; titles at 13 and the status at 12.
 - EPG programme blocks keep small corners (not pills). The player keeps its own look.
+
+### D-086 · The device id starts with "RN"; a release APK on the real backend (owner, 2026-10-06)
+
+The owner wants the backend to tell this app from the other platforms' apps by its device id.
+
+- **Every device id starts with "RN"** in place of its first two characters (the first octet):
+  `3A:E3:1A:46:33:A5` becomes `RN:E3:1A:46:33:A5`. The other five octets are unchanged, so an id
+  saved before this change keeps them and only gains the prefix on the next launch
+  (`withPlatformPrefix`, idempotent). The phone shows up on the backend as a new device. All
+  network modes use it, so the exact id is tested on the dev backend before production.
+- The Stalker portal MAC (`00:1A:79:…`, D-042) is separate and unchanged.
+- **Backend:** the app's API calls do not check the format, but the website's QR "add playlist"
+  form (`qrAddPlaylist`, `FrontendController.js`) only accepted hex octets and would refuse
+  `RN:…`. The fix accepts `rn` as the first octet: `/^([0-9a-f]{2}|rn)([:\-][0-9a-f]{2}){5}$/i`.
+  It was made in the local dev backend copy only (not committed, the owner's rule); the owner
+  applies it to production.
+- **Release APK:** a new EAS profile `release` (internal distribution, APK, no
+  `EXPO_PUBLIC_ENABLE_FIXTURES`), so the app always uses the production backend and has no
+  network switch, dev link or gallery. Per the owner's rule the agent runs nothing against
+  production; the owner tests the release build by hand.

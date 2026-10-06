@@ -4,7 +4,7 @@
 import * as Application from "expo-application";
 import * as SecureStore from "expo-secure-store";
 
-import { macFromAndroidId, macFromRandomBytes } from "@/api/ibo/identity";
+import { macFromAndroidId, macFromRandomBytes, withPlatformPrefix } from "@/api/ibo/identity";
 import { randomBytes } from "@/api/random";
 
 const DEVICE_MAC_KEY = "device_mac";
@@ -20,7 +20,12 @@ function readAndroidId(): string | null {
 
 export function getOrCreateDeviceMac(): string {
   const stored = SecureStore.getItem(DEVICE_MAC_KEY);
-  if (stored) return stored;
+  if (stored) {
+    // An id saved before D-086 gets the RN prefix; the rest of it stays the same.
+    const prefixed = withPlatformPrefix(stored);
+    if (prefixed !== stored) SecureStore.setItem(DEVICE_MAC_KEY, prefixed);
+    return prefixed;
+  }
   const androidId = readAndroidId();
   const mac = androidId ? macFromAndroidId(androidId) : macFromRandomBytes(randomBytes(6));
   SecureStore.setItem(DEVICE_MAC_KEY, mac);

@@ -20,6 +20,12 @@
         "EXPO_PUBLIC_ENABLE_FIXTURES": "1"
       }
     },
+    "release": {
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      }
+    },
     "production": {
       "autoIncrement": true,
       "android": {

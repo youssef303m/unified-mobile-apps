@@ -115,7 +115,7 @@ Flow 5 now reaches Parental Control through Account → Settings.
   `plugins/withInAppDownloader.js`: keeps downloads off Android's DownloadManager (D-078).
 - Tests: 455 in 39 suites (`npm test`); Jest projects "app" and "core" (D-022, D-033; core also
   covers `src/session`, `src/browse`, `src/player` and `src/downloads`).
-- `docs/decisions.md` (D-001 to D-085), `docs/parity.md` (TV → phone check), `docs/open-questions.md`, `docs/new-strings.md`.
+- `docs/decisions.md` (D-001 to D-086), `docs/parity.md` (TV → phone check), `docs/open-questions.md`, `docs/new-strings.md`.
 
 ## Running the app on the phone
 
@@ -158,6 +158,11 @@ Flow 5 now reaches Parental Control through Account → Settings.
   down; the preview build needs one more EAS build, then the full suite in one run.
 - The same rebuild carries the Expo patch releases and `expo-clipboard` (D-084); expo-doctor
   passes 21/21.
+
+- **Release APK on the real backend (owner, 2026-10-06, D-086):** device ids start with RN; EAS
+  profile `release`. The owner tests it against production by hand (the agent runs nothing
+  there). Still to do: check the RN id on the dev backend once the phone is back on USB; the
+  owner applies the website MAC check fix (left uncommitted in the dev backend copy) to production.
 
 ## How to verify
 
