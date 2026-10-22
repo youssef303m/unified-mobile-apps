@@ -1,4 +1,11 @@
-import { useCallback, useEffect, useRef, type ReactElement, type ReactNode } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  type ReactElement,
+  type ReactNode,
+} from "react";
 import { BackHandler, StyleSheet, View, useWindowDimensions } from "react-native";
 import {
   BottomSheetBackdrop,
@@ -29,9 +36,13 @@ interface BaseProps {
 
 const MAX_HEIGHT = 0.9;
 
-function useModal(visible: boolean, presentKey?: string | number) {
+function useModal(visible: boolean, onClose: () => void, presentKey?: string | number) {
   const ref = useRef<BottomSheetModal>(null);
   const presented = useRef(false);
+  const onCloseRef = useRef(onClose);
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  });
   useEffect(() => {
     if (visible) {
       presented.current = true;
@@ -43,6 +54,25 @@ function useModal(visible: boolean, presentKey?: string | number) {
       ref.current?.dismiss();
     }
   }, [visible, presentKey]);
+  // The library calls this when the sheet is gone: after our own dismiss as well as a swipe, a tap
+  // on the backdrop or Back. It is no longer presented then. Dismissing it again (the parent
+  // hides it next) would leave the library waiting for a close animation that never comes, and
+  // the sheet would never open again.
+  const onDismiss = useCallback(() => {
+    presented.current = false;
+    onCloseRef.current();
+  }, []);
+  // A sheet lives in the app-wide provider, not in its screen: leaving the screen with the sheet
+  // open must dismiss it, or it stays on top of whatever comes next. A layout effect, because the
+  // sheet's ref is still set while this cleanup runs.
+  useLayoutEffect(
+    () => () => {
+      if (!presented.current) return;
+      presented.current = false;
+      ref.current?.dismiss();
+    },
+    [],
+  );
   // Android Back closes an open sheet first (its onDismiss then calls onClose).
   useEffect(() => {
     if (!visible) return;
@@ -52,7 +82,7 @@ function useModal(visible: boolean, presentKey?: string | number) {
     });
     return () => sub.remove();
   }, [visible]);
-  return ref;
+  return { ref, onDismiss };
 }
 
 function Backdrop(props: BottomSheetBackdropProps) {
@@ -86,7 +116,7 @@ export function Sheet({
   scrollable = false,
   maxWidth,
 }: SheetProps) {
-  const ref = useModal(visible, presentKey);
+  const { ref, onDismiss } = useModal(visible, onClose, presentKey);
   const { width, height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const side = maxWidth && width > maxWidth ? (width - maxWidth) / 2 : 0;
@@ -99,7 +129,7 @@ export function Sheet({
   return (
     <BottomSheetModal
       ref={ref}
-      onDismiss={onClose}
+      onDismiss={onDismiss}
       enableDynamicSizing={!scrollable}
       snapPoints={scrollable ? SCROLL_SNAP : undefined}
       maxDynamicContentSize={height * MAX_HEIGHT}
@@ -139,13 +169,13 @@ export function ListSheet<T>({
   renderItem,
   header,
 }: ListSheetProps<T>) {
-  const ref = useModal(visible);
+  const { ref, onDismiss } = useModal(visible, onClose);
   const insets = useSafeAreaInsets();
   const render = useCallback(({ item }: { item: T }) => renderItem(item), [renderItem]);
   return (
     <BottomSheetModal
       ref={ref}
-      onDismiss={onClose}
+      onDismiss={onDismiss}
       snapPoints={LIST_SNAP}
       enableDynamicSizing={false}
       backdropComponent={Backdrop}
