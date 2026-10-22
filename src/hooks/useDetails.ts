@@ -1,6 +1,7 @@
 // Movie and Series details data: the item, provider info (R-057), TMDB artwork (R-122) and the
 // saved positions (R-075, R-076).
 import { useQuery } from "@tanstack/react-query";
+import { useSyncExternalStore } from "react";
 
 import {
   episodeResumes,
@@ -17,10 +18,15 @@ import { networkMode } from "@/session/network";
 import { readSettings } from "@/storage/settings";
 import { kvStore } from "@/storage/kv";
 
-import { browseKey, need } from "./queryClient";
+import { browseKey, getBrowseVersion, need, subscribeBrowseVersion } from "./queryClient";
 import { useBrowse } from "./useBrowse";
 
 const NONE = "none";
+
+/** Re-renders the page when the lists change, so saved positions are read again. */
+function useBrowseVersion(): void {
+  useSyncExternalStore(subscribeBrowseVersion, getBrowseVersion);
+}
 
 export function useItem(kind: ContentKind, itemId: string) {
   const ctx = useBrowse();
@@ -47,6 +53,7 @@ export function useMovieDetails(kind: ContentKind, itemId: string) {
     enabled: ctx !== undefined && found?.kind === "movie",
     queryFn: ({ signal }) => movieInfo(need(ctx), need(found), signal),
   });
+  useBrowseVersion();
   const resume = found && ctx ? movieResume(ctx, found) : undefined;
   return { item, info, resume };
 }
@@ -62,6 +69,7 @@ export function useSeriesDetails(itemId: string) {
     queryFn: ({ signal }) => seriesDetails(need(ctx), need(found), signal),
   });
   const seasons = details.data?.kind === "ok" ? details.data.details.seasons : [];
+  useBrowseVersion();
   const playTarget = found && ctx ? seriesPlayTarget(ctx, found, seasons) : undefined;
   const resumes = found && ctx ? episodeResumes(ctx, found) : {};
   return { item, details, playTarget, resumes };
