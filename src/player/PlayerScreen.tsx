@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { StyleSheet, View, useWindowDimensions } from "react-native";
+import { AppState, StyleSheet, View, useWindowDimensions } from "react-native";
 import { router } from "expo-router";
 import Video, { SelectedTrackType, type VideoRef } from "react-native-video";
 import { Film, LockOpen } from "lucide-react-native";
@@ -51,6 +51,7 @@ import {
   previousInQueue,
   type PlayQueue,
 } from "./queue";
+import { RemotePause } from "./remotePause";
 import { localStream, resolveVod } from "./resolve";
 import { SeekAccumulator, SeekController } from "./seek";
 import { usePlayerStore, vodKey, type StartAt, type VodItem, type VodRequest } from "./session";
@@ -254,6 +255,33 @@ function VodPlayer({ request }: { request: VodRequest }) {
     [tracker, pid],
   );
 
+  // ---------- media session: earbuds, the notification, PiP (D-088) ----------
+  const sessionState = useRef({ ui, playback, setUi, backgroundAudio, inPip });
+  useEffect(() => {
+    sessionState.current = { ui, playback, setUi, backgroundAudio, inPip };
+  });
+  const remote = useRef<RemotePause | undefined>(undefined);
+  useEffect(() => {
+    const follower = new RemotePause({
+      notAPause: () => {
+        const now = sessionState.current;
+        // Without background audio the library pauses the video when the app leaves and plays
+        // it again on return; that is not the user's pause.
+        const left = AppState.currentState !== "active" && !now.backgroundAudio && !now.inPip;
+        return left || now.playback.buffering || now.playback.status !== "playing";
+      },
+      paused: (paused) => {
+        const now = sessionState.current;
+        // The resume prompt waits for an answer: the video stays paused under it.
+        if (now.ui.prompt === "shown") {
+          if (!paused) videoRef.current?.pause();
+        } else if (now.ui.paused !== paused) now.setUi({ paused });
+      },
+    });
+    remote.current = follower;
+    return () => follower.cancel();
+  }, [key]);
+
   // ---------- controls auto-hide (10 s, parity) ----------
   const [tick, setTick] = useState(0);
   const poke = () => setTick((n) => n + 1);
@@ -310,6 +338,7 @@ function VodPlayer({ request }: { request: VodRequest }) {
   };
 
   const onEnd = () => {
+    remote.current?.cancel();
     if (!endDebouncer.current.accept()) return;
     latest.current = { position: playback.duration, duration: playback.duration };
     const action = endAction(autoPlay && !ui.cardDismissed, next !== undefined);
@@ -419,12 +448,16 @@ function VodPlayer({ request }: { request: VodRequest }) {
                 : { type: SelectedTrackType.DISABLED }
             }
             playInBackground={backgroundAudio}
-            showNotificationControls={backgroundAudio}
+            // Always: the media session is what earbud and headset buttons reach (D-088).
+            showNotificationControls
             enterPictureInPictureOnLeave={!ui.paused && playback.started}
             onPictureInPictureStatusChanged={(e) => setInPip(e.isActive)}
             onLoad={onLoad}
             onReadyForDisplay={playback.handlers.onReadyForDisplay}
-            onPlaybackStateChanged={playback.handlers.onPlaybackStateChanged}
+            onPlaybackStateChanged={(e) => {
+              playback.handlers.onPlaybackStateChanged(e);
+              remote.current?.playing(e.isPlaying);
+            }}
             onProgress={onProgress}
             onBuffer={playback.handlers.onBuffer}
             onError={playback.handlers.onError}

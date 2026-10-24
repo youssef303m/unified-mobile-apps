@@ -1128,3 +1128,27 @@ EAS's own `--local` builder needs Linux or macOS; a plain Gradle build works on 
   `android/app/build/outputs/apk/release/app-release.apk`, for all four ABIs (owner: it must run
   everywhere). The `release` env (no fixtures) applies because a local build sets no
   `EXPO_PUBLIC_ENABLE_FIXTURES`; a local preview build would need it set in the shell.
+
+### D-088 · Earbud and headset play/pause: the media session is always on (owner, 2026-10-24)
+
+The owner reported that earbud play/pause did nothing in the player. Headset buttons reach an app
+through its media session, and react-native-video 6.19 only creates one with
+`showNotificationControls`, which the player tied to Background audio (off by default, N-06).
+
+- **The owner's choices:** the movie and series player always has the media session, so a media
+  notification shows while it plays (a deviation from N-06, which ties the notification to
+  Background audio). Background audio still decides whether playback goes on after the app
+  leaves. Live TV and the Live tab's preview are unchanged (the preview has no pause control and
+  would show a notification while browsing). Play/pause only: no next/previous wiring; the
+  library's session also accepts seek commands, which earbuds rarely send.
+- **The screen follows the native state** (`src/player/remotePause.ts`): the session, the
+  notification, the PiP window and an audio-focus loss pause the player natively, without
+  changing the `paused` prop. `isPlaying=true` sets the screen to playing at once.
+  `isPlaying=false` counts as a pause only if the player is still stopped 500 ms later and not
+  buffering, reloading or failed, because ExoPlayer reports that playback stopped before it
+  reports buffering or an error, and a seek stops it briefly. A stop while the app is in the
+  background with Background audio off and no PiP is the library's own (it resumes on return), so
+  it is ignored. Under the resume prompt a native play is paused again.
+- JS only: `enableNotificationControls` was already on in `app.config.ts`, so no rebuild is
+  needed. To check on the phone: earbuds, the notification and PiP, with Background audio on and
+  off.

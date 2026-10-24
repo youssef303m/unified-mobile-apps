@@ -24,6 +24,7 @@ import {
 } from "../playerSettings";
 import { ProgressTracker } from "../progress";
 import { endAction, EndDebouncer, nextEpisodeCard, nextInQueue, previousInQueue } from "../queue";
+import { REMOTE_PAUSE_SETTLE_MS, RemotePause } from "../remotePause";
 import { clampSeek, SeekAccumulator, SeekController, seekLanded } from "../seek";
 import { playbackPlan, sourceType, urlPath } from "../streamPlan";
 import {
@@ -544,6 +545,51 @@ describe("§5.2 / §7 player settings", () => {
     expect(backgroundAudioOn(store)).toBe(false);
     setBackgroundAudio(store, true);
     expect(backgroundAudioOn(store)).toBe(true);
+  });
+});
+
+describe("D-088 media session play and pause", () => {
+  function harness() {
+    jest.useFakeTimers();
+    const events: boolean[] = [];
+    const facts = { notAPause: false };
+    const r = new RemotePause({
+      notAPause: () => facts.notAPause,
+      paused: (p) => events.push(p),
+    });
+    return { r, events, facts };
+  }
+  afterEach(() => jest.useRealTimers());
+
+  it("follows a play at once and a pause once the player is still stopped", () => {
+    const { r, events } = harness();
+    r.playing(true);
+    expect(events).toEqual([false]);
+    r.playing(false);
+    jest.advanceTimersByTime(REMOTE_PAUSE_SETTLE_MS - 1);
+    expect(events).toEqual([false]);
+    jest.advanceTimersByTime(1);
+    expect(events).toEqual([false, true]);
+  });
+
+  it("ignores a short stop (a seek) and a stop for another reason (buffering, the app left)", () => {
+    const { r, events, facts } = harness();
+    r.playing(false);
+    r.playing(true);
+    jest.advanceTimersByTime(REMOTE_PAUSE_SETTLE_MS);
+    expect(events).toEqual([false]);
+    facts.notAPause = true;
+    r.playing(false);
+    jest.advanceTimersByTime(REMOTE_PAUSE_SETTLE_MS);
+    expect(events).toEqual([false]);
+  });
+
+  it("does not pause after the video ended or the item changed", () => {
+    const { r, events } = harness();
+    r.playing(false);
+    r.cancel();
+    jest.advanceTimersByTime(REMOTE_PAUSE_SETTLE_MS);
+    expect(events).toEqual([]);
   });
 });
 
